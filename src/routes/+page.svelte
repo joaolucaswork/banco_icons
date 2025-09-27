@@ -8,16 +8,14 @@ import {
   CardTitle,
 } from "$lib/components/ui/card";
 import { Button } from "$lib/components/ui/button";
-import { Slider } from "$lib/components/ui/slider";
-import { Label } from "$lib/components/ui/label";
 import { Badge } from "$lib/components/ui/badge";
 import { ScrollArea } from "$lib/components/ui/scroll-area";
 import { Skeleton } from "$lib/components/ui/skeleton";
-import SimpleColorPicker from "$lib/components/SimpleColorPicker.svelte";
 import CodeBlock from "$lib/components/CodeBlock.svelte";
+import BottomControlBar from "$lib/components/BottomControlBar.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
 import { getBankDisplayName, copyToClipboard } from "$lib/utils/svg-utils.js";
-import { Copy, RotateCcw, Palette, Maximize2 } from "lucide-svelte";
+import { Copy, Palette } from "lucide-svelte";
 import { toast } from "svelte-sonner";
 
 let sizeValue = $state([120]);
@@ -44,6 +42,10 @@ function handleLogoSelect(logoName) {
 function handleReset() {
   svgStore.reset();
   sizeValue = [120];
+}
+
+function handleSizeChange(newValue) {
+  sizeValue = newValue;
 }
 
 async function handleCopySvg() {
@@ -77,7 +79,7 @@ onMount(() => {
   />
 </svelte:head>
 
-<div class="min-h-screen bg-background">
+<div class="min-h-screen bg-background pb-20">
   <div class="container mx-auto px-4 py-8">
     <!-- Header -->
     <div class="mb-8">
@@ -137,54 +139,6 @@ onMount(() => {
           </CardContent>
         </Card>
 
-        <!-- Size Control -->
-        <Card class="border-border bg-card">
-          <CardHeader class="pb-3">
-            <CardTitle
-              class="flex items-center gap-2 text-lg text-card-foreground"
-            >
-              <Maximize2 class="h-4 w-4" />
-              Size Control
-            </CardTitle>
-          </CardHeader>
-          <CardContent class="space-y-4">
-            <div>
-              <Label class="mb-2 block text-sm font-medium text-foreground"
-                >Size: {sizeValue[0]}px</Label
-              >
-              <Slider
-                bind:value={sizeValue}
-                min={16}
-                max={400}
-                step={1}
-                class="w-full"
-              />
-            </div>
-            <div class="flex justify-between text-xs text-muted-foreground">
-              <span>16px</span>
-              <span>400px</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <!-- Color Control -->
-        <Card class="border-border bg-card">
-          <CardHeader class="pb-3">
-            <CardTitle
-              class="flex items-center gap-2 text-lg text-card-foreground"
-            >
-              <Palette class="h-4 w-4" />
-              Color Control
-            </CardTitle>
-          </CardHeader>
-          <CardContent class="">
-            <SimpleColorPicker
-              value={storeData.color}
-              onValueChange={handleColorChange}
-            />
-          </CardContent>
-        </Card>
-
         <!-- Actions -->
         <Card class="border-border bg-card">
           <CardHeader class="pb-3">
@@ -198,16 +152,6 @@ onMount(() => {
             >
               <Copy class="mr-2 h-4 w-4" />
               Copy SVG Code
-            </Button>
-
-            <Button
-              variant="outline"
-              onclick={handleReset}
-              class="w-full border-border hover:bg-accent hover:text-accent-foreground"
-              disabled={false}
-            >
-              <RotateCcw class="mr-2 h-4 w-4" />
-              Reset to Defaults
             </Button>
           </CardContent>
         </Card>
@@ -300,3 +244,12 @@ onMount(() => {
     </div>
   </div>
 </div>
+
+<!-- Bottom Control Bar -->
+<BottomControlBar
+  sizeValue={sizeValue}
+  color={storeData.color}
+  onSizeChange={handleSizeChange}
+  onColorChange={handleColorChange}
+  onReset={handleReset}
+/>
