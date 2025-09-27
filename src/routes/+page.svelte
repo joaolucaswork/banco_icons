@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "$lib/components/ui/card";
 import { Button } from "$lib/components/ui/button";
-import { Badge } from "$lib/components/ui/badge";
 import { ScrollArea } from "$lib/components/ui/scroll-area";
 import { Skeleton } from "$lib/components/ui/skeleton";
 import CodeBlock from "$lib/components/CodeBlock.svelte";
@@ -171,53 +170,74 @@ onMount(() => {
                   Real-time preview of your customized SVG icon
                 </CardDescription>
               </div>
-              {#if storeData.selectedLogo}
-                <Badge
-                  variant="secondary"
-                  class="bg-secondary text-secondary-foreground"
-                  href=""
-                >
-                  Export: {sizeValue[0]}px
-                </Badge>
-              {/if}
             </div>
           </CardHeader>
           <CardContent class="">
-            <div
-              class="flex min-h-[300px] items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50"
-            >
-              {#if storeData.loading}
-                <div class="text-center">
-                  <Skeleton class="mx-auto mb-4 h-32 w-32" />
-                  <p class="text-muted-foreground">Loading logos...</p>
-                </div>
-              {:else if storeData.error}
-                <div class="text-center text-destructive">
-                  <p class="font-medium">Error loading logos</p>
-                  <p class="text-sm">{storeData.error}</p>
-                </div>
-              {:else if previewSvg}
-                <div class="text-center">
-                  <div
-                    class="inline-block rounded-lg border border-border bg-background p-4 shadow-sm transition-shadow hover:shadow-md"
-                  >
+            <div class="relative">
+              <div
+                class="flex min-h-[250px] items-center justify-center rounded-lg border border-border bg-muted/50 lg:min-h-[280px]"
+              >
+                <!-- Flyout Info Panel -->
+                {#if storeData.selectedLogo}
+                  <div class="absolute top-4 left-4 z-10">
+                    <div class="min-w-[120px] space-y-3 p-3">
+                      <!-- Preview Size Info -->
+                      <div class="space-y-1">
+                        <div class="text-sm text-muted-foreground">Preview</div>
+                        <div class="text-sm font-medium text-foreground">
+                          120px
+                        </div>
+                      </div>
+
+                      <!-- Export Size Info -->
+                      <div class="space-y-1">
+                        <div class="text-sm text-muted-foreground">Export</div>
+                        <div class="text-sm font-medium text-foreground">
+                          {sizeValue[0]}px
+                        </div>
+                      </div>
+
+                      <!-- Color Info -->
+                      <div class="space-y-1">
+                        <div class="text-sm text-muted-foreground">Color</div>
+                        <div class="flex items-center gap-2">
+                          <div
+                            class="h-3 w-3 rounded border border-border"
+                            style="background-color: {storeData.color}"
+                          ></div>
+                          <span class="font-mono text-sm text-foreground"
+                            >{storeData.color}</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {/if}
+
+                {#if storeData.loading}
+                  <div class="text-center">
+                    <Skeleton class="mx-auto mb-4 h-32 w-32" />
+                    <p class="text-muted-foreground">Loading logos...</p>
+                  </div>
+                {:else if storeData.error}
+                  <div class="text-center text-destructive">
+                    <p class="font-medium">Error loading logos</p>
+                    <p class="text-sm">{storeData.error}</p>
+                  </div>
+                {:else if previewSvg}
+                  <div class="text-center">
                     {@html previewSvg}
                   </div>
-                  <div class="mt-4 text-sm text-muted-foreground">
-                    <p>
-                      Preview: 120px | Export: {sizeValue[0]}px | Color: {storeData.color}
+                {:else}
+                  <div class="text-center text-muted-foreground">
+                    <Palette class="mx-auto mb-4 h-16 w-16 opacity-50" />
+                    <p class="font-medium">No logo selected</p>
+                    <p class="text-sm">
+                      Choose a bank logo from the sidebar to get started
                     </p>
                   </div>
-                </div>
-              {:else}
-                <div class="text-center text-muted-foreground">
-                  <Palette class="mx-auto mb-4 h-16 w-16 opacity-50" />
-                  <p class="font-medium">No logo selected</p>
-                  <p class="text-sm">
-                    Choose a bank logo from the sidebar to get started
-                  </p>
-                </div>
-              {/if}
+                {/if}
+              </div>
             </div>
           </CardContent>
         </Card>
