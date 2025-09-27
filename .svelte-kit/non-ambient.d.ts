@@ -27,16 +27,17 @@ export {};
 
 declare module "$app/types" {
 	export interface AppTypes {
-		RouteId(): "/" | "/style-guide";
+		RouteId(): "/" | "/icon-controller" | "/style-guide";
 		RouteParams(): {
 			
 		};
 		LayoutParams(): {
 			"/": Record<string, never>;
+			"/icon-controller": Record<string, never>;
 			"/style-guide": Record<string, never>
 		};
-		Pathname(): "/" | "/style-guide" | "/style-guide/";
+		Pathname(): "/" | "/icon-controller" | "/icon-controller/" | "/style-guide" | "/style-guide/";
 		ResolvedPathname(): `${"" | `/${string}`}${ReturnType<AppTypes['Pathname']>}`;
-		Asset(): "/favicon.svg" | string & {};
+		Asset(): "/favicon.svg" | "/logos_bancos/.DS_Store" | "/logos_bancos/agora-investimentos.svg" | "/logos_bancos/banco-bradesco.svg" | "/logos_bancos/banco-brasil.svg" | "/logos_bancos/banco-itau.svg" | "/logos_bancos/btg-pactual.svg" | "/logos_bancos/caixa-economica.svg" | "/logos_bancos/index.ts" | "/logos_bancos/xp-investimentos.svg" | string & {};
 	}
 }
