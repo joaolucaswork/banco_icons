@@ -94,7 +94,7 @@ onMount(() => {
         <Card class="border-border bg-card">
           <CardHeader class="pb-3">
             <CardTitle class="text-lg text-card-foreground"
-              >Selecionar Logo</CardTitle
+              >Instituições</CardTitle
             >
           </CardHeader>
           <CardContent class="">
@@ -109,18 +109,20 @@ onMount(() => {
                 <div class="space-y-2">
                   {#each storeData.logos.keys() as logoName}
                     <Button
-                      variant={storeData.selectedLogo === logoName ? "default" : "outline"}
-                      class="h-auto w-full justify-start p-3 text-left {storeData.selectedLogo === logoName ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-accent hover:text-accent-foreground'}"
+                      variant="outline"
+                      class="h-auto w-full justify-start p-1 text-left {storeData.selectedLogo === logoName ? 'bg-white/10 hover:bg-white/20' : 'hover:bg-accent hover:text-accent-foreground'}"
                       disabled={false}
                       onclick={() => handleLogoSelect(logoName)}
                     >
-                      <div class="flex items-center gap-3">
-                        <div class="h-6 w-6 flex-shrink-0">
+                      <div class="flex items-center gap-2">
+                        <div
+                          class="flex h-8 w-8 flex-shrink-0 items-center justify-center"
+                        >
                           {#if storeData.logos.has(logoName)}
-                            {@html storeData.logos.get(logoName).replace(/width="[^"]*"/, 'width="24"').replace(/height="[^"]*"/, 'height="24"')}
+                            {@html storeData.logos.get(logoName).replace(/width="[^"]*"/, 'width="32"').replace(/height="[^"]*"/, 'height="32"')}
                           {/if}
                         </div>
-                        <span class="text-sm font-medium"
+                        <span class="text-sm leading-tight font-medium"
                           >{getBankDisplayName(logoName)}</span
                         >
                       </div>
