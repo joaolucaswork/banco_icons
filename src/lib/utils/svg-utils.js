@@ -22,11 +22,11 @@ export async function loadSvgContent(filename) {
   try {
     const response = await fetch(`/logos_bancos/${filename}.svg`);
     if (!response.ok) {
-      throw new Error(`Failed to load SVG: ${filename}`);
+      throw new Error(`Falha ao carregar SVG: ${filename}`);
     }
     return await response.text();
   } catch (error) {
-    console.error("Error loading SVG:", error);
+    console.error("Erro ao carregar SVG:", error);
     return null;
   }
 }
@@ -162,7 +162,7 @@ export function formatSvgContent(svgContent) {
 
     return formatted;
   } catch (error) {
-    console.error("Error formatting SVG:", error);
+    console.error("Erro ao formatar SVG:", error);
     return svgContent;
   }
 }
@@ -176,13 +176,13 @@ export async function copyToClipboard(text) {
   try {
     // Check if text is valid
     if (!text || typeof text !== "string") {
-      console.error("Invalid text to copy:", typeof text, text);
+      console.error("Texto inválido para copiar:", typeof text, text);
       return false;
     }
 
     // Check if clipboard API is available
     if (!navigator.clipboard) {
-      console.error("Clipboard API not available");
+      console.error("API da área de transferência não disponível");
       // Fallback to older method
       try {
         const textArea = document.createElement("textarea");
@@ -193,7 +193,7 @@ export async function copyToClipboard(text) {
         document.body.removeChild(textArea);
         return true;
       } catch (fallbackError) {
-        console.error("Fallback copy method failed:", fallbackError);
+        console.error("Método de cópia alternativo falhou:", fallbackError);
         return false;
       }
     }
@@ -201,7 +201,7 @@ export async function copyToClipboard(text) {
     await navigator.clipboard.writeText(text);
     return true;
   } catch (error) {
-    console.error("Failed to copy to clipboard:", error);
+    console.error("Falha ao copiar para área de transferência:", error);
     return false;
   }
 }

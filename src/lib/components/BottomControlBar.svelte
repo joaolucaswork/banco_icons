@@ -92,7 +92,7 @@ function handleReset() {
             >
               <span
                 class="text-sm font-medium whitespace-nowrap text-foreground"
-                >Size</span
+                >Tamanho</span
               >
               <div class="w-24">
                 <Slider
@@ -116,7 +116,7 @@ function handleReset() {
             >
               <span
                 class="text-sm font-medium whitespace-nowrap text-foreground"
-                >Color</span
+                >Cor</span
               >
               <Popover bind:open={isPopoverOpen}>
                 <PopoverTrigger class="">
@@ -124,10 +124,10 @@ function handleReset() {
                     variant="outline"
                     class="h-8 w-8 rounded-full border-2 border-border p-0 hover:border-border/80"
                     style="background-color: {color}"
-                    aria-label="Select color"
+                    aria-label="Selecionar cor"
                     disabled={false}
                   >
-                    <span class="sr-only">Current color: {color}</span>
+                    <span class="sr-only">Cor atual: {color}</span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent class="w-64 p-4" side="top" portalProps={{}}>
@@ -137,7 +137,7 @@ function handleReset() {
                       <Label
                         class="mb-2 block text-sm font-medium text-popover-foreground"
                       >
-                        Preset Colors
+                        Cores Predefinidas
                       </Label>
                       <div class="grid grid-cols-6 gap-2">
                         {#each colorPalette as paletteColor}
@@ -146,7 +146,7 @@ function handleReset() {
                             class="h-8 w-8 rounded border-2 border-border transition-colors hover:border-border/80 focus:ring-2 focus:ring-ring focus:ring-offset-1 focus:outline-none"
                             style="background-color: {paletteColor}"
                             onclick={() => handleColorSelect(paletteColor)}
-                            aria-label="Select color {paletteColor}"
+                            aria-label="Selecionar cor {paletteColor}"
                           >
                             {#if paletteColor === color}
                               <div
@@ -168,7 +168,7 @@ function handleReset() {
                         for="custom-color"
                         class="mb-2 block text-sm font-medium text-popover-foreground"
                       >
-                        Custom Color
+                        Cor Personalizada
                       </Label>
                       <div class="flex gap-2">
                         <Input
@@ -184,7 +184,7 @@ function handleReset() {
                           bind:value={customColor}
                           onchange={handleCustomColorChange}
                           class="h-10 w-10 cursor-pointer rounded border border-border"
-                          aria-label="Color picker"
+                          aria-label="Seletor de cor"
                         />
                       </div>
                     </div>
@@ -195,7 +195,7 @@ function handleReset() {
                       class="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                       disabled={false}
                     >
-                      Apply Color
+                      Aplicar Cor
                     </Button>
                   </div>
                 </PopoverContent>
@@ -217,7 +217,7 @@ function handleReset() {
             onkeydown={(e) => e.key === 'Enter' && handleReset()}
           >
             <RotateCcw class="h-4 w-4" />
-            <span class="text-sm font-medium text-foreground">Reset</span>
+            <span class="text-sm font-medium text-foreground">Redefinir</span>
           </div>
         </div>
       </div>

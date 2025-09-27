@@ -91,8 +91,8 @@ export const svgStore = {
         svgData.selectedLogo = BANK_LOGOS[0];
       }
     } catch (error) {
-      console.error("Error loading logos:", error);
-      svgData.error = "Failed to load SVG logos";
+      console.error("Erro ao carregar logos:", error);
+      svgData.error = "Falha ao carregar logos SVG";
     } finally {
       svgData.loading = false;
     }

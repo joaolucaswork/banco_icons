@@ -3,7 +3,6 @@ import { onMount } from "svelte";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "$lib/components/ui/card";
@@ -49,16 +48,16 @@ function handleSizeChange(newValue) {
 
 async function handleCopySvg() {
   if (formattedSvg) {
-    console.log("Copying formatted SVG:", typeof formattedSvg, formattedSvg);
+    console.log("Copiando SVG formatado:", typeof formattedSvg, formattedSvg);
     const success = await copyToClipboard(formattedSvg);
     if (success) {
-      toast.success("SVG code copied to clipboard!");
+      toast.success("Código SVG copiado para a área de transferência!");
     } else {
-      toast.error("Failed to copy SVG code. Please try again.");
+      toast.error("Falha ao copiar código SVG. Tente novamente.");
     }
   } else {
-    console.log("No formattedSvg available");
-    toast.error("No SVG code available to copy.");
+    console.log("Nenhum formattedSvg disponível");
+    toast.error("Nenhum código SVG disponível para copiar.");
   }
 }
 
@@ -71,10 +70,10 @@ onMount(() => {
 </script>
 
 <svelte:head>
-  <title>SVG Icon Controller - Banco Icons</title>
+  <title>Controlador de Ícones SVG - Banco Icons</title>
   <meta
     name="description"
-    content="Control the size and colors of SVG bank icons with real-time preview"
+    content="Controle o tamanho e cores de ícones SVG de bancos com visualização em tempo real"
   />
 </svelte:head>
 
@@ -83,11 +82,8 @@ onMount(() => {
     <!-- Header -->
     <div class="mb-8">
       <h1 class="mb-2 text-3xl font-bold text-foreground">
-        SVG Icon Controller
+        Controlador de Ícones SVG
       </h1>
-      <p class="text-muted-foreground">
-        Customize bank logos with real-time size and color controls
-      </p>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
@@ -97,10 +93,7 @@ onMount(() => {
         <Card class="border-border bg-card">
           <CardHeader class="pb-3">
             <CardTitle class="text-lg text-card-foreground"
-              >Select Logo</CardTitle
-            >
-            <CardDescription class="text-muted-foreground"
-              >Choose a bank logo to customize</CardDescription
+              >Selecionar Logo</CardTitle
             >
           </CardHeader>
           <CardContent class="">
@@ -141,7 +134,7 @@ onMount(() => {
         <!-- Actions -->
         <Card class="border-border bg-card">
           <CardHeader class="pb-3">
-            <CardTitle class="text-lg text-card-foreground">Actions</CardTitle>
+            <CardTitle class="text-lg text-card-foreground">Ações</CardTitle>
           </CardHeader>
           <CardContent class="space-y-3">
             <Button
@@ -150,7 +143,7 @@ onMount(() => {
               disabled={!formattedSvg}
             >
               <Copy class="mr-2 h-4 w-4" />
-              Copy SVG Code
+              Copiar Código SVG
             </Button>
           </CardContent>
         </Card>
@@ -164,11 +157,8 @@ onMount(() => {
             <div class="flex items-center justify-between">
               <div>
                 <CardTitle class="text-xl text-card-foreground">
-                  {storeData.selectedLogo ? getBankDisplayName(storeData.selectedLogo) : 'Select a Logo'}
+                  {storeData.selectedLogo ? getBankDisplayName(storeData.selectedLogo) : 'Selecionar um Logo'}
                 </CardTitle>
-                <CardDescription class="text-muted-foreground">
-                  Real-time preview of your customized SVG icon
-                </CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -183,7 +173,9 @@ onMount(() => {
                     <div class="min-w-[120px] space-y-3 p-3">
                       <!-- Preview Size Info -->
                       <div class="space-y-1">
-                        <div class="text-sm text-muted-foreground">Preview</div>
+                        <div class="text-sm text-muted-foreground">
+                          Visualização
+                        </div>
                         <div class="text-sm font-medium text-foreground">
                           120px
                         </div>
@@ -191,7 +183,9 @@ onMount(() => {
 
                       <!-- Export Size Info -->
                       <div class="space-y-1">
-                        <div class="text-sm text-muted-foreground">Export</div>
+                        <div class="text-sm text-muted-foreground">
+                          Exportar
+                        </div>
                         <div class="text-sm font-medium text-foreground">
                           {sizeValue[0]}px
                         </div>
@@ -199,7 +193,7 @@ onMount(() => {
 
                       <!-- Color Info -->
                       <div class="space-y-1">
-                        <div class="text-sm text-muted-foreground">Color</div>
+                        <div class="text-sm text-muted-foreground">Cor</div>
                         <div class="flex items-center gap-2">
                           <div
                             class="h-3 w-3 rounded border border-border"
@@ -217,11 +211,11 @@ onMount(() => {
                 {#if storeData.loading}
                   <div class="text-center">
                     <Skeleton class="mx-auto mb-4 h-32 w-32" />
-                    <p class="text-muted-foreground">Loading logos...</p>
+                    <p class="text-muted-foreground">Carregando logos...</p>
                   </div>
                 {:else if storeData.error}
                   <div class="text-center text-destructive">
-                    <p class="font-medium">Error loading logos</p>
+                    <p class="font-medium">Erro ao carregar logos</p>
                     <p class="text-sm">{storeData.error}</p>
                   </div>
                 {:else if previewSvg}
@@ -231,9 +225,9 @@ onMount(() => {
                 {:else}
                   <div class="text-center text-muted-foreground">
                     <Palette class="mx-auto mb-4 h-16 w-16 opacity-50" />
-                    <p class="font-medium">No logo selected</p>
+                    <p class="font-medium">Nenhum logo selecionado</p>
                     <p class="text-sm">
-                      Choose a bank logo from the sidebar to get started
+                      Escolha um logo de banco na barra lateral para começar
                     </p>
                   </div>
                 {/if}
@@ -247,17 +241,14 @@ onMount(() => {
           <Card class="border-border bg-card">
             <CardHeader class="">
               <CardTitle class="text-xl text-card-foreground"
-                >SVG Code</CardTitle
+                >Código SVG</CardTitle
               >
-              <CardDescription class="text-muted-foreground">
-                Copy this code to use the customized SVG in your projects
-              </CardDescription>
             </CardHeader>
             <CardContent class="">
               <CodeBlock
                 code={formattedSvg}
                 language="xml"
-                title="Customized SVG"
+                title="SVG Personalizado"
               />
             </CardContent>
           </Card>

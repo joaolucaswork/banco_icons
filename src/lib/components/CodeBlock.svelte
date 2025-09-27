@@ -4,14 +4,14 @@ import { copyToClipboard } from "$lib/utils/svg-utils.js";
 import { Copy } from "lucide-svelte";
 import { toast } from "svelte-sonner";
 
-let { code = "", language = "xml", title = "Code" } = $props();
+let { code = "", language = "xml", title = "Código" } = $props();
 
 async function handleCopy() {
   const success = await copyToClipboard(code);
   if (success) {
-    toast.success("Code copied to clipboard!");
+    toast.success("Código copiado para a área de transferência!");
   } else {
-    toast.error("Failed to copy code. Please try again.");
+    toast.error("Falha ao copiar código. Tente novamente.");
   }
 }
 
@@ -66,7 +66,7 @@ let highlightedCode = $derived.by(() => {
       disabled={!code}
     >
       <Copy class="mr-1 h-4 w-4" />
-      Copy
+      Copiar
     </Button>
   </div>
 
@@ -81,7 +81,7 @@ let highlightedCode = $derived.by(() => {
       <div
         class="absolute inset-0 flex items-center justify-center bg-muted/75"
       >
-        <p class="text-sm text-muted-foreground">No code to display</p>
+        <p class="text-sm text-muted-foreground">Nenhum código para exibir</p>
       </div>
     {/if}
   </div>
