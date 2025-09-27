@@ -1,1 +1,403 @@
-node_modules
+# =============================================================================
+# GITIGNORE ABRANGENTE PARA PROJETOS WEB
+# =============================================================================
+
+# =============================================================================
+# DEPENDÊNCIAS E PACOTES
+# =============================================================================
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Package manager lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+
+# Package manager cache
+.npm
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+.pnpm-store/
+
+# =============================================================================
+# ARQUIVOS DE BUILD E DISTRIBUIÇÃO
+# =============================================================================
+
+# Build outputs
+build/
+dist/
+.output/
+.vercel/
+.netlify/
+.firebase/
+
+# SvelteKit specific
+.svelte-kit/
+.svelte/
+
+# Vite specific
+.vite/
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Next.js specific
+.next/
+out/
+
+# Nuxt.js specific
+.nuxt/
+.nitro/
+
+# Astro specific
+.astro/
+
+# Static site generators
+public/build/
+static/build/
+
+# =============================================================================
+# ARQUIVOS DE AMBIENTE E CONFIGURAÇÃO SENSÍVEL
+# =============================================================================
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.env.test
+.env.*.local
+
+# Configuration files with sensitive data
+config/local.json
+config/production.json
+config/development.json
+.config/
+secrets.json
+credentials.json
+
+# API keys and tokens
+.api-keys
+.tokens
+.secrets
+
+# =============================================================================
+# ARQUIVOS TEMPORÁRIOS E DE SISTEMA
+# =============================================================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.AppleDouble
+.LSOverride
+Icon?
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# ARQUIVOS DE CACHE DE IDEs E EDITORES
+# =============================================================================
+
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# WebStorm / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# =============================================================================
+# LOGS E ARQUIVOS DE DEBUG
+# =============================================================================
+
+# Log files
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+.nyc_output/
+
+# Debug files
+debug/
+*.debug
+.vscode/launch.json
+
+# Profiling
+*.prof
+*.heapsnapshot
+
+# =============================================================================
+# ARQUIVOS ESPECÍFICOS DO PROJETO
+# =============================================================================
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+*~
+
+# Temporary files
+temp/
+tmp/
+.temp/
+.tmp/
+
+# Test files and coverage
+test-results/
+coverage/
+.coverage/
+junit.xml
+.jest/
+.vitest/
+
+# Storybook
+storybook-static/
+.storybook/build/
+
+# Documentation builds
+docs/build/
+.docusaurus/
+
+# =============================================================================
+# FERRAMENTAS DE DESENVOLVIMENTO
+# =============================================================================
+
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettiercache
+
+# Stylelint cache
+.stylelintcache
+
+# TypeScript cache
+*.tsbuildinfo
+.tscache/
+
+# Babel cache
+.babel-cache/
+
+# Webpack cache
+.webpack/
+
+# Parcel cache
+.parcel-cache/
+
+# Rollup cache
+.rollup.cache/
+
+# Turbo cache
+.turbo/
+
+# =============================================================================
+# BANCOS DE DADOS E ARQUIVOS DE DADOS
+# =============================================================================
+
+# SQLite
+*.sqlite
+*.sqlite3
+*.db
+
+# Database dumps
+*.sql
+*.dump
+
+# Local database files
+database.json
+db.json
+data.json
+
+# =============================================================================
+# CERTIFICADOS E CHAVES
+# =============================================================================
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+
+# SSH keys
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# =============================================================================
+# ARQUIVOS DE MÍDIA GRANDES
+# =============================================================================
+
+# Large media files (uncomment if needed)
+# *.mp4
+# *.avi
+# *.mov
+# *.wmv
+# *.flv
+# *.webm
+# *.mkv
+# *.m4v
+# *.3gp
+# *.3g2
+# *.rm
+# *.swf
+# *.flv
+
+# =============================================================================
+# ARQUIVOS ESPECÍFICOS DE FRAMEWORKS
+# =============================================================================
+
+# Svelte
+.svelte-kit/
+.svelte/
+
+# React
+.react/
+
+# Vue
+.vue/
+
+# Angular
+.angular/
+.ng_build/
+.ng_pkg_build/
+
+# Gatsby
+.cache/
+public/
+
+# Gridsome
+.gridsome/
+
+# =============================================================================
+# FERRAMENTAS DE DEPLOY E CI/CD
+# =============================================================================
+
+# Vercel
+.vercel/
+
+# Netlify
+.netlify/
+
+# Firebase
+.firebase/
+.firebaserc
+firebase-debug.log
+
+# Heroku
+.heroku/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# GitHub Actions (keep workflows but ignore logs)
+.github/workflows/*.log
+
+# =============================================================================
+# ARQUIVOS DIVERSOS
+# =============================================================================
+
+# Zip files
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Editor directories and files
+.history/
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# =============================================================================
+# PROJETO ESPECÍFICO
+# =============================================================================
+
+# Adicione aqui arquivos específicos do seu projeto
+# exemplo:
+# config/local.js
+# uploads/
+# storage/
