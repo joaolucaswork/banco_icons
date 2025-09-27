@@ -10,7 +10,7 @@ import {
 } from "../utils/svg-utils.js";
 
 // Default settings
-const DEFAULT_SIZE = 120;
+const DEFAULT_SIZE = 24;
 const DEFAULT_COLOR = "#000000";
 
 // Create reactive state
@@ -24,6 +24,17 @@ let svgData = $state({
 });
 
 // Computed values
+// Preview SVG - always shows at 120px for consistent display
+let previewSvg = $derived.by(() => {
+  if (!svgData.selectedLogo || !svgData.logos.has(svgData.selectedLogo)) {
+    return null;
+  }
+
+  const originalSvg = svgData.logos.get(svgData.selectedLogo);
+  return applySvgModifications(originalSvg, 120, svgData.color);
+});
+
+// Export SVG - uses the actual size value from slider
 let modifiedSvg = $derived.by(() => {
   if (!svgData.selectedLogo || !svgData.logos.has(svgData.selectedLogo)) {
     return null;
@@ -43,6 +54,9 @@ export const svgStore = {
   // Getters
   get data() {
     return svgData;
+  },
+  get previewSvg() {
+    return previewSvg;
   },
   get modifiedSvg() {
     return modifiedSvg;
@@ -93,7 +107,7 @@ export const svgStore = {
 
   // Update size
   setSize(newSize) {
-    const size = Math.max(16, Math.min(500, Number(newSize)));
+    const size = Math.max(24, Math.min(256, Number(newSize)));
     svgData.size = size;
   },
 

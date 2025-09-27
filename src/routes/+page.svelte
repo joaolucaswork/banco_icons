@@ -18,12 +18,12 @@ import { getBankDisplayName, copyToClipboard } from "$lib/utils/svg-utils.js";
 import { Copy, Palette } from "lucide-svelte";
 import { toast } from "svelte-sonner";
 
-let sizeValue = $state([120]);
+let sizeValue = $state([24]);
 let showCode = $state(true);
 
 // Reactive values from store
 let storeData = $derived(svgStore.data);
-let modifiedSvg = $derived(svgStore.modifiedSvg);
+let previewSvg = $derived(svgStore.previewSvg);
 let formattedSvg = $derived(svgStore.formattedSvg);
 
 // Update store when slider changes
@@ -41,7 +41,7 @@ function handleLogoSelect(logoName) {
 
 function handleReset() {
   svgStore.reset();
-  sizeValue = [120];
+  sizeValue = [24];
 }
 
 function handleSizeChange(newValue) {
@@ -177,7 +177,7 @@ onMount(() => {
                   class="bg-secondary text-secondary-foreground"
                   href=""
                 >
-                  {sizeValue[0]}px × {sizeValue[0]}px
+                  Export: {sizeValue[0]}px
                 </Badge>
               {/if}
             </div>
@@ -196,15 +196,17 @@ onMount(() => {
                   <p class="font-medium">Error loading logos</p>
                   <p class="text-sm">{storeData.error}</p>
                 </div>
-              {:else if modifiedSvg}
+              {:else if previewSvg}
                 <div class="text-center">
                   <div
                     class="inline-block rounded-lg border border-border bg-background p-4 shadow-sm transition-shadow hover:shadow-md"
                   >
-                    {@html modifiedSvg}
+                    {@html previewSvg}
                   </div>
                   <div class="mt-4 text-sm text-muted-foreground">
-                    <p>Size: {sizeValue[0]}px | Color: {storeData.color}</p>
+                    <p>
+                      Preview: 120px | Export: {sizeValue[0]}px | Color: {storeData.color}
+                    </p>
                   </div>
                 </div>
               {:else}
