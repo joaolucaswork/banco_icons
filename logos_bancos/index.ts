@@ -100,7 +100,7 @@ export function getBankLogo(bankName: string): string | null {
 
   // Try case-insensitive match
   const normalizedName = Object.keys(bankLogos).find(
-    (key) => key.toLowerCase() === bankName.toLowerCase()
+    (key) => key.toLowerCase() === bankName.toLowerCase(),
   );
 
   if (normalizedName) {

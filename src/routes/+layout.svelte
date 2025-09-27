@@ -1,7 +1,9 @@
 <script>
-	import '../app.css';
-	
-	let { children } = $props();
+import "../app.css";
+
+let { children } = $props();
 </script>
 
-{@render children()}
+<div class="dark min-h-screen">
+  {@render children()}
+</div>
