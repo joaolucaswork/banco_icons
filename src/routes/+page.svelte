@@ -11,6 +11,7 @@ import { ScrollArea } from "$lib/components/ui/scroll-area";
 import { Skeleton } from "$lib/components/ui/skeleton";
 import CodeBlock from "$lib/components/CodeBlock.svelte";
 import BottomControlBar from "$lib/components/BottomControlBar.svelte";
+import BrandingTooltip from "$lib/components/BrandingTooltip.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
 import { getBankDisplayName, copyToClipboard } from "$lib/utils/svg-utils.js";
 import { Copy, Palette } from "lucide-svelte";
@@ -167,6 +168,9 @@ onMount(() => {
               <div
                 class="flex min-h-[250px] items-center justify-center rounded-lg border border-border bg-muted/50 lg:min-h-[280px]"
               >
+                <!-- Branding Tooltip -->
+                <BrandingTooltip />
+
                 <!-- Flyout Info Panel -->
                 {#if storeData.selectedLogo}
                   <div class="absolute top-4 left-4 z-10">
