@@ -11,7 +11,7 @@ import { ScrollArea } from "$lib/components/ui/scroll-area";
 import { Skeleton } from "$lib/components/ui/skeleton";
 import CodeBlock from "$lib/components/CodeBlock.svelte";
 import BottomControlBar from "$lib/components/BottomControlBar.svelte";
-import BrandingTooltip from "$lib/components/BrandingTooltip.svelte";
+import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
 import { getBankDisplayName, copyToClipboard } from "$lib/utils/svg-utils.js";
 import { Copy, Palette } from "lucide-svelte";
@@ -152,69 +152,66 @@ onMount(() => {
 
       <!-- Main Content Area -->
       <div class="space-y-6 lg:col-span-3">
-        <!-- Icon Display -->
+        <!-- Unified Preview Area -->
         <Card class="border-border bg-card">
           <CardHeader class="">
-            <div class="flex items-center justify-between">
-              <div>
+            <div class="flex items-start gap-4">
+              <!-- Left side: Title and Info -->
+              <div class="flex-1 space-y-2">
                 <CardTitle class="text-xl text-card-foreground">
                   {storeData.selectedLogo ? getBankDisplayName(storeData.selectedLogo) : 'Selecionar um Logo'}
                 </CardTitle>
+
+                <!-- Information Panel - Below title -->
+                {#if storeData.selectedLogo}
+                  <div class="flex flex-wrap gap-6 text-sm">
+                    <!-- Preview Size Info -->
+                    <div class="flex items-center gap-2">
+                      <span class="text-muted-foreground">Visualização:</span>
+                      <span class="font-medium text-foreground">120px</span>
+                    </div>
+
+                    <!-- Export Size Info -->
+                    <div class="flex items-center gap-2">
+                      <span class="text-muted-foreground">Exportar:</span>
+                      <span class="font-medium text-foreground"
+                        >{sizeValue[0]}px</span
+                      >
+                    </div>
+
+                    <!-- Color Info -->
+                    <div class="flex items-center gap-2">
+                      <span class="text-muted-foreground">Cor:</span>
+                      <div class="flex items-center gap-1.5">
+                        <div
+                          class="h-3 w-3 rounded border border-border"
+                          style="background-color: {storeData.color}"
+                        ></div>
+                        <span class="font-mono font-medium text-foreground"
+                          >{storeData.color}</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                {/if}
               </div>
             </div>
           </CardHeader>
           <CardContent class="">
             <div class="relative">
+              <!-- Compact Preview Container -->
               <div
-                class="flex min-h-[250px] items-center justify-center rounded-lg border border-border bg-muted/50 lg:min-h-[280px]"
+                class="flex min-h-[180px] items-center justify-center rounded-lg border border-border bg-muted/50 lg:min-h-[200px]"
               >
-                <!-- Branding Tooltip -->
-                <BrandingTooltip />
-
-                <!-- Flyout Info Panel -->
+                <!-- Warning Icon - Inside preview, top right -->
                 {#if storeData.selectedLogo}
-                  <div class="absolute top-4 left-4 z-10">
-                    <div class="min-w-[120px] space-y-3 p-3">
-                      <!-- Preview Size Info -->
-                      <div class="space-y-1">
-                        <div class="text-sm text-muted-foreground">
-                          Visualização
-                        </div>
-                        <div class="text-sm font-medium text-foreground">
-                          120px
-                        </div>
-                      </div>
-
-                      <!-- Export Size Info -->
-                      <div class="space-y-1">
-                        <div class="text-sm text-muted-foreground">
-                          Exportar
-                        </div>
-                        <div class="text-sm font-medium text-foreground">
-                          {sizeValue[0]}px
-                        </div>
-                      </div>
-
-                      <!-- Color Info -->
-                      <div class="space-y-1">
-                        <div class="text-sm text-muted-foreground">Cor</div>
-                        <div class="flex items-center gap-2">
-                          <div
-                            class="h-3 w-3 rounded border border-border"
-                            style="background-color: {storeData.color}"
-                          ></div>
-                          <span class="font-mono text-sm text-foreground"
-                            >{storeData.color}</span
-                          >
-                        </div>
-                      </div>
-                    </div>
+                  <div class="absolute top-3 right-3 z-10">
+                    <BrandingGuidelinesDialog />
                   </div>
                 {/if}
-
                 {#if storeData.loading}
                   <div class="text-center">
-                    <Skeleton class="mx-auto mb-4 h-32 w-32" />
+                    <Skeleton class="mx-auto mb-4 h-24 w-24" />
                     <p class="text-muted-foreground">Carregando logos...</p>
                   </div>
                 {:else if storeData.error}
@@ -228,8 +225,8 @@ onMount(() => {
                   </div>
                 {:else}
                   <div class="text-center text-muted-foreground">
-                    <Palette class="mx-auto mb-4 h-16 w-16 opacity-50" />
-                    <p class="font-medium">Nenhum logo selecionado</p>
+                    <Palette class="mx-auto mb-4 h-20 w-20 opacity-50" />
+                    <p class="text-lg font-medium">Nenhum logo selecionado</p>
                     <p class="text-sm">
                       Escolha um logo de banco na barra lateral para começar
                     </p>
