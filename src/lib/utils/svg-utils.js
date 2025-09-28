@@ -1,8 +1,11 @@
 /**
  * SVG utility functions for loading, parsing, and manipulating SVG icons
+ * Este módulo centraliza todas as operações relacionadas a SVG no projeto,
+ * incluindo carregamento, parsing, modificações e formatação de ícones bancários
  */
 
-// List of available SVG bank logos
+// Lista de logos bancários disponíveis no diretório /logos_bancos
+// Cada entrada corresponde a um arquivo SVG específico
 export const BANK_LOGOS = [
   "agora-investimentos",
   "banco-bradesco",
@@ -14,16 +17,27 @@ export const BANK_LOGOS = [
 ];
 
 /**
- * Load SVG content from the logos_bancos directory
- * @param {string} filename - The SVG filename without extension
- * @returns {Promise<string>} The SVG content as string
+ * Carrega o conteúdo SVG do diretório logos_bancos
+ * Faz uma requisição HTTP para buscar o arquivo SVG e retorna seu conteúdo como string
+ *
+ * @param {string} filename - Nome do arquivo SVG sem a extensão (.svg)
+ * @returns {Promise<string>} O conteúdo SVG como string, ou null em caso de erro
+ *
+ * @example
+ * const svgContent = await loadSvgContent('banco-itau');
+ * // Retorna o conteúdo do arquivo /logos_bancos/banco-itau.svg
  */
 export async function loadSvgContent(filename) {
   try {
+    // Faz requisição para o arquivo SVG no diretório público
     const response = await fetch(`/logos_bancos/${filename}.svg`);
+
+    // Verifica se a requisição foi bem-sucedida
     if (!response.ok) {
       throw new Error(`Falha ao carregar SVG: ${filename}`);
     }
+
+    // Retorna o conteúdo do arquivo como texto
     return await response.text();
   } catch (error) {
     console.error("Erro ao carregar SVG:", error);
@@ -32,89 +46,128 @@ export async function loadSvgContent(filename) {
 }
 
 /**
- * Parse SVG string and extract key attributes
- * @param {string} svgContent - The SVG content as string
- * @returns {Object} Parsed SVG data
+ * Faz o parsing do conteúdo SVG e extrai atributos essenciais
+ * Utiliza DOMParser para converter string SVG em elemento DOM manipulável
+ *
+ * @param {string} svgContent - Conteúdo SVG como string
+ * @returns {Object|null} Dados do SVG parseado com propriedades extraídas, ou null se inválido
+ *
+ * @example
+ * const parsed = parseSvgContent('<svg width="100" height="100">...</svg>');
+ * // Retorna: { element: SVGElement, width: "100", height: "100", viewBox: "0 0 240 240", originalContent: "..." }
  */
 export function parseSvgContent(svgContent) {
+  // Cria um parser DOM para processar o conteúdo SVG
   const parser = new DOMParser();
+
+  // Converte a string SVG em documento XML
   const doc = parser.parseFromString(svgContent, "image/svg+xml");
+
+  // Busca o elemento SVG raiz no documento
   const svgElement = doc.querySelector("svg");
 
+  // Retorna null se não encontrar elemento SVG válido
   if (!svgElement) {
     return null;
   }
 
+  // Retorna objeto com dados extraídos do SVG
   return {
-    element: svgElement,
-    width: svgElement.getAttribute("width") || "240",
-    height: svgElement.getAttribute("height") || "240",
-    viewBox: svgElement.getAttribute("viewBox") || "0 0 240 240",
-    originalContent: svgContent,
+    element: svgElement, // Elemento DOM do SVG
+    width: svgElement.getAttribute("width") || "240", // Largura (padrão: 240px)
+    height: svgElement.getAttribute("height") || "240", // Altura (padrão: 240px)
+    viewBox: svgElement.getAttribute("viewBox") || "0 0 240 240", // ViewBox (padrão: 240x240)
+    originalContent: svgContent, // Conteúdo original preservado
   };
 }
 
 /**
- * Apply size modifications to SVG
- * @param {string} svgContent - Original SVG content
- * @param {number} size - New size in pixels
- * @returns {string} Modified SVG content
+ * Aplica modificações de tamanho ao SVG
+ * Modifica os atributos width e height do elemento SVG raiz
+ *
+ * @param {string} svgContent - Conteúdo SVG original
+ * @param {number} size - Novo tamanho em pixels (aplicado tanto para largura quanto altura)
+ * @returns {string} Conteúdo SVG modificado com novo tamanho
+ *
+ * @example
+ * const resizedSvg = applySizeToSvg(originalSvg, 64);
+ * // Retorna SVG com width="64" height="64"
  */
 export function applySizeToSvg(svgContent, size) {
+  // Parse do conteúdo SVG para manipulação DOM
   const parser = new DOMParser();
   const doc = parser.parseFromString(svgContent, "image/svg+xml");
   const svgElement = doc.querySelector("svg");
 
+  // Retorna conteúdo original se não encontrar elemento SVG
   if (!svgElement) return svgContent;
 
+  // Define novos atributos de tamanho (quadrado: width = height)
   svgElement.setAttribute("width", size.toString());
   svgElement.setAttribute("height", size.toString());
 
+  // Serializa o documento modificado de volta para string
   return new XMLSerializer().serializeToString(doc);
 }
 
 /**
- * Apply color modifications to SVG
- * @param {string} svgContent - Original SVG content
- * @param {string} color - New color (hex, rgb, etc.)
- * @returns {string} Modified SVG content
+ * Aplica modificações de cor ao SVG
+ * Função complexa que lida com diferentes tipos de coloração:
+ * - Propriedade CSS color para elementos que usam currentColor
+ * - Tratamento especial para logo do Itaú com contraste automático de texto
+ * - Modificação direta de atributos fill e stroke em elementos gráficos
+ *
+ * @param {string} svgContent - Conteúdo SVG original
+ * @param {string} color - Nova cor (hex, rgb, etc.)
+ * @returns {string} Conteúdo SVG modificado com nova cor aplicada
+ *
+ * @example
+ * const coloredSvg = applyColorToSvg(originalSvg, '#ff0000');
+ * // Aplica cor vermelha aos elementos coloráveis do SVG
  */
 export function applyColorToSvg(svgContent, color) {
+  // Parse do SVG para manipulação DOM
   const parser = new DOMParser();
   const doc = parser.parseFromString(svgContent, "image/svg+xml");
   const svgElement = doc.querySelector("svg");
 
   if (!svgElement) return svgContent;
 
-  // Set the color as a CSS custom property or direct style
+  // Define a cor como propriedade CSS no elemento raiz
+  // Isso afeta elementos que usam 'currentColor'
   svgElement.style.color = color;
 
-  // Special handling for Itaú logo - auto contrast text color
+  // Tratamento especial para o logo do Itaú - contraste automático do texto
   const styleElement = svgElement.querySelector("style");
   if (styleElement && styleElement.textContent.includes("itau-text")) {
-    // Import color utilities
+    // Importação assíncrona das utilidades de cor (para casos futuros)
     import("./color-utils.js").then(({ isDarkColor }) => {
       const textColor = isDarkColor(color) ? "white" : "black";
       svgElement.style.setProperty("--itau-auto-text-color", textColor);
     });
 
-    // Synchronous fallback for immediate application
+    // Fallback síncrono para aplicação imediata
+    // Calcula luminância da cor para determinar contraste do texto
     const rgb = hexToRgb(color);
     const luminance = calculateLuminance(rgb);
     const textColor = luminance < 0.179 ? "white" : "black";
     svgElement.style.setProperty("--itau-auto-text-color", textColor);
   }
 
-  // Also apply to elements that might use fill or stroke directly
+  // Aplica cor diretamente aos elementos gráficos que podem usar fill ou stroke
+  // Busca todos os elementos gráficos SVG que podem ter cor
   const pathElements = svgElement.querySelectorAll(
     "path, circle, rect, polygon, ellipse",
   );
+
   pathElements.forEach((element) => {
-    // Only modify elements that use currentColor or have fill/stroke attributes
+    // Obtém os atributos de preenchimento e contorno atuais
     const fill = element.getAttribute("fill");
     const stroke = element.getAttribute("stroke");
 
+    // Modifica o preenchimento (fill) se aplicável
     if (fill && fill !== "none" && fill !== "transparent") {
+      // Só modifica se for currentColor ou uma cor específica (hex/rgb)
       if (
         fill === "currentColor" ||
         fill.startsWith("#") ||
@@ -124,7 +177,9 @@ export function applyColorToSvg(svgContent, color) {
       }
     }
 
+    // Modifica o contorno (stroke) se aplicável
     if (stroke && stroke !== "none" && stroke !== "transparent") {
+      // Só modifica se for currentColor ou uma cor específica (hex/rgb)
       if (
         stroke === "currentColor" ||
         stroke.startsWith("#") ||

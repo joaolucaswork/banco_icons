@@ -4,10 +4,10 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
+  // CardTitle,
 } from "$lib/components/ui/card";
 
-import CodeBlock from "$lib/components/CodeBlock.svelte";
+// import CodeBlock from "$lib/components/CodeBlock.svelte";
 import PreviewControls from "$lib/components/PreviewControls.svelte";
 import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
 import ComparisonToggle from "$lib/components/ComparisonToggle.svelte";
@@ -22,7 +22,7 @@ import {
 import { Palette } from "lucide-svelte";
 
 let sizeValue = $state([24]);
-let showCode = $state(true);
+// let showCode = $state(true);
 
 // Reactive values from store
 let storeData = $derived(svgStore.data);
@@ -230,7 +230,7 @@ onMount(() => {
       </Card>
 
       <!-- Code Display -->
-      {#if showCode && formattedSvg}
+      <!-- {#if showCode && formattedSvg}
         <Card class="border-border bg-card">
           <CardHeader class="">
             <CardTitle class="text-xl text-card-foreground"
@@ -245,7 +245,7 @@ onMount(() => {
             />
           </CardContent>
         </Card>
-      {/if}
+      {/if} -->
     </div>
   </div>
 </div>

@@ -141,9 +141,10 @@ export const svgStore = {
         }
       });
 
-      // Select first logo if none selected
+      // Select first logo if none selected - use selectLogo method to properly initialize multi-color support
       if (!svgData.selectedLogo && svgData.logos.size > 0) {
-        svgData.selectedLogo = BANK_LOGOS[0];
+        // Use the selectLogo method to properly detect and configure multi-color support
+        this.selectLogo(BANK_LOGOS[0]);
       }
     } catch (error) {
       console.error("Erro ao carregar logos:", error);
