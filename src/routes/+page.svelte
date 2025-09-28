@@ -116,7 +116,8 @@ onMount(() => {
               </div>
 
               <!-- Information Panel - Below combobox -->
-              {#if storeData.selectedLogo}
+              <!-- COMMENTED OUT: Visualização, Exportar, and Cor items -->
+              {#if false && storeData.selectedLogo}
                 <div class="flex flex-wrap gap-6 px-6 text-sm">
                   <!-- Preview Size Info -->
                   <div class="flex items-center gap-2">
