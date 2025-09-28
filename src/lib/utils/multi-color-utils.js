@@ -168,6 +168,35 @@ export function getDefaultColorMap(logoName) {
 }
 
 /**
+ * Resolve "auto" colors to actual hex colors for display
+ * @param {Object} colorMap - Color map that may contain "auto" values
+ * @param {string} logoName - Name of the logo
+ * @returns {Object} Color map with resolved colors
+ */
+export function resolveAutoColors(colorMap, logoName) {
+  const config = getMultiColorConfig(logoName);
+  if (!config) return colorMap;
+
+  const resolvedMap = { ...colorMap };
+
+  config.elements.forEach((element) => {
+    const color = colorMap[element.key];
+
+    if (color === "auto" && element.autoContrastVar) {
+      // For auto contrast elements, calculate based on background color
+      const bgElement = config.elements.find((el) => el.key === "bg");
+      const bgColor =
+        colorMap[bgElement?.key] || bgElement?.defaultColor || "#000000";
+
+      const textColor = isDarkColor(bgColor) ? "#ffffff" : "#000000";
+      resolvedMap[element.key] = textColor;
+    }
+  });
+
+  return resolvedMap;
+}
+
+/**
  * Validate color map for a logo
  * @param {Object} colorMap - Color map to validate
  * @param {string} logoName - Name of the logo

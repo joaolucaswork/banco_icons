@@ -162,6 +162,7 @@ onMount(() => {
                 colorMap={storeData.colorMap}
                 onElementColorChange={handleElementColorChange}
                 onElementReset={handleElementReset}
+                selectedLogo={storeData.selectedLogo}
               />
             {/if}
           </div>

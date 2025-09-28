@@ -2,9 +2,15 @@
 import { Button } from "$lib/components/ui/button";
 import { Slider } from "$lib/components/ui/slider";
 import { Input } from "$lib/components/ui/input";
-import { RotateCcw, Palette } from "lucide-svelte";
+import { RotateCcw } from "lucide-svelte";
 import { isValidHexColor, normalizeHexColor } from "$lib/utils/color-utils.js";
-import ColorCustomizationDialog from "./ColorCustomizationDialog.svelte";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "$lib/components/ui/tooltip";
+import { resolveAutoColors } from "$lib/utils/multi-color-utils.js";
 
 let {
   sizeValue = [24],
@@ -18,15 +24,22 @@ let {
   colorMap = {},
   onElementColorChange = () => {},
   onElementReset = () => {},
+  selectedLogo = null,
 } = $props();
 
 let customColor = $state(color);
 let colorPickerRef = $state();
 let isValidColor = $state(true);
 
-// State for color customization dialog
-let dialogOpen = $state(false);
-let originalColorMap = /** @type {Record<string, string>} */ ({});
+// Color picker refs for multi-color elements
+let colorPickerRefs = /** @type {Record<string, HTMLInputElement>} */ ({});
+
+// Resolved color map (converts "auto" to actual colors)
+let resolvedColorMap = $derived(
+  isMultiColor && selectedLogo
+    ? resolveAutoColors(colorMap, selectedLogo)
+    : colorMap,
+);
 
 // Watch for size changes and notify parent
 $effect(() => {
@@ -80,27 +93,25 @@ function handleReset() {
   onReset();
 }
 
-// Multi-color dialog functions
-function openColorDialog() {
-  originalColorMap = { ...colorMap };
-  dialogOpen = true;
-}
-
-function handleDialogApply(newColorMap) {
-  dialogOpen = false;
-}
-
-function handleDialogCancel() {
-  // Restore original colors
-  for (const [elementId, originalColor] of Object.entries(originalColorMap)) {
-    onElementColorChange(elementId, originalColor);
+// Multi-color element functions
+function openElementColorPicker(elementKey) {
+  if (colorPickerRefs[elementKey]) {
+    colorPickerRefs[elementKey].click();
   }
-  dialogOpen = false;
 }
 
-function handleDialogReset() {
-  onElementReset();
-  dialogOpen = false;
+function handleElementColorInput(elementKey, event) {
+  const target = event.target;
+  if (target && target.value) {
+    onElementColorChange(elementKey, target.value);
+  }
+}
+
+function handleElementColorChange(elementKey, event) {
+  const target = event.target;
+  if (target && target.value) {
+    onElementColorChange(elementKey, target.value);
+  }
 }
 </script>
 
@@ -142,16 +153,51 @@ function handleDialogReset() {
               >Cores</span
             >
 
-            <!-- Customize colors button -->
-            <Button
-              variant="outline"
-              class="h-8 px-3 text-xs"
-              onclick={openColorDialog}
-              disabled={false}
-            >
-              <Palette class="mr-1 h-3 w-3" />
-              Personalizar
-            </Button>
+            <!-- Color pickers for multi-color elements -->
+            {#each colorableElements as element}
+              <!-- Hidden native color picker -->
+              <input
+                bind:this={colorPickerRefs[element.key]}
+                type="color"
+                value={resolvedColorMap[element.key] || element.defaultColor || "#000000"}
+                oninput={(e) => handleElementColorInput(element.key, e)}
+                onchange={(e) => handleElementColorChange(element.key, e)}
+                class="pointer-events-none absolute opacity-0"
+                aria-label="Seletor de cor nativo para {element.label}"
+              />
+
+              <!-- Color button with tooltip -->
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    {#snippet child({ props })}
+                      <Button
+                        {...props}
+                        variant="outline"
+                        class="h-8 w-8 rounded border border-border p-0 hover:border-border/80"
+                        style="background-color: {resolvedColorMap[element.key] || element.defaultColor || '#000000'}"
+                        aria-label="Selecionar cor para {element.label}"
+                        onclick={() => openElementColorPicker(element.key)}
+                        disabled={false}
+                      >
+                        <span class="sr-only"
+                          >Cor atual: {colorMap[element.key] || element.defaultColor || '#000000'}</span
+                        >
+                      </Button>
+                    {/snippet}
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    align="center"
+                    sideOffset={8}
+                    class=""
+                    arrowClasses=""
+                  >
+                    <p class="text-sm">{element.label}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            {/each}
           </div>
         </div>
       {:else}
@@ -218,17 +264,3 @@ function handleDialogReset() {
     </Button>
   </div>
 </div>
-
-<!-- Color Customization Dialog -->
-{#if isMultiColor && colorableElements.length > 0}
-  <ColorCustomizationDialog
-    bind:open={dialogOpen}
-    elements={colorableElements}
-    colorMap={colorMap}
-    onApply={handleDialogApply}
-    onCancel={handleDialogCancel}
-    onReset={handleDialogReset}
-    onElementColorChange={onElementColorChange}
-    onElementReset={onElementReset}
-  />
-{/if}
