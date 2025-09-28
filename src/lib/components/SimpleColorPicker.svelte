@@ -5,32 +5,7 @@ import { Label } from "$lib/components/ui/label";
 
 let { value = "#000000", onValueChange = () => {} } = $props();
 
-// Predefined color palette
-const colorPalette = [
-  "#000000",
-  "#374151",
-  "#6B7280",
-  "#9CA3AF",
-  "#D1D5DB",
-  "#F3F4F6",
-  "#FFFFFF",
-  "#EF4444",
-  "#F97316",
-  "#F59E0B",
-  "#EAB308",
-  "#84CC16",
-  "#22C55E",
-  "#10B981",
-  "#06B6D4",
-  "#0EA5E9",
-  "#3B82F6",
-  "#6366F1",
-  "#8B5CF6",
-  "#A855F7",
-  "#D946EF",
-  "#EC4899",
-  "#F43F5E",
-];
+// Removed predefined color palette - using only native color picker
 
 let customColor = $state(value);
 let showPalette = $state(false);
@@ -40,14 +15,9 @@ $effect(() => {
   customColor = value;
 });
 
-function handleColorSelect(color) {
-  customColor = color;
-  onValueChange(color);
-  showPalette = false;
-}
-
 function handleCustomColorChange() {
   onValueChange(customColor);
+  showPalette = false;
 }
 
 function togglePalette() {
@@ -79,34 +49,6 @@ function togglePalette() {
   {#if showPalette}
     <div class="rounded-lg border border-border bg-popover p-4 shadow-lg">
       <div class="space-y-4">
-        <!-- Color Palette -->
-        <div>
-          <Label class="mb-2 block text-sm font-medium text-popover-foreground"
-            >Preset Colors</Label
-          >
-          <div class="grid grid-cols-6 gap-2">
-            {#each colorPalette as color}
-              <button
-                type="button"
-                class="h-8 w-8 rounded border-2 border-border transition-colors hover:border-border/80 focus:ring-2 focus:ring-ring focus:ring-offset-1 focus:outline-none"
-                style="background-color: {color}"
-                onclick={() => handleColorSelect(color)}
-                aria-label="Select color {color}"
-              >
-                {#if color === value}
-                  <div
-                    class="flex h-full w-full items-center justify-center rounded"
-                  >
-                    <div
-                      class="h-2 w-2 rounded-full bg-background shadow-sm"
-                    ></div>
-                  </div>
-                {/if}
-              </button>
-            {/each}
-          </div>
-        </div>
-
         <!-- Custom Color Input -->
         <div>
           <Label
@@ -132,15 +74,6 @@ function togglePalette() {
             />
           </div>
         </div>
-
-        <!-- Apply Button -->
-        <Button
-          onclick={() => handleColorSelect(customColor)}
-          class="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-          disabled={false}
-        >
-          Apply Color
-        </Button>
       </div>
     </div>
   {/if}

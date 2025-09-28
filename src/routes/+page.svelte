@@ -14,7 +14,10 @@ import BottomControlBar from "$lib/components/BottomControlBar.svelte";
 import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
 import { getBankDisplayName, copyToClipboard } from "$lib/utils/svg-utils.js";
-import { getContrastBackground } from "$lib/utils/color-utils.js";
+import {
+  getContrastBackground,
+  getDottedPatternColor,
+} from "$lib/utils/color-utils.js";
 import { Copy, Palette } from "lucide-svelte";
 import { toast } from "svelte-sonner";
 
@@ -28,6 +31,8 @@ let formattedSvg = $derived(svgStore.formattedSvg);
 
 // Calculate background color for optimal contrast
 let previewBackground = $derived(getContrastBackground(storeData.color));
+// Calculate dot color for the dotted pattern
+let dotColor = $derived(getDottedPatternColor(storeData.color));
 
 // Update store when slider changes
 $effect(() => {
@@ -84,13 +89,6 @@ onMount(() => {
 
 <div class="min-h-screen bg-background pb-20">
   <div class="container mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 class="mb-2 text-3xl font-bold text-foreground">
-        Controlador de Ícones SVG
-      </h1>
-    </div>
-
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
       <!-- Side Panel Controls -->
       <div class="space-y-6 lg:col-span-1">
@@ -207,9 +205,14 @@ onMount(() => {
             <div class="relative">
               <!-- Compact Preview Container -->
               <div
-                class="flex min-h-[180px] items-center justify-center rounded-lg border border-border transition-colors duration-200 lg:min-h-[200px]"
+                class="relative flex min-h-[180px] items-center justify-center rounded-lg border border-border transition-colors duration-200 lg:min-h-[200px]"
                 style="background-color: {previewBackground}"
               >
+                <!-- Dotted background pattern overlay -->
+                <div
+                  class="dotted-background absolute inset-0 rounded-lg"
+                  style="--dot-color: {dotColor}"
+                ></div>
                 <!-- Warning Icon - Inside preview, top right -->
                 {#if storeData.selectedLogo}
                   <div class="absolute top-3 right-3 z-10">
@@ -217,21 +220,21 @@ onMount(() => {
                   </div>
                 {/if}
                 {#if storeData.loading}
-                  <div class="text-center">
+                  <div class="relative z-10 text-center">
                     <Skeleton class="mx-auto mb-4 h-24 w-24" />
                     <p class="text-muted-foreground">Carregando logos...</p>
                   </div>
                 {:else if storeData.error}
-                  <div class="text-center text-destructive">
+                  <div class="relative z-10 text-center text-destructive">
                     <p class="font-medium">Erro ao carregar logos</p>
                     <p class="text-sm">{storeData.error}</p>
                   </div>
                 {:else if previewSvg}
-                  <div class="text-center">
+                  <div class="relative z-10 text-center">
                     {@html previewSvg}
                   </div>
                 {:else}
-                  <div class="text-center text-muted-foreground">
+                  <div class="relative z-10 text-center text-muted-foreground">
                     <Palette class="mx-auto mb-4 h-20 w-20 opacity-50" />
                     <p class="text-lg font-medium">Nenhum logo selecionado</p>
                     <p class="text-sm">

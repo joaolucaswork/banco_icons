@@ -172,4 +172,18 @@
   .text-subtle {
     @apply opacity-40;
   }
+
+  /* Dotted background pattern for icon preview areas */
+  .dotted-background {
+    background-image: radial-gradient(
+      circle,
+      var(--dot-color, var(--color-muted-foreground)) 1px,
+      transparent 1px
+    );
+    background-size: 16px 16px;
+    background-position:
+      0 0,
+      8px 8px;
+    opacity: 0.3;
+  }
 }

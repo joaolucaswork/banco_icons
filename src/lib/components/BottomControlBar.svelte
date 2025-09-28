@@ -17,32 +17,7 @@ let {
   onReset = () => {},
 } = $props();
 
-// Predefined color palette - white first as default
-const colorPalette = [
-  "#FFFFFF",
-  "#F3F4F6",
-  "#D1D5DB",
-  "#9CA3AF",
-  "#6B7280",
-  "#374151",
-  "#000000",
-  "#EF4444",
-  "#F97316",
-  "#F59E0B",
-  "#EAB308",
-  "#84CC16",
-  "#22C55E",
-  "#10B981",
-  "#06B6D4",
-  "#0EA5E9",
-  "#3B82F6",
-  "#6366F1",
-  "#8B5CF6",
-  "#A855F7",
-  "#D946EF",
-  "#EC4899",
-  "#F43F5E",
-];
+// Removed predefined color palette - using only native color picker
 
 let customColor = $state(color);
 let isPopoverOpen = $state(false);
@@ -57,14 +32,9 @@ $effect(() => {
   customColor = color;
 });
 
-function handleColorSelect(selectedColor) {
-  customColor = selectedColor;
-  onColorChange(selectedColor);
-  isPopoverOpen = false;
-}
-
 function handleCustomColorChange() {
   onColorChange(customColor);
+  isPopoverOpen = false;
 }
 
 function handleReset() {
@@ -130,36 +100,6 @@ function handleReset() {
                 </PopoverTrigger>
                 <PopoverContent class="w-64 p-4" side="top" portalProps={{}}>
                   <div class="space-y-4">
-                    <!-- Color Palette -->
-                    <div>
-                      <Label
-                        class="mb-2 block text-sm font-medium text-popover-foreground"
-                      >
-                        Cores Predefinidas
-                      </Label>
-                      <div class="grid grid-cols-6 gap-2">
-                        {#each colorPalette as paletteColor}
-                          <button
-                            type="button"
-                            class="h-8 w-8 rounded border-2 border-border transition-colors hover:border-border/80 focus:ring-2 focus:ring-ring focus:ring-offset-1 focus:outline-none"
-                            style="background-color: {paletteColor}"
-                            onclick={() => handleColorSelect(paletteColor)}
-                            aria-label="Selecionar cor {paletteColor}"
-                          >
-                            {#if paletteColor === color}
-                              <div
-                                class="flex h-full w-full items-center justify-center rounded"
-                              >
-                                <div
-                                  class="h-2 w-2 rounded-full bg-background shadow-sm"
-                                ></div>
-                              </div>
-                            {/if}
-                          </button>
-                        {/each}
-                      </div>
-                    </div>
-
                     <!-- Native Color Picker -->
                     <div>
                       <Label
@@ -184,15 +124,6 @@ function handleReset() {
                         >
                       </div>
                     </div>
-
-                    <!-- Apply Button -->
-                    <Button
-                      onclick={() => handleColorSelect(customColor)}
-                      class="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                      disabled={false}
-                    >
-                      Aplicar Cor
-                    </Button>
                   </div>
                 </PopoverContent>
               </Popover>

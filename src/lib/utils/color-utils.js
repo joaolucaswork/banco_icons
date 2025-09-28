@@ -96,6 +96,21 @@ export function getContrastBackground(iconColor) {
 }
 
 /**
+ * Get the appropriate dot color for the dotted background pattern
+ * @param {string} iconColor - The icon color in hex format
+ * @returns {string} Dot color for optimal contrast
+ */
+export function getDottedPatternColor(iconColor) {
+  if (isDarkColor(iconColor)) {
+    // For dark colors (white background), use dark dots
+    return "#000000";
+  } else {
+    // For light colors (transparent background), use light dots
+    return "#666666";
+  }
+}
+
+/**
  * Validate if a string is a valid hex color
  * @param {string} color - Color string to validate
  * @returns {boolean} True if valid hex color
