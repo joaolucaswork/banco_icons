@@ -48,9 +48,9 @@
 }
 
 .dark {
-  --background: oklch(0.08 0 0);
+  --background: oklch(0.17 0.003 0);
   --foreground: oklch(0.95 0 0);
-  --card: oklch(0.12 0 0);
+  --card: oklch(0.17 0.003 0 / 0.1);
   --card-foreground: oklch(0.95 0 0);
   --popover: oklch(0.12 0 0);
   --popover-foreground: oklch(0.95 0 0);
@@ -171,5 +171,19 @@
 
   .text-subtle {
     @apply opacity-40;
+  }
+
+  /* Dotted background pattern for icon preview areas */
+  .dotted-background {
+    background-image: radial-gradient(
+      circle,
+      var(--dot-color, var(--color-muted-foreground)) 1px,
+      transparent 1px
+    );
+    background-size: 16px 16px;
+    background-position:
+      0 0,
+      8px 8px;
+    opacity: 0.3;
   }
 }
