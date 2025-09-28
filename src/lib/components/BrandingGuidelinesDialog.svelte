@@ -65,7 +65,7 @@ const brandGuidelineLinks = [
 ];
 </script>
 
-<div class="absolute top-3 right-3 z-20">
+<div>
   <Dialog bind:open={isOpen}>
     <DialogTrigger asChild>
       <button

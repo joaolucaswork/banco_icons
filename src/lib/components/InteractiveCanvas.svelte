@@ -1,6 +1,7 @@
 <script>
 import { Button } from "$lib/components/ui/button";
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-svelte";
+import CheckIcon from "@lucide/svelte/icons/check";
 import { onMount } from "svelte";
 import { loadOriginalSvgContent } from "$lib/utils/original-logos.js";
 
@@ -854,6 +855,15 @@ $effect(() => {
           >
             <RotateCcw class="h-4 w-4" />
           </Button>
+        </div>
+
+        <!-- Green Checkmark Icon - Top Right -->
+        <div class="absolute top-3 right-3 z-30">
+          <div
+            class="cursor-pointer rounded-full p-1 transition-all duration-200 hover:scale-110 hover:bg-green-500/20"
+          >
+            <CheckIcon class="h-5 w-5 text-green-600 drop-shadow-sm" />
+          </div>
         </div>
 
         <!-- Right Label -->

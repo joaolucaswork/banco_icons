@@ -178,17 +178,29 @@ onMount(() => {
               selectedLogo={storeData.selectedLogo}
             />
 
-            <!-- Warning Icon - Overlay on canvas -->
+            <!-- Controls Group - Overlay on canvas -->
             {#if storeData.selectedLogo}
-              <div class="absolute top-3 right-3 z-20">
-                <BrandingGuidelinesDialog />
-              </div>
-
-              <!-- Comparison Toggle - Below the guidelines button -->
-              <ComparisonToggle
-                bind:showComparison={storeData.showComparison}
-                selectedLogo={storeData.selectedLogo}
-              />
+              {#if storeData.showComparison}
+                <!-- Comparison mode: Exclamation on right side of left canvas, toggle below the right canvas -->
+                <div class="absolute top-3 left-1/2 z-20 -translate-x-12">
+                  <BrandingGuidelinesDialog />
+                </div>
+                <div class="absolute top-14 right-3 z-20">
+                  <ComparisonToggle
+                    bind:showComparison={storeData.showComparison}
+                    selectedLogo={storeData.selectedLogo}
+                  />
+                </div>
+              {:else}
+                <!-- Single mode: Both stacked on right side -->
+                <div class="absolute top-3 right-3 z-20 flex flex-col gap-2">
+                  <BrandingGuidelinesDialog />
+                  <ComparisonToggle
+                    bind:showComparison={storeData.showComparison}
+                    selectedLogo={storeData.selectedLogo}
+                  />
+                </div>
+              {/if}
             {/if}
 
             <!-- Empty state overlay -->
