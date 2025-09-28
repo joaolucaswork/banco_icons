@@ -18,6 +18,8 @@ import {
   validateColorMap,
   isDefaultColorMap,
 } from "../utils/multi-color-utils.js";
+import { getPrimaryOriginalColor } from "../utils/original-colors.js";
+import { applyThemeColors, resetThemeColors } from "../utils/theme-colors.js";
 
 // Default settings
 const DEFAULT_SIZE = 24;
@@ -167,6 +169,10 @@ export const svgStore = {
       svgData.selectedLogo = logoName;
       console.log("svgData.selectedLogo depois:", svgData.selectedLogo);
 
+      // Reset background toggle state when changing logos - re-enable automatic contrast detection
+      svgData.manualBackgroundOverride = false;
+      svgData.manualBackgroundColor = "transparent";
+
       // Check if this logo supports multiple colors
       svgData.isMultiColor = hasMultipleColors(logoName);
 
@@ -181,9 +187,13 @@ export const svgStore = {
         // Initialize color map with defaults
         svgData.colorMap = getDefaultColorMap(logoName);
 
+        // Also set the main color to the primary color for background calculation
+        svgData.color = getDefaultLogoColor(logoName);
+
         console.log("Multi-color logo detected:", {
           elements: svgData.colorableElements,
           colorMap: svgData.colorMap,
+          mainColor: svgData.color,
         });
       } else {
         // Reset multi-color state and set single color to original
@@ -192,6 +202,16 @@ export const svgStore = {
         // Set the single color to the original color of the logo
         svgData.color = getDefaultLogoColor(logoName);
       }
+
+      console.log("Logo selecionado - cor final:", svgData.color);
+      console.log(
+        "Logo selecionado - fundo manual ativo:",
+        svgData.manualBackgroundOverride,
+      );
+
+      // Apply theme colors based on logo's primary color
+      const primaryColor = getPrimaryOriginalColor(logoName);
+      applyThemeColors(primaryColor);
     }
   },
 
@@ -227,6 +247,14 @@ export const svgStore = {
     // Reset background toggle state - re-enable automatic contrast detection
     svgData.manualBackgroundOverride = false;
     svgData.manualBackgroundColor = "transparent";
+
+    // Reset theme colors to default when resetting
+    if (svgData.selectedLogo) {
+      const primaryColor = getPrimaryOriginalColor(svgData.selectedLogo);
+      applyThemeColors(primaryColor);
+    } else {
+      resetThemeColors();
+    }
   },
 
   // Multi-color methods

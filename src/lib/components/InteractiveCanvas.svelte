@@ -262,7 +262,8 @@ function drawOriginal() {
     );
     originalCtx.scale(originalScale, originalScale);
 
-    // Draw original SVG
+    // Draw original SVG logo without glow effect
+
     const imgWidth = 120; // Fixed size for consistency
     const imgHeight = 120;
     originalCtx.drawImage(
@@ -288,7 +289,8 @@ function drawSingleLogo() {
   ctx.translate(canvasWidth / 2 + translateX, canvasHeight / 2 + translateY);
   ctx.scale(scale, scale);
 
-  // Draw SVG if available
+  // Draw SVG logo without glow effect
+
   const imgWidth = 120; // Fixed size for consistency
   const imgHeight = 120;
   ctx.drawImage(svgImage, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);

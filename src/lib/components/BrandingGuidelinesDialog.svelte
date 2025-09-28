@@ -70,14 +70,16 @@ const brandGuidelineLinks = [
     <DialogTrigger asChild>
       <button
         class={cn(
-          "cursor-pointer rounded-full p-1 transition-all duration-200 hover:bg-yellow-500/20",
-          "hover:scale-110",
+          "cursor-pointer rounded-full p-2 transition-all duration-200",
+          "border border-white/20 bg-black/60 backdrop-blur-sm",
+          "hover:scale-110 hover:border-white/30 hover:bg-black/80",
+          "shadow-lg hover:shadow-xl",
           className
         )}
         onclick={openDialog}
         {...restProps}
       >
-        <TriangleAlertIcon class="h-5 w-5 text-yellow-500 drop-shadow-sm" />
+        <TriangleAlertIcon class="h-5 w-5 text-yellow-400 drop-shadow-lg" />
       </button>
     </DialogTrigger>
 

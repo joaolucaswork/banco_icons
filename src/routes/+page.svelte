@@ -36,6 +36,7 @@ let previewBackground = $derived.by(() => {
     return manualBg;
   }
   // Use automatic contrast detection when no manual override
+  // Use the current color from store data, which should be properly updated when logo changes
   return getContrastBackground(storeData.color);
 });
 
@@ -108,7 +109,7 @@ onMount(() => {
 </svelte:head>
 
 <div class="min-h-screen bg-background">
-  <div class="container mx-auto px-4 py-8">
+  <div class="container mx-auto px-4 py-6">
     <div class="space-y-6">
       <!-- Main Content Area -->
       <!-- Unified Preview Area -->

@@ -117,7 +117,7 @@ function handleOpenInWebflow() {
 {#if selectedLogo && modifiedSvg && formattedSvg}
   <TooltipProvider delayDuration={400}>
     <div
-      class={cn("flex items-center gap-2 rounded-lg border border-border bg-background p-1", className)}
+      class={cn("flex items-center gap-2 rounded-lg p-1", className)}
       {...restProps}
     >
       <!-- Open in Figma Button -->
@@ -131,7 +131,7 @@ function handleOpenInWebflow() {
               {...props}
               variant="outline"
               size="icon"
-              class="h-14 w-14 shrink-0 transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
+              class="h-14 w-14 shrink-0 !text-white transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
               onclick={handleOpenInFigma}
               disabled={loading}
             >
@@ -192,7 +192,7 @@ function handleOpenInWebflow() {
               {...props}
               variant="outline"
               size="icon"
-              class="h-14 w-14 shrink-0 transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
+              class="h-14 w-14 shrink-0 !text-white transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
               onclick={handleOpenInWebflow}
               disabled={loading}
             >

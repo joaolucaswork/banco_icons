@@ -329,7 +329,7 @@ function handleElementColorChange(elementKey, event) {
       <ComparisonToggle
         bind:showComparison={showComparison}
         selectedLogo={selectedLogo}
-        class="h-[42px] w-16 border-2 border-border bg-white px-4 py-2 text-black transition-all duration-200 hover:scale-105 hover:border-muted-foreground/40 hover:bg-gray-50 active:scale-95"
+        class="h-[42px] w-16 px-4 py-2"
       />
     </div>
   </div>
