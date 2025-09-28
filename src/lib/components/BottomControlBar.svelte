@@ -6,6 +6,8 @@ import { RotateCcw, Copy, Bug } from "lucide-svelte";
 import { isValidHexColor, normalizeHexColor } from "$lib/utils/color-utils.js";
 import { copyToClipboard, diagnoseClipboard } from "$lib/utils/svg-utils.js";
 import { toast } from "svelte-sonner";
+import ColorCustomizationDialog from "./ColorCustomizationDialog.svelte";
+import { Palette } from "lucide-svelte";
 
 let {
   sizeValue = [24],
@@ -15,11 +17,21 @@ let {
   onReset = () => {},
   formattedSvg = "",
   onCopySvg = () => {},
+  // Multi-color support
+  isMultiColor = false,
+  colorableElements = [],
+  colorMap = {},
+  onElementColorChange = () => {},
+  onElementReset = () => {},
 } = $props();
 
 let customColor = $state(color);
 let colorPickerRef = $state();
 let isValidColor = $state(true);
+
+// State for color customization dialog
+let dialogOpen = $state(false);
+let originalColorMap = /** @type {Record<string, string>} */ ({});
 
 // Watch for size changes and notify parent
 $effect(() => {
@@ -103,6 +115,33 @@ function openColorPicker() {
   }
 }
 
+// Dialog functions
+function openColorDialog() {
+  // Store original colors for cancel functionality
+  originalColorMap = { ...colorMap };
+  dialogOpen = true;
+}
+
+function handleDialogApply() {
+  // Colors are already applied in real-time, just close dialog
+  dialogOpen = false;
+}
+
+function handleDialogCancel() {
+  // Restore original colors
+  Object.entries(originalColorMap).forEach(([key, color]) => {
+    onElementColorChange(key, color);
+  });
+  dialogOpen = false;
+}
+
+function handleDialogReset() {
+  // Reset all colors to defaults
+  colorableElements.forEach((element) => {
+    onElementReset(element.key);
+  });
+}
+
 function handleReset() {
   onReset();
 }
@@ -155,51 +194,79 @@ async function handleCopySvg() {
           </div>
 
           <!-- Color Control -->
-          <div class="flex items-center gap-4">
-            <div
-              class="flex h-[42px] items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2"
-            >
-              <span
-                class="text-sm font-medium whitespace-nowrap text-foreground"
-                >Cor</span
-              >
+          <div class="flex flex-col gap-4">
+            {#if isMultiColor && colorableElements.length > 0}
+              <!-- Multi-color button -->
+              <div class="flex items-center gap-4">
+                <div
+                  class="flex h-[42px] items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2"
+                >
+                  <span
+                    class="text-sm font-medium whitespace-nowrap text-foreground"
+                    >Cores</span
+                  >
 
-              <!-- Hidden native color picker -->
-              <input
-                bind:this={colorPickerRef}
-                type="color"
-                bind:value={customColor}
-                oninput={handleColorPickerInput}
-                onchange={handleColorPickerChange}
-                class="pointer-events-none absolute opacity-0"
-                aria-label="Seletor de cor nativo"
-              />
+                  <!-- Customize colors button -->
+                  <Button
+                    variant="outline"
+                    class="h-8 px-3 text-xs"
+                    onclick={openColorDialog}
+                    disabled={false}
+                  >
+                    <Palette class="mr-1 h-3 w-3" />
+                    Personalizar
+                  </Button>
+                </div>
+              </div>
+            {:else}
+              <!-- Single color picker -->
+              <div class="flex items-center gap-4">
+                <div
+                  class="flex h-[42px] items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2"
+                >
+                  <span
+                    class="text-sm font-medium whitespace-nowrap text-foreground"
+                    >Cor</span
+                  >
 
-              <!-- Color button that triggers native picker -->
-              <Button
-                variant="outline"
-                class="h-8 w-8 rounded-full border-2 border-border p-0 hover:border-border/80"
-                style="background-color: {color}"
-                aria-label="Selecionar cor"
-                onclick={openColorPicker}
-                disabled={false}
-              >
-                <span class="sr-only">Cor atual: {color}</span>
-              </Button>
+                  <!-- Hidden native color picker -->
+                  <input
+                    bind:this={colorPickerRef}
+                    type="color"
+                    bind:value={customColor}
+                    oninput={handleColorPickerInput}
+                    onchange={handleColorPickerChange}
+                    class="pointer-events-none absolute opacity-0"
+                    aria-label="Seletor de cor nativo"
+                  />
 
-              <!-- Editable color input -->
-              <Input
-                type="text"
-                bind:value={customColor}
-                oninput={handleTextInput}
-                onblur={handleTextBlur}
-                placeholder="#000000"
-                class="h-8 w-20 border-border bg-background px-2 py-1 font-mono text-xs text-foreground transition-colors {isValidColor ? '' : 'border-destructive bg-destructive/5'}"
-                aria-label="Hex color input"
-                aria-invalid={!isValidColor}
-                title={isValidColor ? "Enter hex color (e.g., #ff0000)" : "Invalid hex color format"}
-              />
-            </div>
+                  <!-- Color button that triggers native picker -->
+                  <Button
+                    variant="outline"
+                    class="h-8 w-8 rounded-full border-2 border-border p-0 hover:border-border/80"
+                    style="background-color: {color}"
+                    aria-label="Selecionar cor"
+                    onclick={openColorPicker}
+                    disabled={false}
+                  >
+                    <span class="sr-only">Cor atual: {color}</span>
+                  </Button>
+
+                  <!-- Editable color input -->
+                  <Input
+                    type="text"
+                    bind:value={customColor}
+                    oninput={handleTextInput}
+                    onblur={handleTextBlur}
+                    placeholder="#000000"
+                    class="h-8 w-20 border-border bg-background px-2 py-1 font-mono text-xs text-foreground transition-colors {isValidColor ? '' : 'border-destructive bg-destructive/5'}"
+                    aria-label="Hex color input"
+                    aria-invalid={!isValidColor}
+                    title={isValidColor ? "Enter hex color (e.g., #ff0000)" : "Invalid hex color format"}
+                  />
+                </div>
+              </div>
+            {/if}
           </div>
 
           <!-- Reset Button -->
@@ -233,3 +300,17 @@ async function handleCopySvg() {
     </div>
   </div>
 </div>
+
+<!-- Color Customization Dialog -->
+{#if isMultiColor && colorableElements.length > 0}
+  <ColorCustomizationDialog
+    bind:open={dialogOpen}
+    elements={colorableElements}
+    colorMap={colorMap}
+    onApply={handleDialogApply}
+    onCancel={handleDialogCancel}
+    onReset={handleDialogReset}
+    onElementColorChange={onElementColorChange}
+    onElementReset={onElementReset}
+  />
+{/if}

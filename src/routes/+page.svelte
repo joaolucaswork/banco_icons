@@ -44,6 +44,15 @@ function handleColorChange(color) {
   svgStore.setColor(color);
 }
 
+// Multi-color handlers
+function handleElementColorChange(elementKey, color) {
+  svgStore.setElementColor(elementKey, color);
+}
+
+function handleElementReset(elementKey) {
+  svgStore.resetElementColor(elementKey);
+}
+
 function handleLogoSelect(logoName) {
   svgStore.selectLogo(logoName);
 }
@@ -162,6 +171,8 @@ onMount(() => {
               dotColor={dotColor}
               loading={storeData.loading}
               error={storeData.error}
+              exportSize={storeData.size}
+              exportColor={storeData.color}
             />
 
             <!-- Warning Icon - Overlay on canvas -->
@@ -219,4 +230,9 @@ onMount(() => {
   onReset={handleReset}
   formattedSvg={formattedSvg}
   onCopySvg={handleCopySvg}
+  isMultiColor={storeData.isMultiColor}
+  colorableElements={storeData.colorableElements}
+  colorMap={storeData.colorMap}
+  onElementColorChange={handleElementColorChange}
+  onElementReset={handleElementReset}
 />

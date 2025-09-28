@@ -9,6 +9,8 @@ let {
   dotColor = "#000000",
   loading = false,
   error = null,
+  exportSize = 24,
+  exportColor = "#ffffff",
   class: className = "",
   ...restProps
 } = $props();
@@ -18,9 +20,10 @@ let canvasContainer = $state(/** @type {HTMLDivElement | null} */ (null));
 let canvas = $state(/** @type {HTMLCanvasElement | null} */ (null));
 let ctx = $state(/** @type {CanvasRenderingContext2D | null} */ (null));
 let svgImage = $state(/** @type {HTMLImageElement | null} */ (null));
+let exportSvgImage = $state(/** @type {HTMLImageElement | null} */ (null));
 
 // Transform state
-let scale = $state(1);
+let scale = $state(Math.pow(1.2, 4)); // Start with 4x zoom (1.2^4 ≈ 2.07)
 let translateX = $state(0);
 let translateY = $state(0);
 let isDragging = $state(false);
@@ -96,6 +99,35 @@ function loadSvgImage(/** @type {string | null} */ svgString) {
   img.src = url;
 }
 
+function loadExportSvgImage(/** @type {string | null} */ svgString) {
+  if (!svgString) {
+    exportSvgImage = null;
+    draw();
+    return;
+  }
+
+  const img = new Image();
+  const svgBlob = new Blob([svgString], {
+    type: "image/svg+xml;charset=utf-8",
+  });
+  const url = URL.createObjectURL(svgBlob);
+
+  img.onload = () => {
+    exportSvgImage = img;
+    URL.revokeObjectURL(url);
+    draw();
+  };
+
+  img.onerror = () => {
+    console.error("Failed to load export SVG image");
+    exportSvgImage = null;
+    URL.revokeObjectURL(url);
+    draw();
+  };
+
+  img.src = url;
+}
+
 function draw() {
   if (!ctx || !canvas) return;
 
@@ -125,6 +157,9 @@ function draw() {
 
   // Restore context
   ctx.restore();
+
+  // Draw mini preview in bottom left corner
+  drawMiniPreview();
 }
 
 function drawDottedPattern() {
@@ -153,6 +188,129 @@ function drawDottedPattern() {
   ctx.globalAlpha = 1;
 }
 
+// Helper function to calculate luminance and determine contrast color
+function getContrastColor(backgroundColor) {
+  // Convert hex to RGB
+  const hex = backgroundColor.replace("#", "");
+  const r = parseInt(hex.substr(0, 2), 16) / 255;
+  const g = parseInt(hex.substr(2, 2), 16) / 255;
+  const b = parseInt(hex.substr(4, 2), 16) / 255;
+
+  // Calculate relative luminance
+  const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+
+  // Return white for dark backgrounds, black for light backgrounds
+  return luminance > 0.5 ? "#000000" : "#ffffff";
+}
+
+function drawMiniPreview() {
+  if (!ctx || !exportSvgImage) return;
+
+  const padding = 12;
+  const maxSize = 80; // Increased maximum size for the mini preview box
+  const actualSize = Math.min(exportSize, maxSize); // Use actual export size but cap at maxSize
+  const iconSize = Math.min(actualSize * 0.75, 50); // Icon is smaller than the box (75% of box size, max 50px)
+
+  // Calculate contrast colors based on background
+  const contrastColor = getContrastColor(previewBackground);
+  const tagTextColor = contrastColor === "#ffffff" ? "#ffffff" : "#000000";
+  const dotColor =
+    contrastColor === "#ffffff"
+      ? "rgba(255, 255, 255, 0.9)"
+      : "rgba(0, 0, 0, 0.9)";
+
+  // Calculate positions with increased spacing
+  const labelText = `${exportSize}px`;
+  ctx.font = "11px system-ui, -apple-system, sans-serif";
+  const textMetrics = ctx.measureText(labelText);
+  const textWidth = textMetrics.width;
+  const textHeight = 11;
+  const tagPadding = 6;
+  const tagHeight = textHeight + tagPadding * 2;
+  const labelSpacing = 12; // Increased spacing between preview and label
+
+  // Position in bottom left corner with space for label below
+  const x = padding;
+  const y = canvasHeight - padding - actualSize - tagHeight - labelSpacing;
+
+  // Draw label with white border tag BELOW the mini preview
+  const tagX = x;
+  const tagY = y + actualSize + labelSpacing;
+  ctx.save();
+
+  // Draw rounded rectangle with transparent background and contrast border
+  const tagRadius = 4;
+  const borderColor =
+    contrastColor === "#ffffff"
+      ? "rgba(255, 255, 255, 0.9)"
+      : "rgba(0, 0, 0, 0.9)"; // Contrast-aware border
+
+  // Draw thin contrast border only (no fill)
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 0.8; // Even thinner border
+  ctx.beginPath();
+  ctx.roundRect(tagX, tagY, textWidth + tagPadding * 2, tagHeight, tagRadius);
+  ctx.stroke();
+
+  // Draw contrast-aware text
+  ctx.fillStyle = tagTextColor;
+  ctx.textAlign = "left";
+  ctx.fillText(
+    labelText,
+    tagX + tagPadding,
+    tagY + textHeight + tagPadding - 3,
+  );
+
+  // Draw zoom/position indicator frame with rounded corners
+  const frameThickness = 0.8; // Thin border
+  const frameColor =
+    contrastColor === "#ffffff"
+      ? "rgba(255, 255, 255, 0.9)"
+      : "rgba(0, 0, 0, 0.9)"; // Contrast-aware border
+  const frameRadius = 6;
+
+  // Outer frame (zoom indicator) - rounded
+  ctx.strokeStyle = frameColor;
+  ctx.lineWidth = frameThickness;
+  ctx.beginPath();
+  ctx.roundRect(x - 4, y - 4, actualSize + 8, actualSize + 8, frameRadius);
+  ctx.stroke();
+
+  // Inner position indicator (shows pan offset)
+  const maxOffset = 20; // Maximum visual offset for position indicator
+  const normalizedX = Math.max(
+    -maxOffset,
+    Math.min(maxOffset, translateX / 10),
+  );
+  const normalizedY = Math.max(
+    -maxOffset,
+    Math.min(maxOffset, translateY / 10),
+  );
+
+  // Position indicator dot - smaller and with contrast-aware color
+  const dotX = x + actualSize / 2 + normalizedX;
+  const dotY = y + actualSize / 2 + normalizedY;
+  const dotRadius = 2.5; // Decreased from 4 to 2.5
+  ctx.fillStyle = dotColor;
+  ctx.beginPath();
+  ctx.arc(dotX, dotY, dotRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Draw subtle rounded border for the mini preview (no background)
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.1)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(x - 1, y - 1, actualSize + 2, actualSize + 2, 3);
+  ctx.stroke();
+
+  // Draw the export SVG at smaller size, centered in the larger box
+  const iconX = x + (actualSize - iconSize) / 2;
+  const iconY = y + (actualSize - iconSize) / 2;
+  ctx.drawImage(exportSvgImage, iconX, iconY, iconSize, iconSize);
+
+  ctx.restore();
+}
+
 // Zoom functions
 function zoomIn() {
   const newScale = Math.min(scale * ZOOM_FACTOR, MAX_SCALE);
@@ -167,7 +325,7 @@ function zoomOut() {
 }
 
 function resetView() {
-  scale = 1;
+  scale = Math.pow(1.2, 4); // Reset to 4x zoom (1.2^4 ≈ 2.07)
   translateX = 0;
   translateY = 0;
   draw();
@@ -262,6 +420,34 @@ $effect(() => {
     loadSvgImage(svgContent);
   } else {
     svgImage = null;
+    draw();
+  }
+});
+
+$effect(() => {
+  // Load export SVG when export parameters change
+  if (svgContent && exportSize && exportColor) {
+    // Create export SVG with the specified size and color
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgContent, "image/svg+xml");
+    const svgElement = doc.documentElement;
+
+    // Update size attributes
+    svgElement.setAttribute("width", exportSize.toString());
+    svgElement.setAttribute("height", exportSize.toString());
+
+    // Update fill color for all path elements
+    const paths = svgElement.querySelectorAll(
+      "path, circle, rect, polygon, ellipse",
+    );
+    paths.forEach((path) => {
+      path.setAttribute("fill", exportColor);
+    });
+
+    const exportSvgString = new XMLSerializer().serializeToString(svgElement);
+    loadExportSvgImage(exportSvgString);
+  } else {
+    exportSvgImage = null;
     draw();
   }
 });

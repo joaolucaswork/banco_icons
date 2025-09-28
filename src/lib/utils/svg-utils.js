@@ -89,6 +89,22 @@ export function applyColorToSvg(svgContent, color) {
   // Set the color as a CSS custom property or direct style
   svgElement.style.color = color;
 
+  // Special handling for Itaú logo - auto contrast text color
+  const styleElement = svgElement.querySelector("style");
+  if (styleElement && styleElement.textContent.includes("itau-text")) {
+    // Import color utilities
+    import("./color-utils.js").then(({ isDarkColor }) => {
+      const textColor = isDarkColor(color) ? "white" : "black";
+      svgElement.style.setProperty("--itau-auto-text-color", textColor);
+    });
+
+    // Synchronous fallback for immediate application
+    const rgb = hexToRgb(color);
+    const luminance = calculateLuminance(rgb);
+    const textColor = luminance < 0.179 ? "white" : "black";
+    svgElement.style.setProperty("--itau-auto-text-color", textColor);
+  }
+
   // Also apply to elements that might use fill or stroke directly
   const pathElements = svgElement.querySelectorAll(
     "path, circle, rect, polygon, ellipse",
@@ -120,6 +136,52 @@ export function applyColorToSvg(svgContent, color) {
   });
 
   return new XMLSerializer().serializeToString(doc);
+}
+
+// Helper functions for color calculations (duplicated to avoid circular imports)
+/**
+ * @param {string} hex
+ * @returns {{r: number, g: number, b: number}}
+ */
+function hexToRgb(hex) {
+  const cleanHex = hex.replace("#", "");
+
+  if (cleanHex.length === 3) {
+    const r = parseInt(cleanHex[0] + cleanHex[0], 16);
+    const g = parseInt(cleanHex[1] + cleanHex[1], 16);
+    const b = parseInt(cleanHex[2] + cleanHex[2], 16);
+    return { r, g, b };
+  }
+
+  if (cleanHex.length === 6) {
+    const r = parseInt(cleanHex.substring(0, 2), 16);
+    const g = parseInt(cleanHex.substring(2, 4), 16);
+    const b = parseInt(cleanHex.substring(4, 6), 16);
+    return { r, g, b };
+  }
+
+  return { r: 0, g: 0, b: 0 };
+}
+
+/**
+ * @param {{r: number, g: number, b: number}} rgb
+ * @returns {number}
+ */
+function calculateLuminance(rgb) {
+  const { r, g, b } = rgb;
+
+  const rNorm = r / 255;
+  const gNorm = g / 255;
+  const bNorm = b / 255;
+
+  const rLinear =
+    rNorm <= 0.03928 ? rNorm / 12.92 : Math.pow((rNorm + 0.055) / 1.055, 2.4);
+  const gLinear =
+    gNorm <= 0.03928 ? gNorm / 12.92 : Math.pow((gNorm + 0.055) / 1.055, 2.4);
+  const bLinear =
+    bNorm <= 0.03928 ? bNorm / 12.92 : Math.pow((bNorm + 0.055) / 1.055, 2.4);
+
+  return 0.2126 * rLinear + 0.7152 * gLinear + 0.0722 * bLinear;
 }
 
 /**
