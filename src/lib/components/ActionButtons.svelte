@@ -1,6 +1,7 @@
 <script>
 import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 import { Button } from "$lib/components/ui/button";
+import WebflowDialog from "$lib/components/WebflowDialog.svelte";
 import {
   getBankDisplayName,
   downloadSvgAsPng,
@@ -21,6 +22,9 @@ let {
   class: className = "",
   ...restProps
 } = $props();
+
+// State for Webflow dialog
+let isWebflowDialogOpen = $state(false);
 
 // Handle copy SVG to clipboard
 async function handleCopySvg() {
@@ -58,6 +62,49 @@ async function handleDownloadSvg() {
   const filename = `${selectedLogo}-${size}px`;
   downloadSvgAsFile(formattedSvg, filename);
 }
+
+// Handle open in Figma
+async function handleOpenInFigma() {
+  if (!formattedSvg || !selectedLogo) {
+    toast.error("Nenhum logo selecionado para abrir no Figma.");
+    return;
+  }
+
+  const bankName = getBankDisplayName(selectedLogo);
+
+  // Copy SVG to clipboard first
+  const success = await copyToClipboard(formattedSvg);
+
+  if (success) {
+    // Try to open Figma desktop app first, then fallback to web
+    window.open("figma://", "_blank");
+
+    // If desktop app doesn't open or after a short delay, open web version
+    setTimeout(() => {
+      window.open("https://www.figma.com/", "_blank");
+    }, 500);
+
+    toast.success(
+      `SVG do ${bankName} copiado! Cole no Figma com Ctrl+V (Cmd+V no Mac)`,
+      {
+        duration: 5000,
+        description: "O Figma foi aberto. Cole o SVG em um novo arquivo.",
+      },
+    );
+  } else {
+    toast.error("Falha ao copiar SVG. Tente novamente.");
+  }
+}
+
+// Handle open in Webflow
+function handleOpenInWebflow() {
+  if (!formattedSvg || !selectedLogo) {
+    toast.error("Nenhum logo selecionado para integração com Webflow.");
+    return;
+  }
+
+  isWebflowDialogOpen = true;
+}
 </script>
 
 <!-- Action Buttons -->
@@ -66,6 +113,80 @@ async function handleDownloadSvg() {
     class={cn("flex items-center gap-2 rounded-lg border border-border bg-background p-1", className)}
     {...restProps}
   >
+    <!-- Open in Figma Button -->
+    <Button
+      variant="outline"
+      size="icon"
+      class="h-14 w-14 shrink-0"
+      onclick={handleOpenInFigma}
+      title="Abrir no Figma"
+      disabled={loading}
+    >
+      <!-- Figma Icon SVG -->
+      <svg
+        class="h-6 w-6"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M8 24C10.2091 24 12 22.2091 12 20V16H8C5.79086 16 4 17.7909 4 20C4 22.2091 5.79086 24 8 24Z"
+          fill="currentColor"
+        />
+        <path
+          d="M4 12C4 9.79086 5.79086 8 8 8H12V16H8C5.79086 16 4 14.2091 4 12Z"
+          fill="currentColor"
+        />
+        <path
+          d="M4 4C4 1.79086 5.79086 0 8 0H12V8H8C5.79086 8 4 6.20914 4 4Z"
+          fill="currentColor"
+        />
+        <path
+          d="M12 0H16C18.2091 0 20 1.79086 20 4C20 6.20914 18.2091 8 16 8H12V0Z"
+          fill="currentColor"
+        />
+        <path
+          d="M20 12C20 14.2091 18.2091 16 16 16C13.7909 16 12 14.2091 12 12C12 9.79086 13.7909 8 16 8C18.2091 8 20 9.79086 20 12Z"
+          fill="currentColor"
+        />
+      </svg>
+    </Button>
+
+    <!-- Open in Webflow Button -->
+    <Button
+      variant="outline"
+      size="icon"
+      class="h-14 w-14 shrink-0"
+      onclick={handleOpenInWebflow}
+      title="Integrar com Webflow"
+      disabled={loading}
+    >
+      <!-- Webflow Icon SVG -->
+      <svg
+        class="h-6 w-6"
+        viewBox="0 0 32 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <g clip-path="url(#clip0_webflow_button)">
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M31.9998 0L21.789 19.9906H12.1981L16.4714 11.7057H16.2796C12.7543 16.2888 7.49436 19.3059 -0.000236511 19.9906V11.8203C-0.000236511 11.8203 4.79424 11.5367 7.61276 8.56902H-0.000236511V0.00015727H8.55596V7.04792L8.74799 7.04715L12.2443 0.00015727H18.7152V7.00323L18.9072 7.00294L22.5347 0H31.9998Z"
+            fill="currentColor"
+          />
+        </g>
+        <defs>
+          <clipPath id="clip0_webflow_button">
+            <rect width="32" height="20" fill="white" />
+          </clipPath>
+        </defs>
+      </svg>
+    </Button>
+
+    <!-- Divisor Vertical -->
+    <div class="h-8 w-px bg-border"></div>
+
     <!-- Copy SVG Button -->
     <Button
       variant="outline"
@@ -124,3 +245,10 @@ async function handleDownloadSvg() {
     </DropdownMenu.Root>
   </div>
 {/if}
+
+<!-- Webflow Dialog -->
+<WebflowDialog
+  bind:open={isWebflowDialogOpen}
+  svgCode={formattedSvg || ""}
+  bankName={selectedLogo ? getBankDisplayName(selectedLogo) : ""}
+/>
