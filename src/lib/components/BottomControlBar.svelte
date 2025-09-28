@@ -1,12 +1,6 @@
 <script>
 import { Button } from "$lib/components/ui/button";
 import { Slider } from "$lib/components/ui/slider";
-import { Label } from "$lib/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "$lib/components/ui/popover";
 import { RotateCcw } from "lucide-svelte";
 
 let {
@@ -17,10 +11,8 @@ let {
   onReset = () => {},
 } = $props();
 
-// Removed predefined color palette - using only native color picker
-
 let customColor = $state(color);
-let isPopoverOpen = $state(false);
+let colorPickerRef = $state();
 
 // Watch for size changes and notify parent
 $effect(() => {
@@ -32,9 +24,23 @@ $effect(() => {
   customColor = color;
 });
 
-function handleCustomColorChange() {
+// Handle real-time color changes (during dragging/moving)
+function handleColorInput(event) {
+  customColor = event.target.value;
   onColorChange(customColor);
-  isPopoverOpen = false;
+}
+
+// Handle final color selection
+function handleColorChange(event) {
+  customColor = event.target.value;
+  onColorChange(customColor);
+}
+
+// Open native color picker directly
+function openColorPicker() {
+  if (colorPickerRef) {
+    colorPickerRef.click();
+  }
 }
 
 function handleReset() {
@@ -86,47 +92,29 @@ function handleReset() {
                 class="text-sm font-medium whitespace-nowrap text-foreground"
                 >Cor</span
               >
-              <Popover bind:open={isPopoverOpen}>
-                <PopoverTrigger class="">
-                  <Button
-                    variant="outline"
-                    class="h-8 w-8 rounded-full border-2 border-border p-0 hover:border-border/80"
-                    style="background-color: {color}"
-                    aria-label="Selecionar cor"
-                    disabled={false}
-                  >
-                    <span class="sr-only">Cor atual: {color}</span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent class="w-64 p-4" side="top" portalProps={{}}>
-                  <div class="space-y-4">
-                    <!-- Native Color Picker -->
-                    <div>
-                      <Label
-                        for="native-color-picker"
-                        class="mb-2 block text-sm font-medium text-popover-foreground"
-                      >
-                        Seletor de Cor
-                      </Label>
-                      <div class="flex gap-2">
-                        <input
-                          id="native-color-picker"
-                          type="color"
-                          bind:value={customColor}
-                          onchange={handleCustomColorChange}
-                          class="h-12 w-full cursor-pointer rounded border border-border"
-                          aria-label="Seletor de cor nativo"
-                        />
-                      </div>
-                      <div class="mt-2 text-center">
-                        <span class="font-mono text-xs text-muted-foreground"
-                          >{customColor}</span
-                        >
-                      </div>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+
+              <!-- Hidden native color picker -->
+              <input
+                bind:this={colorPickerRef}
+                type="color"
+                bind:value={customColor}
+                oninput={handleColorInput}
+                onchange={handleColorChange}
+                class="pointer-events-none absolute opacity-0"
+                aria-label="Seletor de cor nativo"
+              />
+
+              <!-- Color button that triggers native picker -->
+              <Button
+                variant="outline"
+                class="h-8 w-8 rounded-full border-2 border-border p-0 hover:border-border/80"
+                style="background-color: {color}"
+                aria-label="Selecionar cor"
+                onclick={openColorPicker}
+                disabled={false}
+              >
+                <span class="sr-only">Cor atual: {color}</span>
+              </Button>
 
               <!-- Current color display -->
               <span class="font-mono text-xs text-muted-foreground"
