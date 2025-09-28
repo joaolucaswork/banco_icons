@@ -274,65 +274,45 @@ function handleOpenInWebflow() {
       <div class="h-8 w-px bg-border"></div>
 
       <!-- Download Dropdown Button -->
-      <Tooltip
-        disableHoverableContent={false}
-        disableCloseOnTriggerClick={true}
-      >
-        <TooltipTrigger asChild>
-          {#snippet child({ props: tooltipProps })}
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger asChild>
-                {#snippet child({ props })}
-                  <Button
-                    {...props}
-                    {...tooltipProps}
-                    variant="outline"
-                    size="icon"
-                    class="h-14 w-14 shrink-0 transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
-                    disabled={loading}
-                  >
-                    <Download class="h-6 w-6" />
-                  </Button>
-                {/snippet}
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content
-                align="center"
-                side="bottom"
-                sideOffset={8}
-                alignOffset={0}
-                class="w-fit min-w-[80px] p-0"
-                portalProps={{}}
-              >
-                <DropdownMenu.Item
-                  onclick={handleDownloadPng}
-                  class="!flex w-full !items-center !justify-center !gap-0 !px-0 !py-3 !text-center !text-base !font-medium"
-                  inset={false}
-                >
-                  PNG
-                </DropdownMenu.Item>
-                <DropdownMenu.Separator class="!mx-0 !my-1" />
-                <DropdownMenu.Item
-                  onclick={handleDownloadSvg}
-                  class="!flex w-full !items-center !justify-center !gap-0 !px-0 !py-3 !text-center !text-base !font-medium"
-                  inset={false}
-                >
-                  SVG
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Root>
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild>
+          {#snippet child({ props })}
+            <Button
+              {...props}
+              variant="outline"
+              size="icon"
+              class="h-14 w-14 shrink-0 transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
+              disabled={loading}
+            >
+              <Download class="h-6 w-6" />
+            </Button>
           {/snippet}
-        </TooltipTrigger>
-        <TooltipContent
-          side="top"
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content
           align="center"
+          side="bottom"
           sideOffset={8}
-          class=""
-          arrowClasses=""
+          alignOffset={0}
+          class="z-[60] w-fit min-w-[80px] p-0"
+          portalProps={{}}
         >
-          <p class="text-sm">Baixar logo</p>
-          <p class="text-xs text-muted-foreground">PNG ou SVG</p>
-        </TooltipContent>
-      </Tooltip>
+          <DropdownMenu.Item
+            onclick={handleDownloadPng}
+            class="!flex w-full !items-center !justify-center !gap-0 !px-0 !py-3 !text-center !text-base !font-medium"
+            inset={false}
+          >
+            PNG
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator class="!mx-0 !my-1" />
+          <DropdownMenu.Item
+            onclick={handleDownloadSvg}
+            class="!flex w-full !items-center !justify-center !gap-0 !px-0 !py-3 !text-center !text-base !font-medium"
+            inset={false}
+          >
+            SVG
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
     </div>
   </TooltipProvider>
 {/if}

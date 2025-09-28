@@ -37,6 +37,9 @@ let svgData = $state({
   colorMap: {},
   // Comparison mode
   showComparison: false,
+  // Background toggle state
+  manualBackgroundOverride: false, // When true, disables automatic contrast detection
+  manualBackgroundColor: "transparent", // The manually selected background color
 });
 
 // Computed values
@@ -220,6 +223,10 @@ export const svgStore = {
       // Fallback to default white if no logo selected
       svgData.color = DEFAULT_COLOR;
     }
+
+    // Reset background toggle state - re-enable automatic contrast detection
+    svgData.manualBackgroundOverride = false;
+    svgData.manualBackgroundColor = "transparent";
   },
 
   // Multi-color methods
@@ -290,6 +297,37 @@ export const svgStore = {
   // Set comparison mode
   setComparison(show) {
     svgData.showComparison = show;
+  },
+
+  // Background toggle methods
+
+  // Toggle background between white and transparent
+  toggleBackground() {
+    if (!svgData.manualBackgroundOverride) {
+      // First toggle: enable manual override and set to white
+      svgData.manualBackgroundOverride = true;
+      svgData.manualBackgroundColor = "#ffffff";
+    } else if (svgData.manualBackgroundColor === "#ffffff") {
+      // Second toggle: change to transparent
+      svgData.manualBackgroundColor = "transparent";
+    } else {
+      // Third toggle: back to white
+      svgData.manualBackgroundColor = "#ffffff";
+    }
+  },
+
+  // Get the current background color (either manual or automatic)
+  getCurrentBackgroundColor() {
+    if (svgData.manualBackgroundOverride) {
+      return svgData.manualBackgroundColor;
+    }
+    // Return null to indicate automatic contrast detection should be used
+    return null;
+  },
+
+  // Check if manual background override is active
+  isManualBackgroundActive() {
+    return svgData.manualBackgroundOverride;
   },
 };
 

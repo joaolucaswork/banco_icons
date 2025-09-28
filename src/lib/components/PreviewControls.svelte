@@ -2,7 +2,7 @@
 import { Button } from "$lib/components/ui/button";
 import { Slider } from "$lib/components/ui/slider";
 import { Input } from "$lib/components/ui/input";
-import { RotateCcw } from "lucide-svelte";
+import { RotateCcw, Sun, Moon } from "lucide-svelte";
 import { isValidHexColor, normalizeHexColor } from "$lib/utils/color-utils.js";
 import {
   Tooltip,
@@ -28,6 +28,10 @@ let {
   selectedLogo = null,
   // Comparison support
   showComparison = $bindable(false),
+  // Background toggle support
+  onBackgroundToggle = () => {},
+  isManualBackgroundActive = false,
+  currentBackgroundColor = null,
 } = $props();
 
 let customColor = $state(color);
@@ -252,6 +256,49 @@ function handleElementColorChange(elementKey, event) {
         </div>
       {/if}
     </div>
+
+    <!-- Background Toggle Button -->
+    <TooltipProvider delayDuration={300}>
+      <Tooltip
+        disableHoverableContent={false}
+        disableCloseOnTriggerClick={true}
+      >
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            class="group h-[42px] px-3 transition-all duration-200 hover:scale-105 hover:border-muted-foreground/20 hover:bg-muted/60 active:scale-95 {isManualBackgroundActive ? 'border-muted-foreground/30 bg-muted/40' : ''}"
+            onclick={onBackgroundToggle}
+            disabled={false}
+          >
+            {#if isManualBackgroundActive}
+              {#if currentBackgroundColor === "#ffffff"}
+                <!-- White background active - Sun icon -->
+                <Sun class="h-4 w-4 text-yellow-500" />
+              {:else}
+                <!-- Transparent background active - Moon icon -->
+                <Moon class="h-4 w-4 text-blue-400" />
+              {/if}
+            {:else}
+              <!-- Automatic mode - Dimmed sun icon -->
+              <Sun class="h-4 w-4 text-muted-foreground opacity-50" />
+            {/if}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent class="" arrowClasses="">
+          <p>
+            {#if isManualBackgroundActive}
+              {#if currentBackgroundColor === "#ffffff"}
+                Fundo branco (clique para transparente)
+              {:else}
+                Fundo transparente (clique para branco)
+              {/if}
+            {:else}
+              Alternar fundo (automático ativo)
+            {/if}
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
 
     <!-- Reset Button -->
     <TooltipProvider delayDuration={300}>

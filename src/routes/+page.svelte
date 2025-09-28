@@ -28,10 +28,29 @@ let storeData = $derived(svgStore.data);
 let previewSvg = $derived(svgStore.previewSvg);
 let formattedSvg = $derived(svgStore.formattedSvg);
 
-// Calculate background color for optimal contrast (first canvas - dynamic)
-let previewBackground = $derived(getContrastBackground(storeData.color));
-// Calculate dot color for the dotted pattern (first canvas - dynamic)
-let dotColor = $derived(getDottedPatternColor(storeData.color));
+// Calculate background color for optimal contrast (first canvas - dynamic or manual)
+let previewBackground = $derived.by(() => {
+  const manualBg = svgStore.getCurrentBackgroundColor();
+  if (manualBg !== null) {
+    // Use manual background color when override is active
+    return manualBg;
+  }
+  // Use automatic contrast detection when no manual override
+  return getContrastBackground(storeData.color);
+});
+
+// Calculate dot color for the dotted pattern (first canvas - dynamic or manual)
+let dotColor = $derived.by(() => {
+  const manualBg = svgStore.getCurrentBackgroundColor();
+  if (manualBg !== null) {
+    // Use dot color based on manual background
+    return getDottedPatternColor(
+      manualBg === "transparent" ? storeData.color : manualBg,
+    );
+  }
+  // Use automatic dot color detection when no manual override
+  return getDottedPatternColor(storeData.color);
+});
 
 // Static background and dot colors for original canvas (second canvas - independent)
 let originalPreviewBackground = $derived("transparent"); // Always transparent for original
@@ -66,6 +85,10 @@ function handleReset() {
 
 function handleSizeChange(newValue) {
   sizeValue = newValue;
+}
+
+function handleBackgroundToggle() {
+  svgStore.toggleBackground();
 }
 
 onMount(() => {
@@ -164,6 +187,9 @@ onMount(() => {
                 onElementReset={handleElementReset}
                 selectedLogo={storeData.selectedLogo}
                 bind:showComparison={storeData.showComparison}
+                onBackgroundToggle={handleBackgroundToggle}
+                isManualBackgroundActive={storeData.manualBackgroundOverride}
+                currentBackgroundColor={storeData.manualBackgroundColor}
               />
             {/if}
           </div>
