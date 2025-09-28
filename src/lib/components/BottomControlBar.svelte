@@ -175,7 +175,7 @@ function handleElementColorChange(elementKey, event) {
                   min={24}
                   max={256}
                   step={1}
-                  class="w-full [&_[data-slider-range]]:bg-foreground [&_[data-slider-thumb]]:h-5 [&_[data-slider-thumb]]:w-5 [&_[data-slider-thumb]]:border-2 [&_[data-slider-thumb]]:border-gray-400 [&_[data-slider-thumb]]:bg-white [&_[data-slider-thumb]]:shadow-md [&_[data-slider-thumb]]:ring-0 [&_[data-slider-thumb]]:transition-transform [&_[data-slider-thumb]]:hover:scale-110 [&_[data-slider-track]]:bg-muted/60"
+                  class="w-full [&_[data-slider-range]]:bg-foreground [&_[data-slider-thumb]]:!h-6 [&_[data-slider-thumb]]:!w-6 [&_[data-slider-thumb]]:!border-2 [&_[data-slider-thumb]]:!border-white [&_[data-slider-thumb]]:!bg-white [&_[data-slider-thumb]]:!shadow-lg [&_[data-slider-thumb]]:ring-0 [&_[data-slider-thumb]]:transition-transform [&_[data-slider-thumb]]:hover:scale-110 [&_[data-slider-track]]:bg-muted/60"
                 />
               </div>
               <div class="text-xs text-muted-foreground">
@@ -296,18 +296,29 @@ function handleElementColorChange(elementKey, event) {
           </div>
 
           <!-- Reset Button -->
-          <div
-            class="group flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/30 transition-all duration-200 hover:scale-105 hover:border-muted-foreground/20 hover:bg-muted/60 active:scale-95"
-            onclick={handleReset}
-            role="button"
-            tabindex="0"
-            onkeydown={(e) => e.key === 'Enter' && handleReset()}
-            title="Resetar configurações"
-          >
-            <RotateCcw
-              class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
-            />
-          </div>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                <div
+                  class="group flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/30 transition-all duration-200 hover:scale-105 hover:border-muted-foreground/20 hover:bg-muted/60 active:scale-95"
+                  onclick={handleReset}
+                  role="button"
+                  tabindex="0"
+                  onkeydown={(e) => e.key === 'Enter' && handleReset()}
+                >
+                  <RotateCcw
+                    class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent class="" arrowClasses="">
+                <p>Resetar configurações</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
     </div>

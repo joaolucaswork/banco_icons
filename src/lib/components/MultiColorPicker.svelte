@@ -6,6 +6,12 @@ import { RotateCcw } from "lucide-svelte";
 import { isValidHexColor, normalizeHexColor } from "$lib/utils/color-utils.js";
 import { slide } from "svelte/transition";
 import { quintOut } from "svelte/easing";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "$lib/components/ui/tooltip";
 
 let {
   elements = [],
@@ -180,19 +186,30 @@ function handleElementReset(elementKey) {
         />
 
         <!-- Reset button -->
-        <Button
-          variant="ghost"
-          size="sm"
-          class="group h-8 w-8 p-0 text-muted-foreground transition-all duration-200 hover:scale-105 hover:bg-muted/60 hover:text-foreground active:scale-95"
-          onclick={() => handleElementReset(element.key)}
-          aria-label="Resetar cor do {element.label}"
-          title="Resetar para cor padrão"
-          disabled={false}
-        >
-          <RotateCcw
-            class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
-          />
-        </Button>
+        <TooltipProvider delayDuration={300}>
+          <Tooltip
+            disableHoverableContent={false}
+            disableCloseOnTriggerClick={true}
+          >
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                class="group h-8 w-8 p-0 text-muted-foreground transition-all duration-200 hover:scale-105 hover:bg-muted/60 hover:text-foreground active:scale-95"
+                onclick={() => handleElementReset(element.key)}
+                aria-label="Resetar cor do {element.label}"
+                disabled={false}
+              >
+                <RotateCcw
+                  class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent class="" arrowClasses="">
+              <p>Resetar para cor padrão</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       <!-- Auto contrast indicator -->

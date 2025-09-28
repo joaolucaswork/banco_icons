@@ -4,6 +4,8 @@
  * incluindo carregamento, parsing, modificações e formatação de ícones bancários
  */
 
+import { getPrimaryOriginalColor } from "./original-colors.js";
+
 // Lista de logos bancários disponíveis no diretório /logos_bancos
 // Cada entrada corresponde a um arquivo SVG específico
 export const BANK_LOGOS = [
@@ -253,14 +255,129 @@ export function applySvgModifications(svgContent, size, color) {
 }
 
 /**
+ * Convert CSS styles to inline attributes for better clipboard compatibility
+ * This ensures that colors applied via CSS properties are preserved when copying
+ * @param {string} svgContent - SVG content with CSS styles
+ * @returns {string} SVG content with styles converted to attributes
+ */
+export function convertStylesToAttributes(svgContent) {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgContent, "image/svg+xml");
+    const svgElement = doc.querySelector("svg");
+
+    if (!svgElement) return svgContent;
+
+    // Get the root color from inline styles
+    const rootColor = svgElement.style.color;
+
+    // Handle CSS custom properties (for multi-color SVGs like Itaú)
+    const customProperties = new Map();
+    for (let i = 0; i < svgElement.style.length; i++) {
+      const property = svgElement.style[i];
+      if (property.startsWith("--")) {
+        const value = svgElement.style.getPropertyValue(property);
+        customProperties.set(property, value);
+      }
+    }
+
+    // Get the style element to understand CSS rules
+    const styleElement = svgElement.querySelector("style");
+    let cssRules = new Map();
+
+    if (styleElement) {
+      const cssText = styleElement.textContent || "";
+
+      // Parse simple CSS rules (class-based)
+      const ruleMatches = cssText.match(/\.[\w-]+\s*\{[^}]+\}/g);
+      if (ruleMatches) {
+        ruleMatches.forEach((rule) => {
+          const classMatch = rule.match(/\.([\w-]+)/);
+          const fillMatch = rule.match(/fill:\s*([^;]+)/);
+
+          if (classMatch && fillMatch) {
+            const className = classMatch[1];
+            let fillValue = fillMatch[1].trim();
+
+            // Handle CSS variables in fill values
+            const varMatch = fillValue.match(
+              /var\((--[\w-]+)(?:,\s*([^)]+))?\)/,
+            );
+            if (varMatch) {
+              const varName = varMatch[1];
+              const fallback = varMatch[2] || "currentColor";
+              fillValue = customProperties.get(varName) || fallback;
+            }
+
+            // Handle currentColor
+            if (fillValue === "currentColor" && rootColor) {
+              fillValue = rootColor;
+            }
+
+            cssRules.set(className, fillValue);
+          }
+        });
+      }
+    }
+
+    // Apply colors to elements
+    const allElements = svgElement.querySelectorAll("*");
+
+    allElements.forEach((element) => {
+      // Skip style elements
+      if (element.tagName.toLowerCase() === "style") return;
+
+      // Handle elements with currentColor fill attribute
+      if (element.getAttribute("fill") === "currentColor" && rootColor) {
+        element.setAttribute("fill", rootColor);
+      }
+
+      // Handle elements with currentColor stroke attribute
+      if (element.getAttribute("stroke") === "currentColor" && rootColor) {
+        element.setAttribute("stroke", rootColor);
+      }
+
+      // Handle elements with CSS classes
+      if (element.classList.length > 0) {
+        for (const className of element.classList) {
+          if (cssRules.has(className)) {
+            const color = cssRules.get(className);
+            if (color && color !== "currentColor") {
+              // Only set fill if not already explicitly set
+              if (
+                !element.getAttribute("fill") ||
+                element.getAttribute("fill") === "currentColor"
+              ) {
+                element.setAttribute("fill", color);
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Clear inline styles from root element since we've converted them to attributes
+    svgElement.removeAttribute("style");
+
+    return new XMLSerializer().serializeToString(doc);
+  } catch (error) {
+    console.error("Erro ao converter estilos para atributos:", error);
+    return svgContent;
+  }
+}
+
+/**
  * Format SVG content for display (pretty print)
  * @param {string} svgContent - SVG content to format
  * @returns {string} Formatted SVG content
  */
 export function formatSvgContent(svgContent) {
   try {
+    // First convert styles to attributes for better clipboard compatibility
+    let processedSvg = convertStylesToAttributes(svgContent);
+
     const parser = new DOMParser();
-    const doc = parser.parseFromString(svgContent, "image/svg+xml");
+    const doc = parser.parseFromString(processedSvg, "image/svg+xml");
     const serializer = new XMLSerializer();
     let formatted = serializer.serializeToString(doc);
 
@@ -440,6 +557,16 @@ export function getBankDisplayName(filename) {
     names[filename] ||
     filename.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
   );
+}
+
+/**
+ * Get default color for a logo based on its original colors
+ * @param {string} logoName - Name of the logo
+ * @returns {string} Default color for the logo
+ */
+export function getDefaultLogoColor(logoName) {
+  // Use original primary color if available, otherwise fallback to white
+  return getPrimaryOriginalColor(logoName) || "#ffffff";
 }
 
 /**

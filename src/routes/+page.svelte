@@ -10,7 +10,6 @@ import {
 // import CodeBlock from "$lib/components/CodeBlock.svelte";
 import PreviewControls from "$lib/components/PreviewControls.svelte";
 import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
-import ComparisonToggle from "$lib/components/ComparisonToggle.svelte";
 import BankCombobox from "$lib/components/BankCombobox.svelte";
 import ActionButtons from "$lib/components/ActionButtons.svelte";
 import InteractiveCanvas from "$lib/components/InteractiveCanvas.svelte";
@@ -164,6 +163,7 @@ onMount(() => {
                 onElementColorChange={handleElementColorChange}
                 onElementReset={handleElementReset}
                 selectedLogo={storeData.selectedLogo}
+                bind:showComparison={storeData.showComparison}
               />
             {/if}
           </div>
@@ -190,24 +190,14 @@ onMount(() => {
             <!-- Controls Group - Overlay on canvas -->
             {#if storeData.selectedLogo}
               {#if storeData.showComparison}
-                <!-- Comparison mode: Exclamation on right side of left canvas, toggle below the right canvas -->
+                <!-- Comparison mode: Exclamation on right side of left canvas -->
                 <div class="absolute top-3 left-1/2 z-20 -translate-x-12">
                   <BrandingGuidelinesDialog />
                 </div>
-                <div class="absolute top-14 right-3 z-20">
-                  <ComparisonToggle
-                    bind:showComparison={storeData.showComparison}
-                    selectedLogo={storeData.selectedLogo}
-                  />
-                </div>
               {:else}
-                <!-- Single mode: Both stacked on right side -->
-                <div class="absolute top-3 right-3 z-20 flex flex-col gap-2">
+                <!-- Single mode: Only exclamation on right side -->
+                <div class="absolute top-3 right-3 z-20">
                   <BrandingGuidelinesDialog />
-                  <ComparisonToggle
-                    bind:showComparison={storeData.showComparison}
-                    selectedLogo={storeData.selectedLogo}
-                  />
                 </div>
               {/if}
             {/if}

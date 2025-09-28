@@ -3,6 +3,11 @@
  */
 
 import { isDarkColor } from "./color-utils.js";
+import {
+  getOriginalColors,
+  getPrimaryOriginalColor,
+  getSecondaryOriginalColor,
+} from "./original-colors.js";
 
 /**
  * Configuration for multi-color logos
@@ -16,7 +21,7 @@ export const MULTI_COLOR_CONFIGS = {
         label: "Fundo",
         cssVar: "--itau-bg-color",
         autoContrastVar: null,
-        defaultColor: "#003399",
+        defaultColor: getPrimaryOriginalColor("banco-itau"), // #003399
         description: "Cor do fundo do logo",
       },
       {
@@ -24,7 +29,7 @@ export const MULTI_COLOR_CONFIGS = {
         label: "Texto",
         cssVar: "--itau-text-color",
         autoContrastVar: "--itau-auto-text-color",
-        defaultColor: "auto", // Will use auto contrast
+        defaultColor: getSecondaryOriginalColor("banco-itau") || "auto", // #FFFF00 or auto contrast
         description: "Cor do texto do logo",
       },
     ],
@@ -36,7 +41,7 @@ export const MULTI_COLOR_CONFIGS = {
         label: "Fundo",
         cssVar: "--agora-bg-color",
         autoContrastVar: null,
-        defaultColor: "#00C88D",
+        defaultColor: getPrimaryOriginalColor("agora-investimentos"), // #00C88D
         description: "Cor do fundo e elementos principais",
       },
       {
@@ -44,7 +49,8 @@ export const MULTI_COLOR_CONFIGS = {
         label: "Texto",
         cssVar: "--agora-text-color",
         autoContrastVar: null,
-        defaultColor: "#ffffff",
+        defaultColor:
+          getSecondaryOriginalColor("agora-investimentos") || "#ffffff", // #ffffff
         description: "Cor do texto inferior",
       },
     ],

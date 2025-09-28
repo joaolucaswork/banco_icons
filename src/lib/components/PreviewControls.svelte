@@ -11,6 +11,7 @@ import {
   TooltipTrigger,
 } from "$lib/components/ui/tooltip";
 import { resolveAutoColors } from "$lib/utils/multi-color-utils.js";
+import ComparisonToggle from "./ComparisonToggle.svelte";
 
 let {
   sizeValue = [24],
@@ -25,6 +26,8 @@ let {
   onElementColorChange = () => {},
   onElementReset = () => {},
   selectedLogo = null,
+  // Comparison support
+  showComparison = $bindable(false),
 } = $props();
 
 let customColor = $state(color);
@@ -132,7 +135,7 @@ function handleElementColorChange(elementKey, event) {
             min={24}
             max={256}
             step={1}
-            class="w-full"
+            class="w-full [&_[data-slider-range]]:bg-foreground [&_[data-slider-thumb]]:h-6 [&_[data-slider-thumb]]:w-6 [&_[data-slider-thumb]]:border-2 [&_[data-slider-thumb]]:border-white [&_[data-slider-thumb]]:bg-white [&_[data-slider-thumb]]:shadow-lg [&_[data-slider-thumb]]:ring-0 [&_[data-slider-thumb]]:transition-transform [&_[data-slider-thumb]]:hover:scale-110 [&_[data-slider-track]]:bg-muted/60"
           />
         </div>
         <span class="w-8 text-right text-xs text-muted-foreground"
@@ -251,16 +254,36 @@ function handleElementColorChange(elementKey, event) {
     </div>
 
     <!-- Reset Button -->
-    <Button
-      variant="outline"
-      class="group h-[42px] px-3 transition-all duration-200 hover:scale-105 hover:border-muted-foreground/20 hover:bg-muted/60 active:scale-95"
-      onclick={handleReset}
-      title="Resetar configurações"
-      disabled={false}
-    >
-      <RotateCcw
-        class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+    <TooltipProvider delayDuration={300}>
+      <Tooltip
+        disableHoverableContent={false}
+        disableCloseOnTriggerClick={true}
+      >
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            class="group h-[42px] px-3 transition-all duration-200 hover:scale-105 hover:border-muted-foreground/20 hover:bg-muted/60 active:scale-95"
+            onclick={handleReset}
+            disabled={false}
+          >
+            <RotateCcw
+              class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+            />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent class="" arrowClasses="">
+          <p>Resetar configurações</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+
+    <!-- Comparison Toggle Button -->
+    <div class="flex h-[42px] items-center">
+      <ComparisonToggle
+        bind:showComparison={showComparison}
+        selectedLogo={selectedLogo}
+        class="h-[42px] w-16 border-2 border-border bg-white px-4 py-2 text-black transition-all duration-200 hover:scale-105 hover:border-muted-foreground/40 hover:bg-gray-50 active:scale-95"
       />
-    </Button>
+    </div>
   </div>
 </div>
