@@ -1,7 +1,9 @@
 <script>
 import { Button } from "$lib/components/ui/button";
 import { Slider } from "$lib/components/ui/slider";
+import { Input } from "$lib/components/ui/input";
 import { RotateCcw } from "lucide-svelte";
+import { isValidHexColor, normalizeHexColor } from "$lib/utils/color-utils.js";
 
 let {
   sizeValue = [24],
@@ -13,6 +15,8 @@ let {
 
 let customColor = $state(color);
 let colorPickerRef = $state();
+let textInputRef = $state();
+let isValidColor = $state(true);
 
 // Watch for size changes and notify parent
 $effect(() => {
@@ -24,16 +28,69 @@ $effect(() => {
   customColor = color;
 });
 
-// Handle real-time color changes (during dragging/moving)
-function handleColorInput(event) {
-  customColor = event.target.value;
-  onColorChange(customColor);
+// Handle real-time color changes from native color picker (during dragging/moving)
+function handleColorPickerInput(event) {
+  const newColor = event.target.value;
+  customColor = newColor;
+  isValidColor = true;
+  onColorChange(newColor);
 }
 
-// Handle final color selection
-function handleColorChange(event) {
-  customColor = event.target.value;
-  onColorChange(customColor);
+// Handle final color selection from native color picker
+function handleColorPickerChange(event) {
+  const newColor = event.target.value;
+  customColor = newColor;
+  isValidColor = true;
+  onColorChange(newColor);
+}
+
+// Handle text input changes with validation
+function handleTextInput(event) {
+  const inputValue = event.target.value;
+  customColor = inputValue;
+
+  // Validate the input - allow empty input temporarily
+  if (inputValue === "" || isValidHexColor(inputValue)) {
+    if (inputValue !== "" && isValidHexColor(inputValue)) {
+      const normalizedColor = normalizeHexColor(inputValue);
+      isValidColor = true;
+      onColorChange(normalizedColor);
+
+      // Update the native color picker to match
+      if (colorPickerRef) {
+        colorPickerRef.value = normalizedColor;
+      }
+    } else {
+      isValidColor = inputValue === ""; // Empty is valid temporarily
+    }
+  } else {
+    isValidColor = false;
+  }
+}
+
+// Handle text input blur - normalize valid colors
+function handleTextBlur(event) {
+  const inputValue = event.target.value.trim();
+
+  if (inputValue === "") {
+    // If empty, revert to the current color
+    customColor = color;
+    isValidColor = true;
+  } else if (isValidHexColor(inputValue)) {
+    const normalizedColor = normalizeHexColor(inputValue);
+    customColor = normalizedColor;
+    isValidColor = true;
+    onColorChange(normalizedColor);
+
+    // Update the native color picker to match
+    if (colorPickerRef) {
+      colorPickerRef.value = normalizedColor;
+    }
+  } else {
+    // Revert to the last valid color for invalid input
+    customColor = color;
+    isValidColor = true;
+  }
 }
 
 // Open native color picker directly
@@ -98,8 +155,8 @@ function handleReset() {
                 bind:this={colorPickerRef}
                 type="color"
                 bind:value={customColor}
-                oninput={handleColorInput}
-                onchange={handleColorChange}
+                oninput={handleColorPickerInput}
+                onchange={handleColorPickerChange}
                 class="pointer-events-none absolute opacity-0"
                 aria-label="Seletor de cor nativo"
               />
@@ -116,10 +173,19 @@ function handleReset() {
                 <span class="sr-only">Cor atual: {color}</span>
               </Button>
 
-              <!-- Current color display -->
-              <span class="font-mono text-xs text-muted-foreground"
-                >{color}</span
-              >
+              <!-- Editable color input -->
+              <Input
+                bind:this={textInputRef}
+                type="text"
+                bind:value={customColor}
+                oninput={handleTextInput}
+                onblur={handleTextBlur}
+                placeholder="#000000"
+                class="h-8 w-20 border-border bg-background px-2 py-1 font-mono text-xs text-foreground transition-colors {isValidColor ? '' : 'border-destructive bg-destructive/5'}"
+                aria-label="Hex color input"
+                aria-invalid={!isValidColor}
+                title={isValidColor ? "Enter hex color (e.g., #ff0000)" : "Invalid hex color format"}
+              />
             </div>
           </div>
 

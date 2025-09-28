@@ -123,3 +123,37 @@ export function isValidHexColor(color) {
   const hexRegex = /^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
   return hexRegex.test(color);
 }
+
+/**
+ * Normalize hex color input to ensure consistent format
+ * @param {string} color - Color string to normalize
+ * @returns {string} Normalized hex color with # prefix and lowercase
+ */
+export function normalizeHexColor(color) {
+  if (!color || typeof color !== "string") {
+    return "#000000";
+  }
+
+  // Remove any whitespace
+  const cleanColor = color.trim();
+
+  // Check if it's a valid hex color
+  if (!isValidHexColor(cleanColor)) {
+    return "#000000";
+  }
+
+  // Remove # if present, then add it back
+  const withoutHash = cleanColor.replace("#", "");
+
+  // Convert 3-digit hex to 6-digit hex
+  if (withoutHash.length === 3) {
+    const expanded = withoutHash
+      .split("")
+      .map((char) => char + char)
+      .join("");
+    return `#${expanded.toLowerCase()}`;
+  }
+
+  // Return 6-digit hex with # prefix and lowercase
+  return `#${withoutHash.toLowerCase()}`;
+}
