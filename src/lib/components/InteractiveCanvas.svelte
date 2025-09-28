@@ -10,6 +10,8 @@ let {
   originalSvgContent = null,
   previewBackground = "#ffffff",
   dotColor = "#000000",
+  originalPreviewBackground = "transparent", // Independent background for original canvas
+  originalDotColor = "#666666", // Independent dot color for original canvas
   loading = false,
   error = null,
   exportSize = 24,
@@ -254,14 +256,18 @@ function drawOriginal() {
   // Clear canvas
   originalCtx.clearRect(0, 0, originalCanvasWidth, originalCanvasHeight);
 
-  // Draw background - keep transparent if that's what's set
-  if (previewBackground !== "transparent") {
-    originalCtx.fillStyle = previewBackground;
+  // Draw background - use independent background for original canvas
+  if (originalPreviewBackground !== "transparent") {
+    originalCtx.fillStyle = originalPreviewBackground;
     originalCtx.fillRect(0, 0, originalCanvasWidth, originalCanvasHeight);
   }
 
-  // Draw dotted pattern
-  drawDottedPattern(originalCtx, originalCanvasWidth, originalCanvasHeight);
+  // Draw dotted pattern with independent dot color
+  drawDottedPatternOriginal(
+    originalCtx,
+    originalCanvasWidth,
+    originalCanvasHeight,
+  );
 
   // Only draw the SVG if it exists
   if (originalSvgImage) {
@@ -318,6 +324,32 @@ function drawDottedPattern(context, width, height) {
   const opacity = 0.3;
 
   context.fillStyle = dotColor;
+  context.globalAlpha = opacity;
+
+  for (let x = 0; x < width; x += spacing) {
+    for (let y = 0; y < height; y += spacing) {
+      context.beginPath();
+      context.arc(x, y, dotSize, 0, Math.PI * 2);
+      context.fill();
+
+      // Offset pattern
+      context.beginPath();
+      context.arc(x + spacing / 2, y + spacing / 2, dotSize, 0, Math.PI * 2);
+      context.fill();
+    }
+  }
+
+  context.globalAlpha = 1;
+}
+
+function drawDottedPatternOriginal(context, width, height) {
+  if (!context) return;
+
+  const dotSize = 1;
+  const spacing = 16;
+  const opacity = 0.3;
+
+  context.fillStyle = originalDotColor;
   context.globalAlpha = opacity;
 
   for (let x = 0; x < width; x += spacing) {

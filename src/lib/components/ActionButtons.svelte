@@ -117,7 +117,7 @@ function handleOpenInWebflow() {
     <Button
       variant="outline"
       size="icon"
-      class="h-14 w-14 shrink-0"
+      class="h-14 w-14 shrink-0 transition-colors duration-200 hover:!bg-white/10 hover:!text-current"
       onclick={handleOpenInFigma}
       title="Abrir no Figma"
       disabled={loading}
@@ -152,11 +152,14 @@ function handleOpenInWebflow() {
       </svg>
     </Button>
 
+    <!-- Divisor Vertical -->
+    <div class="h-8 w-px bg-border"></div>
+
     <!-- Open in Webflow Button -->
     <Button
       variant="outline"
       size="icon"
-      class="h-14 w-14 shrink-0"
+      class="h-14 w-14 shrink-0 transition-colors duration-200 hover:!bg-white/10 hover:!text-current"
       onclick={handleOpenInWebflow}
       title="Integrar com Webflow"
       disabled={loading}
@@ -191,7 +194,7 @@ function handleOpenInWebflow() {
     <Button
       variant="outline"
       size="icon"
-      class="h-14 w-14 shrink-0"
+      class="h-14 w-14 shrink-0 transition-colors duration-200 hover:!bg-white/10 hover:!text-current"
       onclick={handleCopySvg}
       title="Copiar código SVG"
       disabled={loading}
@@ -210,7 +213,7 @@ function handleOpenInWebflow() {
             {...props}
             variant="outline"
             size="icon"
-            class="h-14 w-14 shrink-0"
+            class="h-14 w-14 shrink-0 transition-colors duration-200 hover:!bg-white/10 hover:!text-current"
             title="Opções de download"
             disabled={loading}
           >

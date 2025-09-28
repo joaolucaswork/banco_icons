@@ -31,10 +31,14 @@ let storeData = $derived(svgStore.data);
 let previewSvg = $derived(svgStore.previewSvg);
 let formattedSvg = $derived(svgStore.formattedSvg);
 
-// Calculate background color for optimal contrast
+// Calculate background color for optimal contrast (first canvas - dynamic)
 let previewBackground = $derived(getContrastBackground(storeData.color));
-// Calculate dot color for the dotted pattern
+// Calculate dot color for the dotted pattern (first canvas - dynamic)
 let dotColor = $derived(getDottedPatternColor(storeData.color));
+
+// Static background and dot colors for original canvas (second canvas - independent)
+let originalPreviewBackground = $derived("transparent"); // Always transparent for original
+let originalDotColor = $derived("#666666"); // Always light gray dots for original
 
 // Update store when slider changes
 $effect(() => {
@@ -170,6 +174,8 @@ onMount(() => {
               svgContent={previewSvg}
               previewBackground={previewBackground}
               dotColor={dotColor}
+              originalPreviewBackground={originalPreviewBackground}
+              originalDotColor={originalDotColor}
               loading={storeData.loading}
               error={storeData.error}
               exportSize={storeData.size}
