@@ -7,12 +7,12 @@ import {
   CardTitle,
 } from "$lib/components/ui/card";
 
-import { Skeleton } from "$lib/components/ui/skeleton";
 import CodeBlock from "$lib/components/CodeBlock.svelte";
 import BottomControlBar from "$lib/components/BottomControlBar.svelte";
 import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
 import BankCombobox from "$lib/components/BankCombobox.svelte";
 import ActionButtons from "$lib/components/ActionButtons.svelte";
+import InteractiveCanvas from "$lib/components/InteractiveCanvas.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
 import { copyToClipboard } from "$lib/utils/svg-utils.js";
 import {
@@ -155,46 +155,36 @@ onMount(() => {
         </CardHeader>
         <CardContent class="">
           <div class="relative">
-            <!-- Compact Preview Container -->
-            <div
-              class="relative flex min-h-[180px] items-center justify-center rounded-lg border border-border transition-colors duration-200 lg:min-h-[200px]"
-              style="background-color: {previewBackground}"
-            >
-              <!-- Dotted background pattern overlay -->
+            <!-- Interactive Canvas Preview -->
+            <InteractiveCanvas
+              svgContent={previewSvg}
+              previewBackground={previewBackground}
+              dotColor={dotColor}
+              loading={storeData.loading}
+              error={storeData.error}
+            />
+
+            <!-- Warning Icon - Overlay on canvas -->
+            {#if storeData.selectedLogo}
+              <div class="absolute top-3 right-3 z-20">
+                <BrandingGuidelinesDialog />
+              </div>
+            {/if}
+
+            <!-- Empty state overlay -->
+            {#if !storeData.loading && !storeData.error && !previewSvg}
               <div
-                class="dotted-background absolute inset-0 rounded-lg"
-                style="--dot-color: {dotColor}"
-              ></div>
-              <!-- Warning Icon - Inside preview, top right -->
-              {#if storeData.selectedLogo}
-                <div class="absolute top-3 right-3 z-10">
-                  <BrandingGuidelinesDialog />
-                </div>
-              {/if}
-              {#if storeData.loading}
-                <div class="relative z-10 text-center">
-                  <Skeleton class="mx-auto mb-4 h-24 w-24" />
-                  <p class="text-muted-foreground">Carregando logos...</p>
-                </div>
-              {:else if storeData.error}
-                <div class="relative z-10 text-center text-destructive">
-                  <p class="font-medium">Erro ao carregar logos</p>
-                  <p class="text-sm">{storeData.error}</p>
-                </div>
-              {:else if previewSvg}
-                <div class="relative z-10 text-center">
-                  {@html previewSvg}
-                </div>
-              {:else}
-                <div class="relative z-10 text-center text-muted-foreground">
+                class="absolute inset-0 flex items-center justify-center rounded-lg bg-background/50 backdrop-blur-sm"
+              >
+                <div class="text-center text-muted-foreground">
                   <Palette class="mx-auto mb-4 h-20 w-20 opacity-50" />
                   <p class="text-lg font-medium">Nenhum logo selecionado</p>
                   <p class="text-sm">
                     Selecione uma instituição financeira acima para começar
                   </p>
                 </div>
-              {/if}
-            </div>
+              </div>
+            {/if}
           </div>
         </CardContent>
       </Card>
