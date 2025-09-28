@@ -7,13 +7,13 @@ import {
   CardTitle,
 } from "$lib/components/ui/card";
 import { Button } from "$lib/components/ui/button";
-import { ScrollArea } from "$lib/components/ui/scroll-area";
 import { Skeleton } from "$lib/components/ui/skeleton";
 import CodeBlock from "$lib/components/CodeBlock.svelte";
 import BottomControlBar from "$lib/components/BottomControlBar.svelte";
 import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
+import BankCombobox from "$lib/components/BankCombobox.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
-import { getBankDisplayName, copyToClipboard } from "$lib/utils/svg-utils.js";
+import { copyToClipboard } from "$lib/utils/svg-utils.js";
 import {
   getContrastBackground,
   getDottedPatternColor,
@@ -92,50 +92,6 @@ onMount(() => {
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
       <!-- Side Panel Controls -->
       <div class="space-y-6 lg:col-span-1">
-        <!-- Logo Selection -->
-        <Card class="border-border bg-card">
-          <CardHeader class="px-4 py-1">
-            <CardTitle class="text-left text-lg text-card-foreground"
-              >Instituições</CardTitle
-            >
-          </CardHeader>
-          <CardContent class="p-0">
-            {#if storeData.loading}
-              <div class="space-y-2 px-4 pt-2 pb-4">
-                {#each Array(7) as _}
-                  <Skeleton class="h-10 w-full" />
-                {/each}
-              </div>
-            {:else}
-              <ScrollArea class="h-64">
-                <div class="w-full space-y-2 px-4 pt-2 pb-4">
-                  {#each storeData.logos.keys() as logoName}
-                    <Button
-                      variant="outline"
-                      class="h-auto w-full justify-start px-2 py-2 text-left {storeData.selectedLogo === logoName ? '!border-white/30 !bg-white/20 hover:!bg-white/30' : 'hover:bg-accent hover:text-accent-foreground'}"
-                      disabled={false}
-                      onclick={() => handleLogoSelect(logoName)}
-                    >
-                      <div class="flex w-full items-center gap-2">
-                        <div
-                          class="flex h-6 w-6 flex-shrink-0 items-center justify-start"
-                        >
-                          {#if storeData.logos.has(logoName)}
-                            {@html storeData.logos.get(logoName).replace(/width="[^"]*"/, 'width="24"').replace(/height="[^"]*"/, 'height="24"')}
-                          {/if}
-                        </div>
-                        <span class="text-sm leading-tight font-medium"
-                          >{getBankDisplayName(logoName)}</span
-                        >
-                      </div>
-                    </Button>
-                  {/each}
-                </div>
-              </ScrollArea>
-            {/if}
-          </CardContent>
-        </Card>
-
         <!-- Actions -->
         <Card class="border-border bg-card">
           <CardHeader class="pb-3">
@@ -158,17 +114,25 @@ onMount(() => {
       <div class="space-y-6 lg:col-span-3">
         <!-- Unified Preview Area -->
         <Card class="border-border bg-card">
-          <CardHeader class="">
-            <div class="flex items-start gap-4">
-              <!-- Left side: Title and Info -->
-              <div class="flex-1 space-y-2">
-                <CardTitle class="text-xl text-card-foreground">
-                  {storeData.selectedLogo ? getBankDisplayName(storeData.selectedLogo) : 'Selecionar um Logo'}
-                </CardTitle>
+          <CardHeader class="px-0">
+            <div class="space-y-4">
+              <!-- Bank Selection Combobox and Information Panel Container -->
+              <div class="space-y-4">
+                <!-- Bank Selection Combobox -->
+                <div class="px-6">
+                  <BankCombobox
+                    bind:selectedLogo={storeData.selectedLogo}
+                    logos={storeData.logos}
+                    loading={storeData.loading}
+                    onLogoSelect={handleLogoSelect}
+                    placeholder="Selecionar uma instituição"
+                    class="w-fit min-w-64"
+                  />
+                </div>
 
-                <!-- Information Panel - Below title -->
+                <!-- Information Panel - Below combobox -->
                 {#if storeData.selectedLogo}
-                  <div class="flex flex-wrap gap-6 text-sm">
+                  <div class="flex flex-wrap gap-6 px-6 text-sm">
                     <!-- Preview Size Info -->
                     <div class="flex items-center gap-2">
                       <span class="text-muted-foreground">Visualização:</span>
@@ -238,7 +202,7 @@ onMount(() => {
                     <Palette class="mx-auto mb-4 h-20 w-20 opacity-50" />
                     <p class="text-lg font-medium">Nenhum logo selecionado</p>
                     <p class="text-sm">
-                      Escolha um logo de banco na barra lateral para começar
+                      Selecione uma instituição financeira acima para começar
                     </p>
                   </div>
                 {/if}
