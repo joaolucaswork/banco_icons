@@ -38,6 +38,6 @@ declare module "$app/types" {
 		};
 		Pathname(): "/" | "/icon-controller" | "/icon-controller/" | "/style-guide" | "/style-guide/";
 		ResolvedPathname(): `${"" | `/${string}`}${ReturnType<AppTypes['Pathname']>}`;
-		Asset(): "/favicon.svg" | "/logo-webflow.svg" | "/logo_original/BTG.svg" | "/logo_original/Banco do brasil.svg" | "/logo_original/Bradesco.svg" | "/logo_original/Caixa.svg" | "/logo_original/Itau.svg" | "/logo_original/XP CORRETORA.svg" | "/logo_original/ÁGORA.svg" | "/logos_bancos/.DS_Store" | "/logos_bancos/agora-investimentos.svg" | "/logos_bancos/banco-bradesco.svg" | "/logos_bancos/banco-brasil.svg" | "/logos_bancos/banco-itau.svg" | "/logos_bancos/btg-pactual.svg" | "/logos_bancos/caixa-economica.svg" | "/logos_bancos/index.ts" | "/logos_bancos/xp-investimentos.svg" | string & {};
+		Asset(): "/favicon.svg" | "/logo-webflow.svg" | "/logo_original/BTG.svg" | "/logo_original/Banco do brasil.svg" | "/logo_original/Bradesco.svg" | "/logo_original/Caixa.svg" | "/logo_original/Itau.svg" | "/logo_original/XP CORRETORA.svg" | "/logo_original/banco-agora.svg" | "/logos_bancos/.DS_Store" | "/logos_bancos/agora-investimentos.svg" | "/logos_bancos/banco-bradesco.svg" | "/logos_bancos/banco-brasil.svg" | "/logos_bancos/banco-itau.svg" | "/logos_bancos/btg-pactual.svg" | "/logos_bancos/caixa-economica.svg" | "/logos_bancos/index.ts" | "/logos_bancos/xp-investimentos.svg" | string & {};
 	}
 }

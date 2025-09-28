@@ -65,7 +65,7 @@ const brandGuidelineLinks = [
 ];
 </script>
 
-<div class="absolute top-3 right-3 z-20">
+<div>
   <Dialog bind:open={isOpen}>
     <DialogTrigger asChild>
       <button
@@ -98,7 +98,7 @@ const brandGuidelineLinks = [
           </DialogTitle>
         </div>
         <button
-          class="absolute top-0 right-0 h-8 w-8 rounded-sm p-0 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none disabled:pointer-events-none"
+          class="absolute top-0 right-0 h-8 w-8 rounded-sm p-0 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none"
           onclick={closeDialog}
         >
           <XIcon class="h-4 w-4" />

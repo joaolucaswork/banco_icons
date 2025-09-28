@@ -7,6 +7,7 @@ import {
   loadSvgContent,
   applySvgModifications,
   formatSvgContent,
+  getDefaultLogoColor,
 } from "../utils/svg-utils.js";
 import {
   hasMultipleColors,
@@ -141,9 +142,10 @@ export const svgStore = {
         }
       });
 
-      // Select first logo if none selected
+      // Select first logo if none selected - use selectLogo method to properly initialize multi-color support
       if (!svgData.selectedLogo && svgData.logos.size > 0) {
-        svgData.selectedLogo = BANK_LOGOS[0];
+        // Use the selectLogo method to properly detect and configure multi-color support
+        this.selectLogo(BANK_LOGOS[0]);
       }
     } catch (error) {
       console.error("Erro ao carregar logos:", error);
@@ -181,9 +183,11 @@ export const svgStore = {
           colorMap: svgData.colorMap,
         });
       } else {
-        // Reset multi-color state
+        // Reset multi-color state and set single color to original
         svgData.colorableElements = [];
         svgData.colorMap = {};
+        // Set the single color to the original color of the logo
+        svgData.color = getDefaultLogoColor(logoName);
       }
     }
   },
@@ -202,11 +206,19 @@ export const svgStore = {
   // Reset to defaults
   reset() {
     svgData.size = DEFAULT_SIZE;
-    svgData.color = DEFAULT_COLOR;
 
-    // Reset multi-color state
-    if (svgData.isMultiColor && svgData.selectedLogo) {
-      svgData.colorMap = getDefaultColorMap(svgData.selectedLogo);
+    // Reset colors to original colors
+    if (svgData.selectedLogo) {
+      if (svgData.isMultiColor) {
+        // Reset multi-color state to original colors
+        svgData.colorMap = getDefaultColorMap(svgData.selectedLogo);
+      } else {
+        // Reset single color to original color
+        svgData.color = getDefaultLogoColor(svgData.selectedLogo);
+      }
+    } else {
+      // Fallback to default white if no logo selected
+      svgData.color = DEFAULT_COLOR;
     }
   },
 

@@ -1,20 +1,39 @@
 <script>
 import { Button } from "$lib/components/ui/button";
-import { ZoomIn, ZoomOut, RotateCcw } from "lucide-svelte";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "$lib/components/ui/tooltip";
+import { ZoomIn, ZoomOut, RotateCcw, Copy, Download } from "lucide-svelte";
+import CheckIcon from "@lucide/svelte/icons/check";
 import { onMount } from "svelte";
 import { loadOriginalSvgContent } from "$lib/utils/original-logos.js";
+import CanvasContextMenu from "./CanvasContextMenu.svelte";
+import { toast } from "svelte-sonner";
+import {
+  downloadSvgAsPng,
+  downloadSvgAsFile,
+  copyToClipboard,
+  getBankDisplayName,
+} from "$lib/utils/svg-utils.js";
 
 let {
   svgContent = null,
   originalSvgContent = null,
   previewBackground = "#ffffff",
   dotColor = "#000000",
+  originalPreviewBackground = "transparent", // Independent background for original canvas
+  originalDotColor = "#666666", // Independent dot color for original canvas
   loading = false,
   error = null,
   exportSize = 24,
   exportColor = "#ffffff",
   showComparison = false,
   selectedLogo = null,
+  formattedSvg = null,
+  onReset = () => {},
   class: className = "",
   ...restProps
 } = $props();
@@ -24,7 +43,6 @@ let canvasContainer = $state(/** @type {HTMLDivElement | null} */ (null));
 let canvas = $state(/** @type {HTMLCanvasElement | null} */ (null));
 let ctx = $state(/** @type {CanvasRenderingContext2D | null} */ (null));
 let svgImage = $state(/** @type {HTMLImageElement | null} */ (null));
-let exportSvgImage = $state(/** @type {HTMLImageElement | null} */ (null));
 
 // Canvas state for original logo (right side)
 let originalCanvasContainer = $state(
@@ -194,35 +212,6 @@ function loadOriginalSvgImage(/** @type {string | null} */ svgString) {
   img.src = url;
 }
 
-function loadExportSvgImage(/** @type {string | null} */ svgString) {
-  if (!svgString) {
-    exportSvgImage = null;
-    draw();
-    return;
-  }
-
-  const img = new Image();
-  const svgBlob = new Blob([svgString], {
-    type: "image/svg+xml;charset=utf-8",
-  });
-  const url = URL.createObjectURL(svgBlob);
-
-  img.onload = () => {
-    exportSvgImage = img;
-    URL.revokeObjectURL(url);
-    draw();
-  };
-
-  img.onerror = () => {
-    console.error("Failed to load export SVG image");
-    exportSvgImage = null;
-    URL.revokeObjectURL(url);
-    draw();
-  };
-
-  img.src = url;
-}
-
 function draw() {
   if (!ctx || !canvas) return;
 
@@ -238,11 +227,6 @@ function draw() {
 
   // Draw modified logo
   drawSingleLogo();
-
-  // Draw mini preview in bottom left corner (only on left canvas)
-  if (!showComparison) {
-    drawMiniPreview();
-  }
 }
 
 function drawOriginal() {
@@ -253,14 +237,18 @@ function drawOriginal() {
   // Clear canvas
   originalCtx.clearRect(0, 0, originalCanvasWidth, originalCanvasHeight);
 
-  // Draw background - keep transparent if that's what's set
-  if (previewBackground !== "transparent") {
-    originalCtx.fillStyle = previewBackground;
+  // Draw background - use independent background for original canvas
+  if (originalPreviewBackground !== "transparent") {
+    originalCtx.fillStyle = originalPreviewBackground;
     originalCtx.fillRect(0, 0, originalCanvasWidth, originalCanvasHeight);
   }
 
-  // Draw dotted pattern
-  drawDottedPattern(originalCtx, originalCanvasWidth, originalCanvasHeight);
+  // Draw dotted pattern with independent dot color
+  drawDottedPatternOriginal(
+    originalCtx,
+    originalCanvasWidth,
+    originalCanvasHeight,
+  );
 
   // Only draw the SVG if it exists
   if (originalSvgImage) {
@@ -335,127 +323,30 @@ function drawDottedPattern(context, width, height) {
   context.globalAlpha = 1;
 }
 
-// Helper function to calculate luminance and determine contrast color
-function getContrastColor(backgroundColor) {
-  // Convert hex to RGB
-  const hex = backgroundColor.replace("#", "");
-  const r = parseInt(hex.substr(0, 2), 16) / 255;
-  const g = parseInt(hex.substr(2, 2), 16) / 255;
-  const b = parseInt(hex.substr(4, 2), 16) / 255;
+function drawDottedPatternOriginal(context, width, height) {
+  if (!context) return;
 
-  // Calculate relative luminance
-  const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+  const dotSize = 1;
+  const spacing = 16;
+  const opacity = 0.3;
 
-  // Return white for dark backgrounds, black for light backgrounds
-  return luminance > 0.5 ? "#000000" : "#ffffff";
-}
+  context.fillStyle = originalDotColor;
+  context.globalAlpha = opacity;
 
-function drawMiniPreview() {
-  if (!ctx || !exportSvgImage) return;
+  for (let x = 0; x < width; x += spacing) {
+    for (let y = 0; y < height; y += spacing) {
+      context.beginPath();
+      context.arc(x, y, dotSize, 0, Math.PI * 2);
+      context.fill();
 
-  const padding = 12;
-  const maxSize = 80; // Increased maximum size for the mini preview box
-  const actualSize = Math.min(exportSize, maxSize); // Use actual export size but cap at maxSize
-  const iconSize = Math.min(actualSize * 0.75, 50); // Icon is smaller than the box (75% of box size, max 50px)
+      // Offset pattern
+      context.beginPath();
+      context.arc(x + spacing / 2, y + spacing / 2, dotSize, 0, Math.PI * 2);
+      context.fill();
+    }
+  }
 
-  // Calculate contrast colors based on background
-  const contrastColor = getContrastColor(previewBackground);
-  const tagTextColor = contrastColor === "#ffffff" ? "#ffffff" : "#000000";
-  const dotColor =
-    contrastColor === "#ffffff"
-      ? "rgba(255, 255, 255, 0.9)"
-      : "rgba(0, 0, 0, 0.9)";
-
-  // Calculate positions with increased spacing
-  const labelText = `${exportSize}px`;
-  ctx.font = "11px system-ui, -apple-system, sans-serif";
-  const textMetrics = ctx.measureText(labelText);
-  const textWidth = textMetrics.width;
-  const textHeight = 11;
-  const tagPadding = 6;
-  const tagHeight = textHeight + tagPadding * 2;
-  const labelSpacing = 12; // Increased spacing between preview and label
-
-  // Position in bottom left corner with space for label below
-  const x = padding;
-  const y = canvasHeight - padding - actualSize - tagHeight - labelSpacing;
-
-  // Draw label with white border tag BELOW the mini preview
-  const tagX = x;
-  const tagY = y + actualSize + labelSpacing;
-  ctx.save();
-
-  // Draw rounded rectangle with transparent background and contrast border
-  const tagRadius = 4;
-  const borderColor =
-    contrastColor === "#ffffff"
-      ? "rgba(255, 255, 255, 0.9)"
-      : "rgba(0, 0, 0, 0.9)"; // Contrast-aware border
-
-  // Draw thin contrast border only (no fill)
-  ctx.strokeStyle = borderColor;
-  ctx.lineWidth = 0.8; // Even thinner border
-  ctx.beginPath();
-  ctx.roundRect(tagX, tagY, textWidth + tagPadding * 2, tagHeight, tagRadius);
-  ctx.stroke();
-
-  // Draw contrast-aware text
-  ctx.fillStyle = tagTextColor;
-  ctx.textAlign = "left";
-  ctx.fillText(
-    labelText,
-    tagX + tagPadding,
-    tagY + textHeight + tagPadding - 3,
-  );
-
-  // Draw zoom/position indicator frame with rounded corners
-  const frameThickness = 0.8; // Thin border
-  const frameColor =
-    contrastColor === "#ffffff"
-      ? "rgba(255, 255, 255, 0.9)"
-      : "rgba(0, 0, 0, 0.9)"; // Contrast-aware border
-  const frameRadius = 6;
-
-  // Outer frame (zoom indicator) - rounded
-  ctx.strokeStyle = frameColor;
-  ctx.lineWidth = frameThickness;
-  ctx.beginPath();
-  ctx.roundRect(x - 4, y - 4, actualSize + 8, actualSize + 8, frameRadius);
-  ctx.stroke();
-
-  // Inner position indicator (shows pan offset)
-  const maxOffset = 20; // Maximum visual offset for position indicator
-  const normalizedX = Math.max(
-    -maxOffset,
-    Math.min(maxOffset, translateX / 10),
-  );
-  const normalizedY = Math.max(
-    -maxOffset,
-    Math.min(maxOffset, translateY / 10),
-  );
-
-  // Position indicator dot - smaller and with contrast-aware color
-  const dotX = x + actualSize / 2 + normalizedX;
-  const dotY = y + actualSize / 2 + normalizedY;
-  const dotRadius = 2.5; // Decreased from 4 to 2.5
-  ctx.fillStyle = dotColor;
-  ctx.beginPath();
-  ctx.arc(dotX, dotY, dotRadius, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Draw subtle rounded border for the mini preview (no background)
-  ctx.strokeStyle = "rgba(0, 0, 0, 0.1)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.roundRect(x - 1, y - 1, actualSize + 2, actualSize + 2, 3);
-  ctx.stroke();
-
-  // Draw the export SVG at smaller size, centered in the larger box
-  const iconX = x + (actualSize - iconSize) / 2;
-  const iconY = y + (actualSize - iconSize) / 2;
-  ctx.drawImage(exportSvgImage, iconX, iconY, iconSize, iconSize);
-
-  ctx.restore();
+  context.globalAlpha = 1;
 }
 
 // Zoom functions for modified logo (left canvas)
@@ -502,6 +393,112 @@ function originalResetView() {
   originalTranslateY = 0;
   drawOriginal();
   draw(); // Also redraw left canvas to maintain consistency
+}
+
+// Copy and download handlers for modified logo (left canvas)
+async function handleCopySvg() {
+  if (!formattedSvg || !selectedLogo) {
+    toast.error("Nenhum logo selecionado para copiar.");
+    return;
+  }
+
+  const bankName = getBankDisplayName(selectedLogo);
+  const success = await copyToClipboard(formattedSvg);
+
+  if (success) {
+    toast.success(`Código SVG do ${bankName} copiado!`);
+  } else {
+    toast.error("Falha ao copiar código SVG. Tente novamente.");
+  }
+}
+
+async function handleDownloadSvg() {
+  if (!formattedSvg || !selectedLogo) {
+    toast.error("Nenhum logo selecionado para download.");
+    return;
+  }
+
+  const filename = `${selectedLogo}-${exportSize}px`;
+  const success = downloadSvgAsFile(formattedSvg, filename);
+
+  if (success) {
+    const bankName = getBankDisplayName(selectedLogo);
+    toast.success(`${bankName} baixado como SVG!`);
+  } else {
+    toast.error("Falha ao baixar SVG. Tente novamente.");
+  }
+}
+
+async function handleDownloadPng() {
+  if (!svgContent || !selectedLogo) {
+    toast.error("Nenhum logo selecionado para download.");
+    return;
+  }
+
+  const filename = `${selectedLogo}-${exportSize}px`;
+  const success = await downloadSvgAsPng(svgContent, filename, exportSize);
+
+  if (success) {
+    const bankName = getBankDisplayName(selectedLogo);
+    toast.success(`${bankName} baixado como PNG!`);
+  } else {
+    toast.error("Falha ao baixar PNG. Tente novamente.");
+  }
+}
+
+// Copy and download handlers for original logo (right canvas)
+async function handleOriginalCopySvg() {
+  if (!originalSvgContent || !selectedLogo) {
+    toast.error("Nenhum logo original disponível para copiar.");
+    return;
+  }
+
+  const bankName = getBankDisplayName(selectedLogo);
+  const success = await copyToClipboard(originalSvgContent);
+
+  if (success) {
+    toast.success(`Código SVG original do ${bankName} copiado!`);
+  } else {
+    toast.error("Falha ao copiar código SVG original. Tente novamente.");
+  }
+}
+
+async function handleOriginalDownloadSvg() {
+  if (!originalSvgContent || !selectedLogo) {
+    toast.error("Nenhum logo original disponível para download.");
+    return;
+  }
+
+  const filename = `${selectedLogo}-original-${exportSize}px`;
+  const success = downloadSvgAsFile(originalSvgContent, filename);
+
+  if (success) {
+    const bankName = getBankDisplayName(selectedLogo);
+    toast.success(`${bankName} original baixado como SVG!`);
+  } else {
+    toast.error("Falha ao baixar SVG original. Tente novamente.");
+  }
+}
+
+async function handleOriginalDownloadPng() {
+  if (!originalSvgContent || !selectedLogo) {
+    toast.error("Nenhum logo original disponível para download.");
+    return;
+  }
+
+  const filename = `${selectedLogo}-original-${exportSize}px`;
+  const success = await downloadSvgAsPng(
+    originalSvgContent,
+    filename,
+    exportSize,
+  );
+
+  if (success) {
+    const bankName = getBankDisplayName(selectedLogo);
+    toast.success(`${bankName} original baixado como PNG!`);
+  } else {
+    toast.error("Falha ao baixar PNG original. Tente novamente.");
+  }
 }
 
 // Mouse event handlers
@@ -675,34 +672,6 @@ $effect(() => {
 });
 
 $effect(() => {
-  // Load export SVG when export parameters change
-  if (svgContent && exportSize && exportColor) {
-    // Create export SVG with the specified size and color
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(svgContent, "image/svg+xml");
-    const svgElement = doc.documentElement;
-
-    // Update size attributes
-    svgElement.setAttribute("width", exportSize.toString());
-    svgElement.setAttribute("height", exportSize.toString());
-
-    // Update fill color for all path elements
-    const paths = svgElement.querySelectorAll(
-      "path, circle, rect, polygon, ellipse",
-    );
-    paths.forEach((path) => {
-      path.setAttribute("fill", exportColor);
-    });
-
-    const exportSvgString = new XMLSerializer().serializeToString(svgElement);
-    loadExportSvgImage(exportSvgString);
-  } else {
-    exportSvgImage = null;
-    draw();
-  }
-});
-
-$effect(() => {
   updateCanvasSize();
 });
 
@@ -755,50 +724,148 @@ $effect(() => {
       <div
         class="relative flex flex-1 items-center justify-center border-r border-border/50"
       >
-        <canvas
-          bind:this={canvas}
-          class="cursor-grab touch-none rounded-l-lg"
-          onmousedown={handleMouseDown}
-          onmousemove={handleMouseMove}
-          onmouseup={handleMouseUp}
-          onmouseleave={handleMouseUp}
-          onwheel={handleWheel}
-          ontouchstart={handleTouchStart}
-          ontouchmove={handleTouchMove}
-          ontouchend={handleTouchEnd}
-          ontouchcancel={handleTouchEnd}
-        ></canvas>
+        <CanvasContextMenu
+          svgContent={svgContent}
+          selectedLogo={selectedLogo}
+          exportSize={exportSize}
+          exportColor={exportColor}
+          formattedSvg={formattedSvg}
+          onReset={onReset}
+        >
+          <canvas
+            bind:this={canvas}
+            class="cursor-grab touch-none rounded-l-lg"
+            onmousedown={handleMouseDown}
+            onmousemove={handleMouseMove}
+            onmouseup={handleMouseUp}
+            onmouseleave={handleMouseUp}
+            onwheel={handleWheel}
+            ontouchstart={handleTouchStart}
+            ontouchmove={handleTouchMove}
+            ontouchend={handleTouchEnd}
+            ontouchcancel={handleTouchEnd}
+          ></canvas>
+        </CanvasContextMenu>
 
-        <!-- Left Controls -->
-        <div class="absolute top-3 left-3 z-10 flex flex-col gap-1">
+        <!-- Left Top Controls - Copy and Download -->
+        <div class="absolute top-3 left-3 z-10 flex flex-col gap-3">
           <Button
             variant="secondary"
             size="icon"
-            class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            onclick={zoomIn}
-            disabled={scale >= MAX_SCALE}
+            class="h-10 w-10 border border-border/20 bg-white text-black hover:bg-white/90"
+            onclick={handleCopySvg}
+            disabled={!formattedSvg || !selectedLogo}
+            title="Copiar SVG"
           >
-            <ZoomIn class="h-4 w-4" />
+            <Copy class="h-5 w-5" />
           </Button>
           <Button
             variant="secondary"
             size="icon"
-            class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            onclick={zoomOut}
-            disabled={scale <= MIN_SCALE}
+            class="h-10 w-10 border border-border/20 bg-white text-black hover:bg-white/90"
+            onclick={handleDownloadSvg}
+            disabled={!formattedSvg || !selectedLogo}
+            title="Baixar SVG"
           >
-            <ZoomOut class="h-4 w-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            onclick={resetView}
-            disabled={false}
-          >
-            <RotateCcw class="h-4 w-4" />
+            <Download class="h-5 w-5" />
           </Button>
         </div>
+
+        <!-- Left Bottom Controls - Zoom -->
+        <TooltipProvider delayDuration={400}>
+          <div class="absolute bottom-12 left-3 z-10 flex flex-col gap-1">
+            <!-- Zoom In Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                    onclick={zoomIn}
+                    disabled={scale >= MAX_SCALE}
+                  >
+                    <ZoomIn class="h-4 w-4" />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Aumentar zoom</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <!-- Zoom Out Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                    onclick={zoomOut}
+                    disabled={scale <= MIN_SCALE}
+                  >
+                    <ZoomOut class="h-4 w-4" />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Diminuir zoom</p>
+              </TooltipContent>
+            </Tooltip>
+            <!-- Reset View Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="group h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                    onclick={resetView}
+                    disabled={false}
+                  >
+                    <RotateCcw
+                      class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                    />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Resetar visualização</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
 
         <!-- Left Label -->
         <div class="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 transform">
@@ -825,35 +892,174 @@ $effect(() => {
           onwheel={handleOriginalWheel}
         ></canvas>
 
-        <!-- Right Controls -->
-        <div class="absolute top-3 left-3 z-10 flex flex-col gap-1">
-          <Button
-            variant="secondary"
-            size="icon"
-            class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            onclick={originalZoomIn}
-            disabled={originalScale >= MAX_SCALE}
+        <!-- Right Top Controls - Copy and Download -->
+        <TooltipProvider delayDuration={400}>
+          <div class="absolute top-3 left-3 z-10 flex flex-col gap-3">
+            <!-- Copy Original Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="h-10 w-10 border border-border/20 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95"
+                    onclick={handleOriginalCopySvg}
+                    disabled={!originalSvgContent || !selectedLogo}
+                  >
+                    <Copy class="h-5 w-5" />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Copiar SVG Original</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <!-- Download Original Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="h-10 w-10 border border-border/20 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95"
+                    onclick={handleOriginalDownloadSvg}
+                    disabled={!originalSvgContent || !selectedLogo}
+                  >
+                    <Download class="h-5 w-5" />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Baixar SVG Original</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
+
+        <!-- Right Bottom Controls - Zoom -->
+        <TooltipProvider delayDuration={400}>
+          <div class="absolute bottom-12 left-3 z-10 flex flex-col gap-1">
+            <!-- Zoom In Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                    onclick={originalZoomIn}
+                    disabled={originalScale >= MAX_SCALE}
+                  >
+                    <ZoomIn class="h-4 w-4" />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Aumentar zoom</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <!-- Zoom Out Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                    onclick={originalZoomOut}
+                    disabled={originalScale <= MIN_SCALE}
+                  >
+                    <ZoomOut class="h-4 w-4" />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Diminuir zoom</p>
+              </TooltipContent>
+            </Tooltip>
+            <!-- Reset View Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="group h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                    onclick={originalResetView}
+                    disabled={false}
+                  >
+                    <RotateCcw
+                      class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                    />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Resetar visualização</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
+
+        <!-- Green Checkmark Icon - Top Right -->
+        <div class="absolute top-3 right-3 z-30">
+          <div
+            class="cursor-pointer rounded-full p-1 transition-all duration-200 hover:scale-110 hover:bg-green-500/20"
           >
-            <ZoomIn class="h-4 w-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            onclick={originalZoomOut}
-            disabled={originalScale <= MIN_SCALE}
-          >
-            <ZoomOut class="h-4 w-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            onclick={originalResetView}
-            disabled={false}
-          >
-            <RotateCcw class="h-4 w-4" />
-          </Button>
+            <CheckIcon class="h-5 w-5 text-green-600 drop-shadow-sm" />
+          </div>
         </div>
 
         <!-- Right Label -->
@@ -868,54 +1074,191 @@ $effect(() => {
     </div>
   {:else}
     <!-- Single Canvas Mode -->
-    <canvas
-      bind:this={canvas}
-      class="cursor-grab touch-none rounded-lg"
-      onmousedown={handleMouseDown}
-      onmousemove={handleMouseMove}
-      onmouseup={handleMouseUp}
-      onmouseleave={handleMouseUp}
-      onwheel={handleWheel}
-      ontouchstart={handleTouchStart}
-      ontouchmove={handleTouchMove}
-      ontouchend={handleTouchEnd}
-      ontouchcancel={handleTouchEnd}
-    ></canvas>
+    <CanvasContextMenu
+      svgContent={svgContent}
+      selectedLogo={selectedLogo}
+      exportSize={exportSize}
+      exportColor={exportColor}
+      formattedSvg={formattedSvg}
+      onReset={onReset}
+    >
+      <canvas
+        bind:this={canvas}
+        class="cursor-grab touch-none rounded-lg"
+        onmousedown={handleMouseDown}
+        onmousemove={handleMouseMove}
+        onmouseup={handleMouseUp}
+        onmouseleave={handleMouseUp}
+        onwheel={handleWheel}
+        ontouchstart={handleTouchStart}
+        ontouchmove={handleTouchMove}
+        ontouchend={handleTouchEnd}
+        ontouchcancel={handleTouchEnd}
+      ></canvas>
+    </CanvasContextMenu>
   {/if}
 
   <!-- Controls overlay (only in single canvas mode) -->
   {#if !showComparison}
-    <div class="absolute top-3 left-3 z-10 flex flex-col gap-1">
-      <Button
-        variant="secondary"
-        size="icon"
-        class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-        onclick={zoomIn}
-        disabled={scale >= MAX_SCALE}
-      >
-        <ZoomIn class="h-4 w-4" />
-      </Button>
+    <TooltipProvider delayDuration={400}>
+      <!-- Top Controls - Copy and Download -->
+      <div class="absolute top-3 left-3 z-10 flex flex-col gap-3">
+        <!-- Copy Button -->
+        <Tooltip
+          disableHoverableContent={false}
+          disableCloseOnTriggerClick={true}
+        >
+          <TooltipTrigger asChild>
+            {#snippet child({ props })}
+              <Button
+                {...props}
+                variant="secondary"
+                size="icon"
+                class="h-10 w-10 border border-border/20 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95"
+                onclick={handleCopySvg}
+                disabled={!formattedSvg || !selectedLogo}
+              >
+                <Copy class="h-5 w-5" />
+              </Button>
+            {/snippet}
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            align="center"
+            sideOffset={8}
+            class=""
+            arrowClasses=""
+          >
+            <p class="text-sm">Copiar SVG</p>
+          </TooltipContent>
+        </Tooltip>
 
-      <Button
-        variant="secondary"
-        size="icon"
-        class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-        onclick={zoomOut}
-        disabled={scale <= MIN_SCALE}
-      >
-        <ZoomOut class="h-4 w-4" />
-      </Button>
+        <!-- Download Button -->
+        <Tooltip
+          disableHoverableContent={false}
+          disableCloseOnTriggerClick={true}
+        >
+          <TooltipTrigger asChild>
+            {#snippet child({ props })}
+              <Button
+                {...props}
+                variant="secondary"
+                size="icon"
+                class="h-10 w-10 border border-border/20 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95"
+                onclick={handleDownloadSvg}
+                disabled={!formattedSvg || !selectedLogo}
+              >
+                <Download class="h-5 w-5" />
+              </Button>
+            {/snippet}
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            align="center"
+            sideOffset={8}
+            class=""
+            arrowClasses=""
+          >
+            <p class="text-sm">Baixar SVG</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
 
-      <Button
-        variant="secondary"
-        size="icon"
-        class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-        onclick={resetView}
-        disabled={false}
-      >
-        <RotateCcw class="h-4 w-4" />
-      </Button>
-    </div>
+      <!-- Bottom Controls - Zoom -->
+      <div class="absolute bottom-3 left-3 z-10 flex flex-col gap-1">
+        <!-- Zoom In Button -->
+        <Tooltip
+          disableHoverableContent={false}
+          disableCloseOnTriggerClick={true}
+        >
+          <TooltipTrigger asChild>
+            {#snippet child({ props })}
+              <Button
+                {...props}
+                variant="secondary"
+                size="icon"
+                class="h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                onclick={zoomIn}
+                disabled={scale >= MAX_SCALE}
+              >
+                <ZoomIn class="h-4 w-4" />
+              </Button>
+            {/snippet}
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            align="center"
+            sideOffset={8}
+            class=""
+            arrowClasses=""
+          >
+            <p class="text-sm">Aumentar zoom</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <!-- Zoom Out Button -->
+        <Tooltip
+          disableHoverableContent={false}
+          disableCloseOnTriggerClick={true}
+        >
+          <TooltipTrigger asChild>
+            {#snippet child({ props })}
+              <Button
+                {...props}
+                variant="secondary"
+                size="icon"
+                class="h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                onclick={zoomOut}
+                disabled={scale <= MIN_SCALE}
+              >
+                <ZoomOut class="h-4 w-4" />
+              </Button>
+            {/snippet}
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            align="center"
+            sideOffset={8}
+            class=""
+            arrowClasses=""
+          >
+            <p class="text-sm">Diminuir zoom</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <!-- Reset View Button -->
+        <Tooltip
+          disableHoverableContent={false}
+          disableCloseOnTriggerClick={true}
+        >
+          <TooltipTrigger asChild>
+            {#snippet child({ props })}
+              <Button
+                {...props}
+                variant="secondary"
+                size="icon"
+                class="group h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                onclick={resetView}
+                disabled={false}
+              >
+                <RotateCcw
+                  class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                />
+              </Button>
+            {/snippet}
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            align="center"
+            sideOffset={8}
+            class=""
+            arrowClasses=""
+          >
+            <p class="text-sm">Resetar visualização</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
   {/if}
 
   <!-- Loading state -->

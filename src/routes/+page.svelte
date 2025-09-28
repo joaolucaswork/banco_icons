@@ -4,37 +4,38 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
+  // CardTitle,
 } from "$lib/components/ui/card";
 
-import CodeBlock from "$lib/components/CodeBlock.svelte";
-import BottomControlBar from "$lib/components/BottomControlBar.svelte";
+// import CodeBlock from "$lib/components/CodeBlock.svelte";
+import PreviewControls from "$lib/components/PreviewControls.svelte";
 import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
-import ComparisonToggle from "$lib/components/ComparisonToggle.svelte";
 import BankCombobox from "$lib/components/BankCombobox.svelte";
 import ActionButtons from "$lib/components/ActionButtons.svelte";
 import InteractiveCanvas from "$lib/components/InteractiveCanvas.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
-import { copyToClipboard } from "$lib/utils/svg-utils.js";
 import {
   getContrastBackground,
   getDottedPatternColor,
 } from "$lib/utils/color-utils.js";
 import { Palette } from "lucide-svelte";
-import { toast } from "svelte-sonner";
 
 let sizeValue = $state([24]);
-let showCode = $state(true);
+// let showCode = $state(true);
 
 // Reactive values from store
 let storeData = $derived(svgStore.data);
 let previewSvg = $derived(svgStore.previewSvg);
 let formattedSvg = $derived(svgStore.formattedSvg);
 
-// Calculate background color for optimal contrast
+// Calculate background color for optimal contrast (first canvas - dynamic)
 let previewBackground = $derived(getContrastBackground(storeData.color));
-// Calculate dot color for the dotted pattern
+// Calculate dot color for the dotted pattern (first canvas - dynamic)
 let dotColor = $derived(getDottedPatternColor(storeData.color));
+
+// Static background and dot colors for original canvas (second canvas - independent)
+let originalPreviewBackground = $derived("transparent"); // Always transparent for original
+let originalDotColor = $derived("#666666"); // Always light gray dots for original
 
 // Update store when slider changes
 $effect(() => {
@@ -67,21 +68,6 @@ function handleSizeChange(newValue) {
   sizeValue = newValue;
 }
 
-async function handleCopySvg() {
-  if (formattedSvg) {
-    console.log("Copiando SVG formatado:", typeof formattedSvg, formattedSvg);
-    const success = await copyToClipboard(formattedSvg);
-    if (success) {
-      toast.success("Código SVG copiado para a área de transferência!");
-    } else {
-      toast.error("Falha ao copiar código SVG. Tente novamente.");
-    }
-  } else {
-    console.log("Nenhum formattedSvg disponível");
-    toast.error("Nenhum código SVG disponível para copiar.");
-  }
-}
-
 onMount(() => {
   // Store should auto-load, but ensure it's loaded
   if (storeData.logos.size === 0 && !storeData.loading) {
@@ -98,7 +84,7 @@ onMount(() => {
   />
 </svelte:head>
 
-<div class="min-h-screen bg-background pb-20">
+<div class="min-h-screen bg-background">
   <div class="container mx-auto px-4 py-8">
     <div class="space-y-6">
       <!-- Main Content Area -->
@@ -129,7 +115,8 @@ onMount(() => {
               </div>
 
               <!-- Information Panel - Below combobox -->
-              {#if storeData.selectedLogo}
+              <!-- COMMENTED OUT: Visualização, Exportar, and Cor items -->
+              {#if false && storeData.selectedLogo}
                 <div class="flex flex-wrap gap-6 px-6 text-sm">
                   <!-- Preview Size Info -->
                   <div class="flex items-center gap-2">
@@ -161,6 +148,24 @@ onMount(() => {
                 </div>
               {/if}
             </div>
+
+            <!-- Preview Controls - Between combobox and preview -->
+            {#if storeData.selectedLogo}
+              <PreviewControls
+                sizeValue={sizeValue}
+                color={storeData.color}
+                onSizeChange={handleSizeChange}
+                onColorChange={handleColorChange}
+                onReset={handleReset}
+                isMultiColor={storeData.isMultiColor}
+                colorableElements={storeData.colorableElements}
+                colorMap={storeData.colorMap}
+                onElementColorChange={handleElementColorChange}
+                onElementReset={handleElementReset}
+                selectedLogo={storeData.selectedLogo}
+                bind:showComparison={storeData.showComparison}
+              />
+            {/if}
           </div>
         </CardHeader>
         <CardContent class="">
@@ -170,25 +175,31 @@ onMount(() => {
               svgContent={previewSvg}
               previewBackground={previewBackground}
               dotColor={dotColor}
+              originalPreviewBackground={originalPreviewBackground}
+              originalDotColor={originalDotColor}
               loading={storeData.loading}
               error={storeData.error}
               exportSize={storeData.size}
               exportColor={storeData.color}
               showComparison={storeData.showComparison}
               selectedLogo={storeData.selectedLogo}
+              formattedSvg={formattedSvg}
+              onReset={handleReset}
             />
 
-            <!-- Warning Icon - Overlay on canvas -->
+            <!-- Controls Group - Overlay on canvas -->
             {#if storeData.selectedLogo}
-              <div class="absolute top-3 right-3 z-20">
-                <BrandingGuidelinesDialog />
-              </div>
-
-              <!-- Comparison Toggle - Below the guidelines button -->
-              <ComparisonToggle
-                bind:showComparison={storeData.showComparison}
-                selectedLogo={storeData.selectedLogo}
-              />
+              {#if storeData.showComparison}
+                <!-- Comparison mode: Exclamation on right side of left canvas -->
+                <div class="absolute top-3 left-1/2 z-20 -translate-x-12">
+                  <BrandingGuidelinesDialog />
+                </div>
+              {:else}
+                <!-- Single mode: Only exclamation on right side -->
+                <div class="absolute top-3 right-3 z-20">
+                  <BrandingGuidelinesDialog />
+                </div>
+              {/if}
             {/if}
 
             <!-- Empty state overlay -->
@@ -210,7 +221,7 @@ onMount(() => {
       </Card>
 
       <!-- Code Display -->
-      {#if showCode && formattedSvg}
+      <!-- {#if showCode && formattedSvg}
         <Card class="border-border bg-card">
           <CardHeader class="">
             <CardTitle class="text-xl text-card-foreground"
@@ -225,23 +236,7 @@ onMount(() => {
             />
           </CardContent>
         </Card>
-      {/if}
+      {/if} -->
     </div>
   </div>
 </div>
-
-<!-- Bottom Control Bar -->
-<BottomControlBar
-  sizeValue={sizeValue}
-  color={storeData.color}
-  onSizeChange={handleSizeChange}
-  onColorChange={handleColorChange}
-  onReset={handleReset}
-  formattedSvg={formattedSvg}
-  onCopySvg={handleCopySvg}
-  isMultiColor={storeData.isMultiColor}
-  colorableElements={storeData.colorableElements}
-  colorMap={storeData.colorMap}
-  onElementColorChange={handleElementColorChange}
-  onElementReset={handleElementReset}
-/>
