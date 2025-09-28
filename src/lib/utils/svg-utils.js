@@ -42,7 +42,6 @@ export async function loadSvgContent(filename) {
     // Retorna o conteúdo do arquivo como texto
     return await response.text();
   } catch (error) {
-    console.error("Erro ao carregar SVG:", error);
     return null;
   }
 }
@@ -361,7 +360,6 @@ export function convertStylesToAttributes(svgContent) {
 
     return new XMLSerializer().serializeToString(doc);
   } catch (error) {
-    console.error("Erro ao converter estilos para atributos:", error);
     return svgContent;
   }
 }
@@ -396,7 +394,6 @@ export function formatSvgContent(svgContent) {
 
     return formatted;
   } catch (error) {
-    console.error("Erro ao formatar SVG:", error);
     return svgContent;
   }
 }
@@ -410,31 +407,16 @@ export async function copyToClipboard(text) {
   try {
     // Check if text is valid
     if (!text || typeof text !== "string") {
-      console.error("❌ Texto inválido para copiar:", {
-        type: typeof text,
-        value: text,
-        length: text?.length,
-      });
       return false;
     }
 
-    console.log("📋 Tentando copiar texto:", {
-      length: text.length,
-      preview: text.substring(0, 100) + (text.length > 100 ? "..." : ""),
-    });
-
     // Check if we're in a secure context
     if (!window.isSecureContext) {
-      console.warn(
-        "⚠️ Contexto não seguro detectado - clipboard pode não funcionar",
-      );
+      // Context is not secure, clipboard may not work
     }
 
     // Check if clipboard API is available
     if (!navigator.clipboard) {
-      console.warn(
-        "⚠️ API da área de transferência não disponível, usando método alternativo",
-      );
       // Fallback to older method
       try {
         const textArea = document.createElement("textarea");
@@ -450,47 +432,26 @@ export async function copyToClipboard(text) {
         document.body.removeChild(textArea);
 
         if (successful) {
-          console.log("✅ Cópia bem-sucedida usando método alternativo");
           return true;
         } else {
-          console.error(
-            "❌ Método de cópia alternativo falhou - execCommand retornou false",
-          );
           return false;
         }
       } catch (fallbackError) {
-        console.error("❌ Método de cópia alternativo falhou:", {
-          error: fallbackError.message,
-          name: fallbackError.name,
-          stack: fallbackError.stack,
-        });
         return false;
       }
     }
 
     // Check if writeText is available
     if (!navigator.clipboard.writeText) {
-      console.error("❌ navigator.clipboard.writeText não está disponível");
       return false;
     }
 
     // Try to copy using modern clipboard API
     await navigator.clipboard.writeText(text);
-    console.log("✅ Cópia bem-sucedida usando API moderna do clipboard");
     return true;
   } catch (error) {
-    console.error("❌ Falha ao copiar para área de transferência:", {
-      error: error.message,
-      name: error.name,
-      stack: error.stack,
-      isSecureContext: window.isSecureContext,
-      clipboardAvailable: !!navigator.clipboard,
-      writeTextAvailable: !!navigator.clipboard?.writeText,
-    });
-
     // Try fallback method as last resort
     try {
-      console.log("🔄 Tentando método de fallback como último recurso...");
       const textArea = document.createElement("textarea");
       textArea.value = text;
       textArea.style.position = "fixed";
@@ -504,11 +465,10 @@ export async function copyToClipboard(text) {
       document.body.removeChild(textArea);
 
       if (successful) {
-        console.log("✅ Fallback bem-sucedido após erro da API moderna");
         return true;
       }
     } catch (fallbackError) {
-      console.error("❌ Fallback também falhou:", fallbackError.message);
+      // Fallback failed
     }
 
     return false;
@@ -533,7 +493,6 @@ export function diagnoseClipboard() {
     timestamp: new Date().toISOString(),
   };
 
-  console.log("🔍 Diagnóstico do Clipboard:", diagnosis);
   return diagnosis;
 }
 
@@ -620,14 +579,12 @@ export async function downloadSvgAsPng(svgContent, filename, size = 256) {
 
             resolve(true);
           } else {
-            console.error("Falha ao converter canvas para blob");
             resolve(false);
           }
         }, "image/png");
       };
 
       img.onerror = () => {
-        console.error("Falha ao carregar SVG como imagem");
         URL.revokeObjectURL(svgUrl);
         resolve(false);
       };
@@ -635,7 +592,6 @@ export async function downloadSvgAsPng(svgContent, filename, size = 256) {
       img.src = svgUrl;
     });
   } catch (error) {
-    console.error("Erro ao converter SVG para PNG:", error);
     return false;
   }
 }
@@ -669,7 +625,6 @@ export function downloadSvgAsFile(svgContent, filename) {
 
     return true;
   } catch (error) {
-    console.error("Erro ao baixar SVG:", error);
     return false;
   }
 }

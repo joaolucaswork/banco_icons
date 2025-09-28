@@ -174,7 +174,6 @@ function loadSvgImage(/** @type {string | null} */ svgString) {
   };
 
   img.onerror = () => {
-    console.error("Failed to load SVG image");
     svgImage = null;
     URL.revokeObjectURL(url);
     draw();
@@ -203,7 +202,6 @@ function loadOriginalSvgImage(/** @type {string | null} */ svgString) {
   };
 
   img.onerror = () => {
-    console.error("Failed to load original SVG image");
     originalSvgImage = null;
     URL.revokeObjectURL(url);
     drawOriginal();
@@ -668,7 +666,7 @@ $effect(() => {
         }
       })
       .catch((error) => {
-        console.error("Failed to load original logo:", error);
+        // Failed to load original logo
       });
   }
 });

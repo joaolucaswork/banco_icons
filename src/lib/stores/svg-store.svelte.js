@@ -153,7 +153,6 @@ export const svgStore = {
         this.selectLogo(BANK_LOGOS[0]);
       }
     } catch (error) {
-      console.error("Erro ao carregar logos:", error);
       svgData.error = "Falha ao carregar logos SVG";
     } finally {
       svgData.loading = false;
@@ -162,12 +161,8 @@ export const svgStore = {
 
   // Select a specific logo
   selectLogo(logoName) {
-    console.log("svgStore.selectLogo chamado com:", logoName);
-    console.log("svgData.logos.has(logoName):", svgData.logos.has(logoName));
-    console.log("svgData.selectedLogo antes:", svgData.selectedLogo);
     if (svgData.logos.has(logoName)) {
       svgData.selectedLogo = logoName;
-      console.log("svgData.selectedLogo depois:", svgData.selectedLogo);
 
       // Reset background toggle state when changing logos - re-enable automatic contrast detection
       svgData.manualBackgroundOverride = false;
@@ -189,12 +184,6 @@ export const svgStore = {
 
         // Also set the main color to the primary color for background calculation
         svgData.color = getDefaultLogoColor(logoName);
-
-        console.log("Multi-color logo detected:", {
-          elements: svgData.colorableElements,
-          colorMap: svgData.colorMap,
-          mainColor: svgData.color,
-        });
       } else {
         // Reset multi-color state and set single color to original
         svgData.colorableElements = [];
@@ -202,12 +191,6 @@ export const svgStore = {
         // Set the single color to the original color of the logo
         svgData.color = getDefaultLogoColor(logoName);
       }
-
-      console.log("Logo selecionado - cor final:", svgData.color);
-      console.log(
-        "Logo selecionado - fundo manual ativo:",
-        svgData.manualBackgroundOverride,
-      );
 
       // Apply theme colors based on logo's primary color
       const primaryColor = getPrimaryOriginalColor(logoName);
@@ -267,12 +250,6 @@ export const svgStore = {
       ...svgData.colorMap,
       [elementKey]: color,
     };
-
-    console.log("Element color updated:", {
-      elementKey,
-      color,
-      colorMap: svgData.colorMap,
-    });
   },
 
   // Reset color for a specific element

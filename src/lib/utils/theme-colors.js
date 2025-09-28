@@ -303,7 +303,6 @@ export function applyThemeColors(primaryColor) {
 export function resetThemeColors() {
   // Check if we're in the browser
   if (typeof document === "undefined") {
-    console.log("Não está no browser, pulando reset de cores");
     return;
   }
 

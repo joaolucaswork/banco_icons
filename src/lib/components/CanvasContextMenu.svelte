@@ -107,7 +107,6 @@ async function handleCopyPng() {
             const bankName = getBankDisplayName(selectedLogo);
             toast.success(`Imagem PNG do ${bankName} copiada!`);
           } catch (error) {
-            console.error("Erro ao copiar PNG:", error);
             toast.error("Falha ao copiar PNG. Tente novamente.");
           }
         } else {
@@ -124,7 +123,6 @@ async function handleCopyPng() {
 
     img.src = svgUrl;
   } catch (error) {
-    console.error("Erro ao copiar PNG:", error);
     toast.error("Falha ao copiar PNG. Tente novamente.");
   }
 }
