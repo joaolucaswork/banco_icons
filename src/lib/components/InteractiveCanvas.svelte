@@ -1,5 +1,11 @@
 <script>
 import { Button } from "$lib/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "$lib/components/ui/tooltip";
 import { ZoomIn, ZoomOut, RotateCcw, Copy, Download } from "lucide-svelte";
 import CheckIcon from "@lucide/svelte/icons/check";
 import { onMount } from "svelte";
@@ -766,35 +772,100 @@ $effect(() => {
         </div>
 
         <!-- Left Bottom Controls - Zoom -->
-        <div class="absolute bottom-12 left-3 z-10 flex flex-col gap-1">
-          <Button
-            variant="secondary"
-            size="icon"
-            class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            onclick={zoomIn}
-            disabled={scale >= MAX_SCALE}
-          >
-            <ZoomIn class="h-4 w-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            onclick={zoomOut}
-            disabled={scale <= MIN_SCALE}
-          >
-            <ZoomOut class="h-4 w-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            onclick={resetView}
-            disabled={false}
-          >
-            <RotateCcw class="h-4 w-4" />
-          </Button>
-        </div>
+        <TooltipProvider delayDuration={400}>
+          <div class="absolute bottom-12 left-3 z-10 flex flex-col gap-1">
+            <!-- Zoom In Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                    onclick={zoomIn}
+                    disabled={scale >= MAX_SCALE}
+                  >
+                    <ZoomIn class="h-4 w-4" />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Aumentar zoom</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <!-- Zoom Out Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                    onclick={zoomOut}
+                    disabled={scale <= MIN_SCALE}
+                  >
+                    <ZoomOut class="h-4 w-4" />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Diminuir zoom</p>
+              </TooltipContent>
+            </Tooltip>
+            <!-- Reset View Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="group h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                    onclick={resetView}
+                    disabled={false}
+                  >
+                    <RotateCcw
+                      class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                    />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Resetar visualização</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
 
         <!-- Left Label -->
         <div class="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 transform">
@@ -822,59 +893,165 @@ $effect(() => {
         ></canvas>
 
         <!-- Right Top Controls - Copy and Download -->
-        <div class="absolute top-3 left-3 z-10 flex flex-col gap-3">
-          <Button
-            variant="secondary"
-            size="icon"
-            class="h-10 w-10 border border-border/20 bg-white text-black hover:bg-white/90"
-            onclick={handleOriginalCopySvg}
-            disabled={!originalSvgContent || !selectedLogo}
-            title="Copiar SVG Original"
-          >
-            <Copy class="h-5 w-5" />
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            class="h-10 w-10 border border-border/20 bg-white text-black hover:bg-white/90"
-            onclick={handleOriginalDownloadSvg}
-            disabled={!originalSvgContent || !selectedLogo}
-            title="Baixar SVG Original"
-          >
-            <Download class="h-5 w-5" />
-          </Button>
-        </div>
+        <TooltipProvider delayDuration={400}>
+          <div class="absolute top-3 left-3 z-10 flex flex-col gap-3">
+            <!-- Copy Original Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="h-10 w-10 border border-border/20 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95"
+                    onclick={handleOriginalCopySvg}
+                    disabled={!originalSvgContent || !selectedLogo}
+                  >
+                    <Copy class="h-5 w-5" />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Copiar SVG Original</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <!-- Download Original Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="h-10 w-10 border border-border/20 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95"
+                    onclick={handleOriginalDownloadSvg}
+                    disabled={!originalSvgContent || !selectedLogo}
+                  >
+                    <Download class="h-5 w-5" />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Baixar SVG Original</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
 
         <!-- Right Bottom Controls - Zoom -->
-        <div class="absolute bottom-12 left-3 z-10 flex flex-col gap-1">
-          <Button
-            variant="secondary"
-            size="icon"
-            class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            onclick={originalZoomIn}
-            disabled={originalScale >= MAX_SCALE}
-          >
-            <ZoomIn class="h-4 w-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            onclick={originalZoomOut}
-            disabled={originalScale <= MIN_SCALE}
-          >
-            <ZoomOut class="h-4 w-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-            onclick={originalResetView}
-            disabled={false}
-          >
-            <RotateCcw class="h-4 w-4" />
-          </Button>
-        </div>
+        <TooltipProvider delayDuration={400}>
+          <div class="absolute bottom-12 left-3 z-10 flex flex-col gap-1">
+            <!-- Zoom In Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                    onclick={originalZoomIn}
+                    disabled={originalScale >= MAX_SCALE}
+                  >
+                    <ZoomIn class="h-4 w-4" />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Aumentar zoom</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <!-- Zoom Out Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                    onclick={originalZoomOut}
+                    disabled={originalScale <= MIN_SCALE}
+                  >
+                    <ZoomOut class="h-4 w-4" />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Diminuir zoom</p>
+              </TooltipContent>
+            </Tooltip>
+            <!-- Reset View Button -->
+            <Tooltip
+              disableHoverableContent={false}
+              disableCloseOnTriggerClick={true}
+            >
+              <TooltipTrigger asChild>
+                {#snippet child({ props })}
+                  <Button
+                    {...props}
+                    variant="secondary"
+                    size="icon"
+                    class="group h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                    onclick={originalResetView}
+                    disabled={false}
+                  >
+                    <RotateCcw
+                      class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                    />
+                  </Button>
+                {/snippet}
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                align="center"
+                sideOffset={8}
+                class=""
+                arrowClasses=""
+              >
+                <p class="text-sm">Resetar visualização</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
 
         <!-- Green Checkmark Icon - Top Right -->
         <div class="absolute top-3 right-3 z-30">
@@ -923,62 +1100,165 @@ $effect(() => {
 
   <!-- Controls overlay (only in single canvas mode) -->
   {#if !showComparison}
-    <!-- Top Controls - Copy and Download -->
-    <div class="absolute top-3 left-3 z-10 flex flex-col gap-3">
-      <Button
-        variant="secondary"
-        size="icon"
-        class="h-10 w-10 border border-border/20 bg-white text-black hover:bg-white/90"
-        onclick={handleCopySvg}
-        disabled={!formattedSvg || !selectedLogo}
-        title="Copiar SVG"
-      >
-        <Copy class="h-5 w-5" />
-      </Button>
-      <Button
-        variant="secondary"
-        size="icon"
-        class="h-10 w-10 border border-border/20 bg-white text-black hover:bg-white/90"
-        onclick={handleDownloadSvg}
-        disabled={!formattedSvg || !selectedLogo}
-        title="Baixar SVG"
-      >
-        <Download class="h-5 w-5" />
-      </Button>
-    </div>
+    <TooltipProvider delayDuration={400}>
+      <!-- Top Controls - Copy and Download -->
+      <div class="absolute top-3 left-3 z-10 flex flex-col gap-3">
+        <!-- Copy Button -->
+        <Tooltip
+          disableHoverableContent={false}
+          disableCloseOnTriggerClick={true}
+        >
+          <TooltipTrigger asChild>
+            {#snippet child({ props })}
+              <Button
+                {...props}
+                variant="secondary"
+                size="icon"
+                class="h-10 w-10 border border-border/20 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95"
+                onclick={handleCopySvg}
+                disabled={!formattedSvg || !selectedLogo}
+              >
+                <Copy class="h-5 w-5" />
+              </Button>
+            {/snippet}
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            align="center"
+            sideOffset={8}
+            class=""
+            arrowClasses=""
+          >
+            <p class="text-sm">Copiar SVG</p>
+          </TooltipContent>
+        </Tooltip>
 
-    <!-- Bottom Controls - Zoom -->
-    <div class="absolute bottom-3 left-3 z-10 flex flex-col gap-1">
-      <Button
-        variant="secondary"
-        size="icon"
-        class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-        onclick={zoomIn}
-        disabled={scale >= MAX_SCALE}
-      >
-        <ZoomIn class="h-4 w-4" />
-      </Button>
+        <!-- Download Button -->
+        <Tooltip
+          disableHoverableContent={false}
+          disableCloseOnTriggerClick={true}
+        >
+          <TooltipTrigger asChild>
+            {#snippet child({ props })}
+              <Button
+                {...props}
+                variant="secondary"
+                size="icon"
+                class="h-10 w-10 border border-border/20 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95"
+                onclick={handleDownloadSvg}
+                disabled={!formattedSvg || !selectedLogo}
+              >
+                <Download class="h-5 w-5" />
+              </Button>
+            {/snippet}
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            align="center"
+            sideOffset={8}
+            class=""
+            arrowClasses=""
+          >
+            <p class="text-sm">Baixar SVG</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
 
-      <Button
-        variant="secondary"
-        size="icon"
-        class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-        onclick={zoomOut}
-        disabled={scale <= MIN_SCALE}
-      >
-        <ZoomOut class="h-4 w-4" />
-      </Button>
+      <!-- Bottom Controls - Zoom -->
+      <div class="absolute bottom-3 left-3 z-10 flex flex-col gap-1">
+        <!-- Zoom In Button -->
+        <Tooltip
+          disableHoverableContent={false}
+          disableCloseOnTriggerClick={true}
+        >
+          <TooltipTrigger asChild>
+            {#snippet child({ props })}
+              <Button
+                {...props}
+                variant="secondary"
+                size="icon"
+                class="h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                onclick={zoomIn}
+                disabled={scale >= MAX_SCALE}
+              >
+                <ZoomIn class="h-4 w-4" />
+              </Button>
+            {/snippet}
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            align="center"
+            sideOffset={8}
+            class=""
+            arrowClasses=""
+          >
+            <p class="text-sm">Aumentar zoom</p>
+          </TooltipContent>
+        </Tooltip>
 
-      <Button
-        variant="secondary"
-        size="icon"
-        class="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background/90"
-        onclick={resetView}
-        disabled={false}
-      >
-        <RotateCcw class="h-4 w-4" />
-      </Button>
-    </div>
+        <!-- Zoom Out Button -->
+        <Tooltip
+          disableHoverableContent={false}
+          disableCloseOnTriggerClick={true}
+        >
+          <TooltipTrigger asChild>
+            {#snippet child({ props })}
+              <Button
+                {...props}
+                variant="secondary"
+                size="icon"
+                class="h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                onclick={zoomOut}
+                disabled={scale <= MIN_SCALE}
+              >
+                <ZoomOut class="h-4 w-4" />
+              </Button>
+            {/snippet}
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            align="center"
+            sideOffset={8}
+            class=""
+            arrowClasses=""
+          >
+            <p class="text-sm">Diminuir zoom</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <!-- Reset View Button -->
+        <Tooltip
+          disableHoverableContent={false}
+          disableCloseOnTriggerClick={true}
+        >
+          <TooltipTrigger asChild>
+            {#snippet child({ props })}
+              <Button
+                {...props}
+                variant="secondary"
+                size="icon"
+                class="group h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-background/90 active:scale-95"
+                onclick={resetView}
+                disabled={false}
+              >
+                <RotateCcw
+                  class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                />
+              </Button>
+            {/snippet}
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            align="center"
+            sideOffset={8}
+            class=""
+            arrowClasses=""
+          >
+            <p class="text-sm">Resetar visualização</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
   {/if}
 
   <!-- Loading state -->

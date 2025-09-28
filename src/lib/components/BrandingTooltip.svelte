@@ -24,8 +24,12 @@ function handleMouseLeave() {
 </script>
 
 <div class="absolute top-3 right-3 z-20">
-  <TooltipProvider>
-    <Tooltip open={isOpen}>
+  <TooltipProvider delayDuration={400}>
+    <Tooltip
+      open={isOpen}
+      disableHoverableContent={false}
+      disableCloseOnTriggerClick={true}
+    >
       <TooltipTrigger
         class={cn(
           "cursor-pointer rounded-full p-1 transition-all duration-200 hover:bg-yellow-500/20",

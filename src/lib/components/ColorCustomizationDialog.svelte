@@ -216,13 +216,15 @@ function handleResetAll() {
               <Button
                 variant="ghost"
                 size="sm"
-                class="h-10 w-10 p-0 text-muted-foreground hover:text-foreground"
+                class="group h-10 w-10 p-0 text-muted-foreground transition-all duration-200 hover:scale-105 hover:bg-muted/60 hover:text-foreground active:scale-95"
                 onclick={() => handleElementReset(element.key)}
                 aria-label="Resetar cor do {element.label}"
                 title="Resetar para cor padrão"
                 disabled={false}
               >
-                <RotateCcw class="h-4 w-4" />
+                <RotateCcw
+                  class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                />
               </Button>
             </div>
           </div>
@@ -233,20 +235,27 @@ function handleResetAll() {
         <Button
           variant="outline"
           onclick={handleResetAll}
-          class=""
+          class="group transition-all duration-200 hover:scale-105 hover:border-muted-foreground/20 hover:bg-muted/60 active:scale-95"
           disabled={false}
         >
+          <RotateCcw
+            class="mr-2 h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+          />
           Resetar Tudo
         </Button>
         <Button
           variant="outline"
           onclick={handleCancel}
-          class=""
+          class="transition-all duration-200 hover:scale-105 hover:border-muted-foreground/20 hover:bg-muted/60 active:scale-95"
           disabled={false}
         >
           Cancelar
         </Button>
-        <Button onclick={handleApply} class="" disabled={false}>Aplicar</Button>
+        <Button
+          onclick={handleApply}
+          class="transition-all duration-200 hover:scale-105 active:scale-95"
+          disabled={false}>Aplicar</Button
+        >
       </DialogFooter>
     </DialogPrimitive.Content>
   </DialogPortal>

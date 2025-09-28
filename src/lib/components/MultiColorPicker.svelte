@@ -183,13 +183,15 @@ function handleElementReset(elementKey) {
         <Button
           variant="ghost"
           size="sm"
-          class="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+          class="group h-8 w-8 p-0 text-muted-foreground transition-all duration-200 hover:scale-105 hover:bg-muted/60 hover:text-foreground active:scale-95"
           onclick={() => handleElementReset(element.key)}
           aria-label="Resetar cor do {element.label}"
           title="Resetar para cor padrão"
           disabled={false}
         >
-          <RotateCcw class="h-4 w-4" />
+          <RotateCcw
+            class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+          />
         </Button>
       </div>
 

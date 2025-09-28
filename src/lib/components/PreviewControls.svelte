@@ -207,12 +207,14 @@ function handleDialogReset() {
     <!-- Reset Button -->
     <Button
       variant="outline"
-      class="h-[42px] px-3"
+      class="group h-[42px] px-3 transition-all duration-200 hover:scale-105 hover:border-muted-foreground/20 hover:bg-muted/60 active:scale-95"
       onclick={handleReset}
       title="Resetar configurações"
       disabled={false}
     >
-      <RotateCcw class="h-4 w-4" />
+      <RotateCcw
+        class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+      />
     </Button>
   </div>
 </div>

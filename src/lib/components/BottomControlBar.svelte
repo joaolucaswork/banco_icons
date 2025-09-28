@@ -256,14 +256,16 @@ function handleReset() {
 
           <!-- Reset Button -->
           <div
-            class="flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/30 hover:bg-muted/40"
+            class="group flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/30 transition-all duration-200 hover:scale-105 hover:border-muted-foreground/20 hover:bg-muted/60 active:scale-95"
             onclick={handleReset}
             role="button"
             tabindex="0"
             onkeydown={(e) => e.key === 'Enter' && handleReset()}
             title="Resetar configurações"
           >
-            <RotateCcw class="h-4 w-4" />
+            <RotateCcw
+              class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+            />
           </div>
         </div>
       </div>
