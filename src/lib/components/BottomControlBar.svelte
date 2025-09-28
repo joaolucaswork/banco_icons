@@ -303,7 +303,8 @@ function handleElementColorChange(elementKey, event) {
             >
               <TooltipTrigger asChild>
                 <div
-                  class="group flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/30 transition-all duration-200 hover:scale-105 hover:border-muted-foreground/20 hover:bg-muted/60 active:scale-95"
+                  class="group flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-lg bg-muted/30 transition-all duration-200 hover:scale-105 hover:bg-muted/60 active:scale-95"
+                  style="border: none !important;"
                   onclick={handleReset}
                   role="button"
                   tabindex="0"

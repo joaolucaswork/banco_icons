@@ -196,26 +196,17 @@ function handleOpenInWebflow() {
               onclick={handleOpenInWebflow}
               disabled={loading}
             >
-              <!-- Webflow Icon SVG -->
+              <!-- Webflow Icon SVG - Recreated -->
               <svg
                 class="h-6 w-6"
-                viewBox="0 0 32 20"
-                fill="none"
+                viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
+                style="fill: white !important; stroke: none !important;"
               >
-                <g clip-path="url(#clip0_webflow_button)">
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M31.9998 0L21.789 19.9906H12.1981L16.4714 11.7057H16.2796C12.7543 16.2888 7.49436 19.3059 -0.000236511 19.9906V11.8203C-0.000236511 11.8203 4.79424 11.5367 7.61276 8.56902H-0.000236511V0.00015727H8.55596V7.04792L8.74799 7.04715L12.2443 0.00015727H18.7152V7.00323L18.9072 7.00294L22.5347 0H31.9998Z"
-                    fill="currentColor"
-                  />
-                </g>
-                <defs>
-                  <clipPath id="clip0_webflow_button">
-                    <rect width="32" height="20" fill="white" />
-                  </clipPath>
-                </defs>
+                <path
+                  d="M21 2L13.5 17H7.5L10.5 10.5H10.3C8 13.5 4.5 16 0 17V10C0 10 3 9.8 4.8 7.5H0V2H6V7L6.2 7L8.5 2H13V7L13.2 7L15.8 2H21Z"
+                  style="fill: white !important; stroke: none !important;"
+                />
               </svg>
             </Button>
           {/snippet}

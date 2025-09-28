@@ -121,8 +121,92 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply outline-ring/50;
   }
+
+  /* Remove default button borders */
+  button:not([class*="border"]):not([class*="outline"]) {
+    border: none;
+  }
+
+  /* Force remove borders and outlines from specific elements */
+  button[data-slot="button"],
+  [data-sonner-toast] button,
+  .rounded-full button,
+  button.rounded-full {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  button.rounded-full:focus,
+  button.rounded-full:focus-visible {
+    outline: none !important;
+    border: none !important;
+  }
+
+  /* Remove borders from container divs of BrandingGuidelinesDialog */
+  .absolute.z-20,
+  div[class*="absolute"][class*="z-20"] {
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+  }
+
+  /* Specific targeting for positioning divs */
+  .absolute.top-3 {
+    border: none !important;
+    outline: none !important;
+  }
+
+  /* Force remove all borders from dialog-related elements */
+  [data-slot="dialog-trigger"],
+  [data-slot="dialog-trigger"] *,
+  [data-slot="dialog-trigger"] div,
+  [data-slot="dialog-trigger"] button {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Remove any focus rings or outlines */
+  *:focus,
+  *:focus-visible,
+  *:focus-within {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Remove borders from specific UI elements */
+  div[role="button"],
+  button[data-slot="button"],
+  [data-slot="tooltip-trigger"] {
+    border: none !important;
+    outline: none !important;
+  }
+
+  /* Force remove borders from button variants */
+  button[class*="variant"],
+  div[class*="bg-muted"],
+  button[class*="bg-background"] {
+    border: none !important;
+  }
+
+  /* Specifically target branding guidelines button */
+  button:has(svg[class*="h-5"][class*="w-5"][class*="text-yellow"]),
+  [data-slot="dialog-trigger"] button {
+    all: unset !important;
+    cursor: pointer !important;
+    display: inline-block !important;
+  }
+
+  /* Remove any pseudo-element backgrounds */
+  button:has(svg[class*="text-yellow"])::before,
+  button:has(svg[class*="text-yellow"])::after {
+    display: none !important;
+    content: none !important;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family:
