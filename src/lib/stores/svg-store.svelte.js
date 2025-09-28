@@ -30,8 +30,9 @@ let previewSvg = $derived.by(() => {
     return null;
   }
 
-  const originalSvg = svgData.logos.get(svgData.selectedLogo);
-  return applySvgModifications(originalSvg, 120, svgData.color);
+  const svgContent = svgData.logos.get(svgData.selectedLogo);
+
+  return applySvgModifications(svgContent, 120, svgData.color);
 });
 
 // Export SVG - uses the actual size value from slider
@@ -40,8 +41,8 @@ let modifiedSvg = $derived.by(() => {
     return null;
   }
 
-  const originalSvg = svgData.logos.get(svgData.selectedLogo);
-  return applySvgModifications(originalSvg, svgData.size, svgData.color);
+  const svgContent = svgData.logos.get(svgData.selectedLogo);
+  return applySvgModifications(svgContent, svgData.size, svgData.color);
 });
 
 let formattedSvg = $derived.by(() => {
@@ -134,6 +135,15 @@ export const svgStore = {
   // Get all available logos
   getAvailableLogos() {
     return Array.from(svgData.logos.keys());
+  },
+
+  // Get current SVG content
+  getCurrentSvgContent() {
+    if (svgData.selectedLogo && svgData.logos.has(svgData.selectedLogo)) {
+      return svgData.logos.get(svgData.selectedLogo);
+    }
+
+    return null;
   },
 };
 
