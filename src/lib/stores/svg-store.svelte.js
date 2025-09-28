@@ -11,7 +11,7 @@ import {
 
 // Default settings
 const DEFAULT_SIZE = 24;
-const DEFAULT_COLOR = "#000000";
+const DEFAULT_COLOR = "#ffffff";
 
 // Create reactive state
 let svgData = $state({

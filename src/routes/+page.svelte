@@ -14,6 +14,7 @@ import BottomControlBar from "$lib/components/BottomControlBar.svelte";
 import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
 import { getBankDisplayName, copyToClipboard } from "$lib/utils/svg-utils.js";
+import { getContrastBackground } from "$lib/utils/color-utils.js";
 import { Copy, Palette } from "lucide-svelte";
 import { toast } from "svelte-sonner";
 
@@ -24,6 +25,9 @@ let showCode = $state(true);
 let storeData = $derived(svgStore.data);
 let previewSvg = $derived(svgStore.previewSvg);
 let formattedSvg = $derived(svgStore.formattedSvg);
+
+// Calculate background color for optimal contrast
+let previewBackground = $derived(getContrastBackground(storeData.color));
 
 // Update store when slider changes
 $effect(() => {
@@ -203,7 +207,8 @@ onMount(() => {
             <div class="relative">
               <!-- Compact Preview Container -->
               <div
-                class="flex min-h-[180px] items-center justify-center rounded-lg border border-border bg-muted/50 lg:min-h-[200px]"
+                class="flex min-h-[180px] items-center justify-center rounded-lg border border-border transition-colors duration-200 lg:min-h-[200px]"
+                style="background-color: {previewBackground}"
               >
                 <!-- Warning Icon - Inside preview, top right -->
                 {#if storeData.selectedLogo}

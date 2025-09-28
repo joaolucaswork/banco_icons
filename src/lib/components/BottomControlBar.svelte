@@ -2,8 +2,6 @@
 import { Button } from "$lib/components/ui/button";
 import { Slider } from "$lib/components/ui/slider";
 import { Label } from "$lib/components/ui/label";
-
-import { Input } from "$lib/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -19,15 +17,15 @@ let {
   onReset = () => {},
 } = $props();
 
-// Predefined color palette
+// Predefined color palette - white first as default
 const colorPalette = [
-  "#000000",
-  "#374151",
-  "#6B7280",
-  "#9CA3AF",
-  "#D1D5DB",
-  "#F3F4F6",
   "#FFFFFF",
+  "#F3F4F6",
+  "#D1D5DB",
+  "#9CA3AF",
+  "#6B7280",
+  "#374151",
+  "#000000",
   "#EF4444",
   "#F97316",
   "#F59E0B",
@@ -162,30 +160,28 @@ function handleReset() {
                       </div>
                     </div>
 
-                    <!-- Custom Color Input -->
+                    <!-- Native Color Picker -->
                     <div>
                       <Label
-                        for="custom-color"
+                        for="native-color-picker"
                         class="mb-2 block text-sm font-medium text-popover-foreground"
                       >
-                        Cor Personalizada
+                        Seletor de Cor
                       </Label>
                       <div class="flex gap-2">
-                        <Input
-                          id="custom-color"
-                          type="text"
-                          bind:value={customColor}
-                          placeholder="#000000"
-                          class="flex-1 text-sm"
-                          onchange={handleCustomColorChange}
-                        />
                         <input
+                          id="native-color-picker"
                           type="color"
                           bind:value={customColor}
                           onchange={handleCustomColorChange}
-                          class="h-10 w-10 cursor-pointer rounded border border-border"
-                          aria-label="Seletor de cor"
+                          class="h-12 w-full cursor-pointer rounded border border-border"
+                          aria-label="Seletor de cor nativo"
                         />
+                      </div>
+                      <div class="mt-2 text-center">
+                        <span class="font-mono text-xs text-muted-foreground"
+                          >{customColor}</span
+                        >
                       </div>
                     </div>
 
