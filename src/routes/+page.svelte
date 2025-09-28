@@ -15,13 +15,11 @@ import BankCombobox from "$lib/components/BankCombobox.svelte";
 import ActionButtons from "$lib/components/ActionButtons.svelte";
 import InteractiveCanvas from "$lib/components/InteractiveCanvas.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
-import { copyToClipboard } from "$lib/utils/svg-utils.js";
 import {
   getContrastBackground,
   getDottedPatternColor,
 } from "$lib/utils/color-utils.js";
 import { Palette } from "lucide-svelte";
-import { toast } from "svelte-sonner";
 
 let sizeValue = $state([24]);
 let showCode = $state(true);
@@ -69,21 +67,6 @@ function handleReset() {
 
 function handleSizeChange(newValue) {
   sizeValue = newValue;
-}
-
-async function handleCopySvg() {
-  if (formattedSvg) {
-    console.log("Copiando SVG formatado:", typeof formattedSvg, formattedSvg);
-    const success = await copyToClipboard(formattedSvg);
-    if (success) {
-      toast.success("Código SVG copiado para a área de transferência!");
-    } else {
-      toast.error("Falha ao copiar código SVG. Tente novamente.");
-    }
-  } else {
-    console.log("Nenhum formattedSvg disponível");
-    toast.error("Nenhum código SVG disponível para copiar.");
-  }
 }
 
 onMount(() => {
@@ -174,8 +157,6 @@ onMount(() => {
                 onSizeChange={handleSizeChange}
                 onColorChange={handleColorChange}
                 onReset={handleReset}
-                formattedSvg={formattedSvg}
-                onCopySvg={handleCopySvg}
                 isMultiColor={storeData.isMultiColor}
                 colorableElements={storeData.colorableElements}
                 colorMap={storeData.colorMap}

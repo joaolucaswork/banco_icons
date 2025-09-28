@@ -2,10 +2,8 @@
 import { Button } from "$lib/components/ui/button";
 import { Slider } from "$lib/components/ui/slider";
 import { Input } from "$lib/components/ui/input";
-import { RotateCcw, Copy, Bug } from "lucide-svelte";
+import { RotateCcw } from "lucide-svelte";
 import { isValidHexColor, normalizeHexColor } from "$lib/utils/color-utils.js";
-import { copyToClipboard, diagnoseClipboard } from "$lib/utils/svg-utils.js";
-import { toast } from "svelte-sonner";
 import ColorCustomizationDialog from "./ColorCustomizationDialog.svelte";
 import { Palette } from "lucide-svelte";
 
@@ -15,8 +13,6 @@ let {
   onSizeChange = () => {},
   onColorChange = () => {},
   onReset = () => {},
-  formattedSvg = "",
-  onCopySvg = () => {},
   // Multi-color support
   isMultiColor = false,
   colorableElements = [],
@@ -145,17 +141,6 @@ function handleDialogReset() {
 function handleReset() {
   onReset();
 }
-
-async function handleCopySvg() {
-  if (formattedSvg) {
-    const success = await copyToClipboard(formattedSvg);
-    if (success) {
-      toast.success("Código SVG copiado para a área de transferência!");
-    } else {
-      toast.error("Falha ao copiar código. Tente novamente.");
-    }
-  }
-}
 </script>
 
 <!-- Bottom Control Bar -->
@@ -271,29 +256,14 @@ async function handleCopySvg() {
 
           <!-- Reset Button -->
           <div
-            class="flex h-[42px] cursor-pointer items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 hover:bg-muted/40"
+            class="flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/30 hover:bg-muted/40"
             onclick={handleReset}
             role="button"
             tabindex="0"
             onkeydown={(e) => e.key === 'Enter' && handleReset()}
+            title="Resetar configurações"
           >
             <RotateCcw class="h-4 w-4" />
-            <span class="text-sm font-medium text-foreground">Redefinir</span>
-          </div>
-
-          <!-- Copy Button -->
-          <div
-            class="flex h-14 w-14 cursor-pointer items-center justify-center rounded-lg border border-border bg-primary/90 text-primary-foreground hover:bg-primary"
-            onclick={handleCopySvg}
-            role="button"
-            tabindex="0"
-            onkeydown={(e) => e.key === 'Enter' && handleCopySvg()}
-            class:opacity-50={!formattedSvg}
-            class:cursor-not-allowed={!formattedSvg}
-            class:pointer-events-none={!formattedSvg}
-            title="Copiar código SVG"
-          >
-            <Copy class="h-6 w-6" />
           </div>
         </div>
       </div>

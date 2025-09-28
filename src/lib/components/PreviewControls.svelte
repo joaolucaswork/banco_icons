@@ -2,7 +2,7 @@
 import { Button } from "$lib/components/ui/button";
 import { Slider } from "$lib/components/ui/slider";
 import { Input } from "$lib/components/ui/input";
-import { RotateCcw, Copy, Palette } from "lucide-svelte";
+import { RotateCcw, Palette } from "lucide-svelte";
 import { isValidHexColor, normalizeHexColor } from "$lib/utils/color-utils.js";
 import ColorCustomizationDialog from "./ColorCustomizationDialog.svelte";
 
@@ -12,8 +12,6 @@ let {
   onSizeChange = () => {},
   onColorChange = () => {},
   onReset = () => {},
-  formattedSvg = "",
-  onCopySvg = () => {},
   // Multi-color support
   isMultiColor = false,
   colorableElements = [],
@@ -80,10 +78,6 @@ function handleTextBlur() {
 
 function handleReset() {
   onReset();
-}
-
-function handleCopySvg() {
-  onCopySvg();
 }
 
 // Multi-color dialog functions
@@ -213,29 +207,13 @@ function handleDialogReset() {
     <!-- Reset Button -->
     <Button
       variant="outline"
-      class="h-[42px] px-4"
+      class="h-[42px] px-3"
       onclick={handleReset}
       title="Resetar configurações"
       disabled={false}
     >
-      <RotateCcw class="mr-2 h-4 w-4" />
-      Resetar
+      <RotateCcw class="h-4 w-4" />
     </Button>
-
-    <!-- Copy Button -->
-    <div
-      class="flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-lg border border-border bg-primary/90 text-primary-foreground hover:bg-primary"
-      onclick={handleCopySvg}
-      role="button"
-      tabindex="0"
-      onkeydown={(e) => e.key === 'Enter' && handleCopySvg()}
-      class:opacity-50={!formattedSvg}
-      class:cursor-not-allowed={!formattedSvg}
-      class:pointer-events-none={!formattedSvg}
-      title="Copiar código SVG"
-    >
-      <Copy class="h-5 w-5" />
-    </div>
   </div>
 </div>
 
