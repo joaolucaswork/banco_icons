@@ -90,7 +90,7 @@ let highlightedCode = $derived.by(() => {
 
 <Dialog bind:open={open}>
   <DialogContent
-    class="max-h-[90vh] max-w-4xl overflow-y-auto"
+    class="max-h-[90vh] w-[95vw] max-w-4xl overflow-x-hidden overflow-y-auto"
     portalProps={{}}
     showCloseButton={true}
   >
@@ -129,7 +129,9 @@ let highlightedCode = $derived.by(() => {
 
     <div class="space-y-6">
       <!-- Code Block -->
-      <div class="overflow-hidden rounded-lg border border-border bg-muted">
+      <div
+        class="max-w-full overflow-hidden rounded-lg border border-border bg-muted"
+      >
         <!-- Header -->
         <div
           class="flex items-center justify-between border-b border-border bg-muted/50 px-4 py-2"
@@ -158,9 +160,12 @@ let highlightedCode = $derived.by(() => {
         </div>
 
         <!-- Code Content -->
-        <div class="relative">
+        <div class="relative max-w-full overflow-hidden">
           <pre
-            class="max-h-96 overflow-x-auto overflow-y-auto bg-background p-4 text-sm leading-relaxed break-words whitespace-pre-wrap text-foreground"><code
+            class="max-h-96 overflow-y-auto bg-background p-4 text-sm leading-relaxed text-foreground"
+            style="overflow-x: hidden; word-wrap: break-word; white-space: pre-wrap; overflow-wrap: anywhere;"><code
+              class="block w-full"
+              style="word-wrap: break-word; white-space: pre-wrap; overflow-wrap: anywhere;"
               >{@html highlightedCode}</code
             ></pre>
 
@@ -191,7 +196,7 @@ let highlightedCode = $derived.by(() => {
               1
             </div>
             <div class="flex-1 pt-1">
-              <p class="text-base text-foreground">
+              <p class="text-base break-words text-foreground">
                 Copie o código SVG usando o botão acima
               </p>
             </div>
@@ -208,7 +213,7 @@ let highlightedCode = $derived.by(() => {
               2
             </div>
             <div class="flex-1 pt-1">
-              <p class="text-base text-foreground">
+              <p class="text-base break-words text-foreground">
                 No Webflow Designer, adicione um elemento "HTML Embed" onde
                 deseja o ícone
               </p>
@@ -226,7 +231,7 @@ let highlightedCode = $derived.by(() => {
               3
             </div>
             <div class="flex-1 pt-1">
-              <p class="text-base text-foreground">
+              <p class="text-base break-words text-foreground">
                 Cole o código SVG no editor HTML Embed e salve
               </p>
             </div>
@@ -243,15 +248,15 @@ let highlightedCode = $derived.by(() => {
               💡
             </div>
             <div class="flex-1 pt-1">
-              <p class="text-base text-foreground">
+              <p class="text-base break-words text-foreground">
                 <strong>Para alterar cores:</strong> Use a propriedade CSS
                 <code
-                  class="rounded bg-muted px-2 py-1 font-mono text-sm text-foreground"
+                  class="rounded bg-muted px-2 py-1 font-mono text-sm break-words text-foreground"
                   >fill</code
                 >
                 ou
                 <code
-                  class="rounded bg-muted px-2 py-1 font-mono text-sm text-foreground"
+                  class="rounded bg-muted px-2 py-1 font-mono text-sm break-words text-foreground"
                   >color</code
                 > no elemento pai
               </p>
@@ -266,9 +271,36 @@ let highlightedCode = $derived.by(() => {
 <style>
 pre {
   font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  /* Force text wrapping and prevent horizontal scroll */
+  word-wrap: break-word !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 code {
   font-family: inherit;
+  /* Ensure code also wraps properly */
+  word-wrap: break-word !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  display: block !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure dialog content doesn't overflow */
+:global(.dialog-content) {
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+}
+
+/* Ensure all text content wraps properly */
+.space-y-6 p,
+.space-y-6 code {
+  word-wrap: break-word !important;
+  overflow-wrap: anywhere !important;
+  max-width: 100% !important;
 }
 </style>
