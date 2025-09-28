@@ -219,9 +219,17 @@
     height: 24px !important;
   }
 
-  /* Position toasts in top-right corner */
-  [data-sonner-toaster][data-position="top-right"] {
-    top: 20px !important;
-    right: 20px !important;
+  /* Position toasts in bottom-center with margin above bottom navigation */
+  [data-sonner-toaster][data-position="bottom-center"] {
+    bottom: 200px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    right: auto !important;
+    top: auto !important;
+  }
+
+  /* Ensure toasts are properly centered and have adequate spacing */
+  [data-sonner-toaster][data-position="bottom-center"] [data-sonner-toast] {
+    margin: 0 auto !important;
   }
 }

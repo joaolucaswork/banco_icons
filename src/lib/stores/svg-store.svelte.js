@@ -8,6 +8,15 @@ import {
   applySvgModifications,
   formatSvgContent,
 } from "../utils/svg-utils.js";
+import {
+  hasMultipleColors,
+  getMultiColorConfig,
+  detectColorableElements,
+  applyMultipleColors,
+  getDefaultColorMap,
+  validateColorMap,
+  isDefaultColorMap,
+} from "../utils/multi-color-utils.js";
 
 // Default settings
 const DEFAULT_SIZE = 24;
@@ -21,6 +30,12 @@ let svgData = $state({
   color: DEFAULT_COLOR,
   loading: false,
   error: null,
+  // Multi-color support
+  isMultiColor: false,
+  colorableElements: [],
+  colorMap: {},
+  // Comparison mode
+  showComparison: false,
 });
 
 // Computed values
@@ -30,8 +45,28 @@ let previewSvg = $derived.by(() => {
     return null;
   }
 
-  const originalSvg = svgData.logos.get(svgData.selectedLogo);
-  return applySvgModifications(originalSvg, 120, svgData.color);
+  const svgContent = svgData.logos.get(svgData.selectedLogo);
+
+  if (svgData.isMultiColor && Object.keys(svgData.colorMap).length > 0) {
+    // Apply multiple colors
+    let modifiedSvg = applyMultipleColors(
+      svgContent,
+      svgData.colorMap,
+      svgData.selectedLogo,
+    );
+    // Apply size
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(modifiedSvg, "image/svg+xml");
+    const svgElement = doc.querySelector("svg");
+    if (svgElement) {
+      svgElement.setAttribute("width", "120");
+      svgElement.setAttribute("height", "120");
+      modifiedSvg = new XMLSerializer().serializeToString(doc);
+    }
+    return modifiedSvg;
+  }
+
+  return applySvgModifications(svgContent, 120, svgData.color);
 });
 
 // Export SVG - uses the actual size value from slider
@@ -40,8 +75,28 @@ let modifiedSvg = $derived.by(() => {
     return null;
   }
 
-  const originalSvg = svgData.logos.get(svgData.selectedLogo);
-  return applySvgModifications(originalSvg, svgData.size, svgData.color);
+  const svgContent = svgData.logos.get(svgData.selectedLogo);
+
+  if (svgData.isMultiColor && Object.keys(svgData.colorMap).length > 0) {
+    // Apply multiple colors
+    let modifiedSvg = applyMultipleColors(
+      svgContent,
+      svgData.colorMap,
+      svgData.selectedLogo,
+    );
+    // Apply size
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(modifiedSvg, "image/svg+xml");
+    const svgElement = doc.querySelector("svg");
+    if (svgElement) {
+      svgElement.setAttribute("width", svgData.size.toString());
+      svgElement.setAttribute("height", svgData.size.toString());
+      modifiedSvg = new XMLSerializer().serializeToString(doc);
+    }
+    return modifiedSvg;
+  }
+
+  return applySvgModifications(svgContent, svgData.size, svgData.color);
 });
 
 let formattedSvg = $derived.by(() => {
@@ -106,6 +161,30 @@ export const svgStore = {
     if (svgData.logos.has(logoName)) {
       svgData.selectedLogo = logoName;
       console.log("svgData.selectedLogo depois:", svgData.selectedLogo);
+
+      // Check if this logo supports multiple colors
+      svgData.isMultiColor = hasMultipleColors(logoName);
+
+      if (svgData.isMultiColor) {
+        // Detect colorable elements
+        const svgContent = svgData.logos.get(logoName);
+        svgData.colorableElements = detectColorableElements(
+          svgContent,
+          logoName,
+        );
+
+        // Initialize color map with defaults
+        svgData.colorMap = getDefaultColorMap(logoName);
+
+        console.log("Multi-color logo detected:", {
+          elements: svgData.colorableElements,
+          colorMap: svgData.colorMap,
+        });
+      } else {
+        // Reset multi-color state
+        svgData.colorableElements = [];
+        svgData.colorMap = {};
+      }
     }
   },
 
@@ -124,6 +203,52 @@ export const svgStore = {
   reset() {
     svgData.size = DEFAULT_SIZE;
     svgData.color = DEFAULT_COLOR;
+
+    // Reset multi-color state
+    if (svgData.isMultiColor && svgData.selectedLogo) {
+      svgData.colorMap = getDefaultColorMap(svgData.selectedLogo);
+    }
+  },
+
+  // Multi-color methods
+
+  // Set color for a specific element
+  setElementColor(elementKey, color) {
+    if (!svgData.isMultiColor) return;
+
+    svgData.colorMap = {
+      ...svgData.colorMap,
+      [elementKey]: color,
+    };
+
+    console.log("Element color updated:", {
+      elementKey,
+      color,
+      colorMap: svgData.colorMap,
+    });
+  },
+
+  // Reset color for a specific element
+  resetElementColor(elementKey) {
+    if (!svgData.isMultiColor || !svgData.selectedLogo) return;
+
+    const defaultMap = getDefaultColorMap(svgData.selectedLogo);
+    svgData.colorMap = {
+      ...svgData.colorMap,
+      [elementKey]: defaultMap[elementKey],
+    };
+  },
+
+  // Get current color for an element
+  getElementColor(elementKey) {
+    if (!svgData.isMultiColor) return null;
+    return svgData.colorMap[elementKey] || null;
+  },
+
+  // Check if current colors are default
+  isDefaultColors() {
+    if (!svgData.isMultiColor || !svgData.selectedLogo) return true;
+    return isDefaultColorMap(svgData.colorMap, svgData.selectedLogo);
   },
 
   // Get original SVG content
@@ -134,6 +259,25 @@ export const svgStore = {
   // Get all available logos
   getAvailableLogos() {
     return Array.from(svgData.logos.keys());
+  },
+
+  // Get current SVG content
+  getCurrentSvgContent() {
+    if (svgData.selectedLogo && svgData.logos.has(svgData.selectedLogo)) {
+      return svgData.logos.get(svgData.selectedLogo);
+    }
+
+    return null;
+  },
+
+  // Toggle comparison mode
+  toggleComparison() {
+    svgData.showComparison = !svgData.showComparison;
+  },
+
+  // Set comparison mode
+  setComparison(show) {
+    svgData.showComparison = show;
   },
 };
 
