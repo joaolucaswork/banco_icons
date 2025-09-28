@@ -316,4 +316,56 @@
   [data-sonner-toaster][data-position="bottom-center"] [data-sonner-toast] {
     margin: 0 auto !important;
   }
+
+  /* Remove background from action buttons (FIG, Webflow, Copy, Download) only */
+  button.h-14.w-14,
+  [data-slot="button"].h-14.w-14 {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  /* Add hover effect for action buttons with subtle background */
+  button.h-14.w-14:hover,
+  [data-slot="button"].h-14.w-14:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    transform: scale(1.05) !important;
+    transition: all 0.2s ease !important;
+  }
+
+  /* Make action buttons closer together by reducing gap */
+  .flex.items-center.gap-2:has(button.h-14.w-14) {
+    gap: 0.25rem !important; /* Reduced from gap-2 (0.5rem) to 0.25rem */
+  }
+
+  /* Remove background from reset button in BottomControlBar only - Very specific selector */
+  div.group.flex[class*="h-"][class*="w-"][class*="bg-muted"][role="button"] {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  /* Remove background from background toggle button (with Sun/Moon icons) */
+  button:has(svg.text-yellow-500),
+  button:has(svg.text-blue-400),
+  button:has(svg.text-muted-foreground.opacity-50),
+  [data-slot="button"]:has(svg.text-yellow-500),
+  [data-slot="button"]:has(svg.text-blue-400),
+  [data-slot="button"]:has(svg.text-muted-foreground.opacity-50) {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  /* Hover effect for reset and background toggle buttons */
+  div.group.flex[class*="h-"][class*="w-"][class*="bg-muted"][role="button"]:hover,
+  button:has(svg.text-yellow-500):hover,
+  button:has(svg.text-blue-400):hover,
+  button:has(svg.text-muted-foreground.opacity-50):hover,
+  [data-slot="button"]:has(svg.text-yellow-500):hover,
+  [data-slot="button"]:has(svg.text-blue-400):hover,
+  [data-slot="button"]:has(svg.text-muted-foreground.opacity-50):hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    transform: scale(1.05) !important;
+    transition: all 0.2s ease !important;
+  }
 }

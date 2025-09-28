@@ -13,15 +13,20 @@ import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.s
 import BankCombobox from "$lib/components/BankCombobox.svelte";
 import ActionButtons from "$lib/components/ActionButtons.svelte";
 import InteractiveCanvas from "$lib/components/InteractiveCanvas.svelte";
+import BackgroundTransition from "$lib/components/BackgroundTransition.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
 import {
   getContrastBackground,
   getDottedPatternColor,
 } from "$lib/utils/color-utils.js";
+import { onThemeColorChange } from "$lib/utils/theme-colors.js";
 import { Palette } from "lucide-svelte";
 
 let sizeValue = $state([24]);
 // let showCode = $state(true);
+
+// Background animation state
+let currentBackgroundColor = $state("#000000");
 
 // Reactive values from store
 let storeData = $derived(svgStore.data);
@@ -45,9 +50,13 @@ let dotColor = $derived.by(() => {
   const manualBg = svgStore.getCurrentBackgroundColor();
   if (manualBg !== null) {
     // Use dot color based on manual background
-    return getDottedPatternColor(
-      manualBg === "transparent" ? storeData.color : manualBg,
-    );
+    if (manualBg === "transparent") {
+      // For transparent background, always use light gray dots for visibility
+      return "#666666";
+    } else {
+      // For solid backgrounds (like white), use dots based on background color
+      return getDottedPatternColor(manualBg);
+    }
   }
   // Use automatic dot color detection when no manual override
   return getDottedPatternColor(storeData.color);
@@ -97,6 +106,15 @@ onMount(() => {
   if (storeData.logos.size === 0 && !storeData.loading) {
     svgStore.loadAllLogos();
   }
+
+  // Register callback for theme color changes to trigger background animation
+  const unsubscribe = onThemeColorChange((newColor) => {
+    console.log("Theme color change detected:", newColor);
+    currentBackgroundColor = newColor;
+  });
+
+  // Cleanup callback on component destroy
+  return unsubscribe;
 });
 </script>
 
@@ -108,12 +126,15 @@ onMount(() => {
   />
 </svelte:head>
 
+<!-- Background transition animation -->
+<BackgroundTransition currentColor={currentBackgroundColor} />
+
 <div class="min-h-screen bg-background">
   <div class="container mx-auto px-4 py-6">
     <div class="space-y-6">
       <!-- Main Content Area -->
       <!-- Unified Preview Area -->
-      <Card class="border-border bg-card">
+      <Card class="relative z-10 border-border bg-card">
         <CardHeader class="px-0">
           <div class="space-y-4">
             <!-- Bank Selection Combobox and Information Panel Container -->
@@ -249,7 +270,7 @@ onMount(() => {
 
       <!-- Code Display -->
       <!-- {#if showCode && formattedSvg}
-        <Card class="border-border bg-card">
+        <Card class="relative z-10 border-border bg-card">
           <CardHeader class="">
             <CardTitle class="text-xl text-card-foreground"
               >Código SVG</CardTitle

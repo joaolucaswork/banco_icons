@@ -20,6 +20,7 @@ import {
 } from "../utils/multi-color-utils.js";
 import { getPrimaryOriginalColor } from "../utils/original-colors.js";
 import { applyThemeColors, resetThemeColors } from "../utils/theme-colors.js";
+import { hexToRgb, calculateLuminance } from "../utils/color-utils.js";
 
 // Default settings
 const DEFAULT_SIZE = 24;
@@ -309,9 +310,25 @@ export const svgStore = {
   // Toggle background between white and transparent
   toggleBackground() {
     if (!svgData.manualBackgroundOverride) {
-      // First toggle: enable manual override and set to white
+      // First toggle: enable manual override and set to the opposite of current automatic background
       svgData.manualBackgroundOverride = true;
-      svgData.manualBackgroundColor = "#ffffff";
+
+      // Import getContrastBackground to determine current automatic background
+      import("../utils/color-utils.js").then(({ getContrastBackground }) => {
+        const currentAutomaticBg = getContrastBackground(svgData.color);
+        // Set to the opposite of what would be automatic
+        svgData.manualBackgroundColor =
+          currentAutomaticBg === "#ffffff" ? "transparent" : "#ffffff";
+      });
+
+      // Fallback synchronous calculation (same logic as getContrastBackground)
+      // This ensures immediate response while async import loads
+      const rgb = hexToRgb(svgData.color);
+      const luminance = calculateLuminance(rgb);
+      const isCurrentlyDark = luminance < 0.179;
+      svgData.manualBackgroundColor = isCurrentlyDark
+        ? "transparent"
+        : "#ffffff";
     } else if (svgData.manualBackgroundColor === "#ffffff") {
       // Second toggle: change to transparent
       svgData.manualBackgroundColor = "transparent";

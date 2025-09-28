@@ -149,11 +149,26 @@ export function createCardThemeColor(darkBgColor) {
   return rgbToHex(newRgb.r, newRgb.g, newRgb.b);
 }
 
+// Callback system for theme color changes
+let colorChangeCallbacks = [];
+
+/**
+ * Register a callback to be called when theme colors change
+ * @param {Function} callback - Function to call with the new background color
+ */
+export function onThemeColorChange(callback) {
+  colorChangeCallbacks.push(callback);
+  return () => {
+    colorChangeCallbacks = colorChangeCallbacks.filter((cb) => cb !== callback);
+  };
+}
+
 /**
  * Apply theme colors to CSS custom properties
  * @param {string} primaryColor - Primary color from logo
+ * @param {boolean} skipAnimation - If true, skip the animation callbacks
  */
-export function applyThemeColors(primaryColor) {
+export function applyThemeColors(primaryColor, skipAnimation = false) {
   // Check if we're in the browser
   if (typeof document === "undefined") {
     return;
@@ -167,11 +182,10 @@ export function applyThemeColors(primaryColor) {
 
   // Try multiple approaches to ensure the colors are applied
   // Method 1: Direct style properties with !important
-  root.style.setProperty("--background", darkBg, "important");
+  // Use the same color for both background and card
+  root.style.setProperty("--background", cardBg, "important");
   root.style.setProperty("--card", cardBg, "important");
-
-  // Method 2: Also set the actual background color directly
-  document.body.style.backgroundColor = darkBg;
+  document.body.style.backgroundColor = cardBg;
 
   // Method 3: Add a custom class to override dark theme
   root.classList.add("theme-override");
@@ -186,19 +200,19 @@ export function applyThemeColors(primaryColor) {
 
   styleElement.textContent = `
     .theme-override {
-      --background: ${darkBg} !important;
+      --background: ${cardBg} !important;
       --card: ${cardBg} !important;
       --border: transparent !important;
       --input: ${cardBg} !important;
     }
     .theme-override .dark {
-      --background: ${darkBg} !important;
+      --background: ${cardBg} !important;
       --card: ${cardBg} !important;
       --border: transparent !important;
       --input: ${cardBg} !important;
     }
     body {
-      background-color: ${darkBg} !important;
+      background-color: ${cardBg} !important;
     }
     /* Consistent button styles with proper hierarchy */
     /* Base button styling - subtle transparent background */
@@ -295,6 +309,18 @@ export function applyThemeColors(primaryColor) {
       background-color: transparent !important;
     }
   `;
+
+  // Notify callbacks about the color change (for animations)
+  if (!skipAnimation) {
+    colorChangeCallbacks.forEach((callback) => {
+      try {
+        // Pass the card color instead of background color for better visibility
+        callback(cardBg);
+      } catch (error) {
+        console.warn("Error in theme color change callback:", error);
+      }
+    });
+  }
 }
 
 /**
