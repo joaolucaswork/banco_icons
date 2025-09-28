@@ -34,6 +34,8 @@ let svgData = $state({
   isMultiColor: false,
   colorableElements: [],
   colorMap: {},
+  // Comparison mode
+  showComparison: false,
 });
 
 // Computed values
@@ -266,6 +268,16 @@ export const svgStore = {
     }
 
     return null;
+  },
+
+  // Toggle comparison mode
+  toggleComparison() {
+    svgData.showComparison = !svgData.showComparison;
+  },
+
+  // Set comparison mode
+  setComparison(show) {
+    svgData.showComparison = show;
   },
 };
 

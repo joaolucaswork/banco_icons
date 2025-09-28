@@ -10,6 +10,7 @@ import {
 import CodeBlock from "$lib/components/CodeBlock.svelte";
 import BottomControlBar from "$lib/components/BottomControlBar.svelte";
 import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
+import ComparisonToggle from "$lib/components/ComparisonToggle.svelte";
 import BankCombobox from "$lib/components/BankCombobox.svelte";
 import ActionButtons from "$lib/components/ActionButtons.svelte";
 import InteractiveCanvas from "$lib/components/InteractiveCanvas.svelte";
@@ -173,6 +174,8 @@ onMount(() => {
               error={storeData.error}
               exportSize={storeData.size}
               exportColor={storeData.color}
+              showComparison={storeData.showComparison}
+              selectedLogo={storeData.selectedLogo}
             />
 
             <!-- Warning Icon - Overlay on canvas -->
@@ -180,6 +183,12 @@ onMount(() => {
               <div class="absolute top-3 right-3 z-20">
                 <BrandingGuidelinesDialog />
               </div>
+
+              <!-- Comparison Toggle - Below the guidelines button -->
+              <ComparisonToggle
+                bind:showComparison={storeData.showComparison}
+                selectedLogo={storeData.selectedLogo}
+              />
             {/if}
 
             <!-- Empty state overlay -->
