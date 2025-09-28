@@ -40,7 +40,7 @@ function closeAndFocusTrigger(selectedValue) {
 }
 </script>
 
-<div class={cn(className)} {...restProps}>
+<div class={cn("w-fit", className)} {...restProps}>
   <Popover.Root bind:open={open}>
     <Popover.Trigger asChild class="">
       {#snippet child({ props })}
@@ -50,7 +50,7 @@ function closeAndFocusTrigger(selectedValue) {
           role="combobox"
           aria-expanded={open}
           disabled={loading}
-          class="h-12 justify-between px-4 py-2"
+          class="h-12 w-full justify-between px-4 py-2"
         >
           <div class="flex items-center">
             {#if selectedLogo && logos.has(selectedLogo)}

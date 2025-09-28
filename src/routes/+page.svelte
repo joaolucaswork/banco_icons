@@ -12,6 +12,7 @@ import CodeBlock from "$lib/components/CodeBlock.svelte";
 import BottomControlBar from "$lib/components/BottomControlBar.svelte";
 import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
 import BankCombobox from "$lib/components/BankCombobox.svelte";
+import ActionButtons from "$lib/components/ActionButtons.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
 import { copyToClipboard } from "$lib/utils/svg-utils.js";
 import {
@@ -97,16 +98,24 @@ onMount(() => {
           <div class="space-y-4">
             <!-- Bank Selection Combobox and Information Panel Container -->
             <div class="space-y-4">
-              <!-- Bank Selection Combobox -->
+              <!-- Bank Selection Combobox and Action Buttons -->
               <div class="px-6">
-                <BankCombobox
-                  bind:selectedLogo={storeData.selectedLogo}
-                  logos={storeData.logos}
-                  loading={storeData.loading}
-                  onLogoSelect={handleLogoSelect}
-                  placeholder="Selecionar uma instituição"
-                  class="w-fit min-w-64"
-                />
+                <div class="flex w-full items-center justify-between gap-3">
+                  <BankCombobox
+                    bind:selectedLogo={storeData.selectedLogo}
+                    logos={storeData.logos}
+                    loading={storeData.loading}
+                    onLogoSelect={handleLogoSelect}
+                    placeholder="Selecionar uma instituição"
+                  />
+                  <ActionButtons
+                    selectedLogo={storeData.selectedLogo}
+                    modifiedSvg={svgStore.modifiedSvg}
+                    formattedSvg={formattedSvg}
+                    size={storeData.size}
+                    loading={storeData.loading}
+                  />
+                </div>
               </div>
 
               <!-- Information Panel - Below combobox -->

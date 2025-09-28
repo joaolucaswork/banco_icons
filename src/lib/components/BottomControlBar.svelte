@@ -2,9 +2,9 @@
 import { Button } from "$lib/components/ui/button";
 import { Slider } from "$lib/components/ui/slider";
 import { Input } from "$lib/components/ui/input";
-import { RotateCcw, Copy } from "lucide-svelte";
+import { RotateCcw, Copy, Bug } from "lucide-svelte";
 import { isValidHexColor, normalizeHexColor } from "$lib/utils/color-utils.js";
-import { copyToClipboard } from "$lib/utils/svg-utils.js";
+import { copyToClipboard, diagnoseClipboard } from "$lib/utils/svg-utils.js";
 import { toast } from "svelte-sonner";
 
 let {
@@ -120,8 +120,10 @@ async function handleCopySvg() {
 </script>
 
 <!-- Bottom Control Bar -->
-<div class="fixed right-0 bottom-0 left-0 z-50 bg-gray-900 shadow-lg">
-  <div class="border-t border-border">
+<div
+  class="fixed right-0 bottom-0 left-0 z-50 border-t border-border bg-background shadow-lg"
+>
+  <div>
     <div class="container mx-auto px-4 py-4 pb-6">
       <div
         class="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-4 sm:flex-nowrap sm:gap-6"
@@ -214,7 +216,7 @@ async function handleCopySvg() {
 
           <!-- Copy Button -->
           <div
-            class="flex h-[42px] cursor-pointer items-center gap-2 rounded-lg border border-border bg-primary/90 px-3 py-2 text-primary-foreground hover:bg-primary"
+            class="flex h-14 w-14 cursor-pointer items-center justify-center rounded-lg border border-border bg-primary/90 text-primary-foreground hover:bg-primary"
             onclick={handleCopySvg}
             role="button"
             tabindex="0"
@@ -222,9 +224,9 @@ async function handleCopySvg() {
             class:opacity-50={!formattedSvg}
             class:cursor-not-allowed={!formattedSvg}
             class:pointer-events-none={!formattedSvg}
+            title="Copiar código SVG"
           >
-            <Copy class="h-4 w-4" />
-            <span class="text-sm font-medium">Copiar SVG</span>
+            <Copy class="h-6 w-6" />
           </div>
         </div>
       </div>

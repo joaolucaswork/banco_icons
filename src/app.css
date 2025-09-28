@@ -186,4 +186,42 @@
       8px 8px;
     opacity: 0.3;
   }
+
+  /* Custom toast styles */
+  [data-sonner-toaster] {
+    --normal-bg: rgb(23 23 23) !important;
+    --normal-border: var(--color-border) !important;
+    --normal-text: rgb(250 250 250) !important;
+    --success-bg: rgb(23 23 23) !important;
+    --success-border: var(--color-border) !important;
+    --success-text: rgb(250 250 250) !important;
+    --error-bg: rgb(23 23 23) !important;
+    --error-border: var(--color-border) !important;
+    --error-text: rgb(250 250 250) !important;
+  }
+
+  [data-sonner-toast] {
+    background: rgb(23 23 23) !important;
+    border: 1px solid var(--color-border) !important;
+    color: rgb(250 250 250) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  [data-sonner-toast][data-type="success"] [data-icon] {
+    color: rgb(34 197 94) !important;
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  [data-sonner-toast][data-type="error"] [data-icon] {
+    color: rgb(239 68 68) !important;
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  /* Position toasts in top-right corner */
+  [data-sonner-toaster][data-position="top-right"] {
+    top: 20px !important;
+    right: 20px !important;
+  }
 }

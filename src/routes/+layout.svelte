@@ -7,5 +7,5 @@ let { children } = $props();
 
 <div class="dark min-h-screen">
   {@render children()}
-  <Toaster theme="dark" position="top-right" richColors closeButton />
+  <Toaster theme="dark" position="top-right" richColors closeButton={false} />
 </div>
