@@ -11,7 +11,7 @@ export const ORIGINAL_LOGO_MAPPING = {
   "btg-pactual": "BTG.svg",
   "caixa-economica": "Caixa.svg",
   "xp-investimentos": "XP CORRETORA.svg",
-  "agora-investimentos": "ÁGORA.svg",
+  "agora-investimentos": "banco-agora.svg",
 };
 
 /**
