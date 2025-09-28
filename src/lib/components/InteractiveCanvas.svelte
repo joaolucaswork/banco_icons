@@ -4,6 +4,7 @@ import { ZoomIn, ZoomOut, RotateCcw } from "lucide-svelte";
 import CheckIcon from "@lucide/svelte/icons/check";
 import { onMount } from "svelte";
 import { loadOriginalSvgContent } from "$lib/utils/original-logos.js";
+import CanvasContextMenu from "./CanvasContextMenu.svelte";
 
 let {
   svgContent = null,
@@ -18,6 +19,8 @@ let {
   exportColor = "#ffffff",
   showComparison = false,
   selectedLogo = null,
+  formattedSvg = null,
+  onReset = () => {},
   class: className = "",
   ...restProps
 } = $props();
@@ -788,19 +791,28 @@ $effect(() => {
       <div
         class="relative flex flex-1 items-center justify-center border-r border-border/50"
       >
-        <canvas
-          bind:this={canvas}
-          class="cursor-grab touch-none rounded-l-lg"
-          onmousedown={handleMouseDown}
-          onmousemove={handleMouseMove}
-          onmouseup={handleMouseUp}
-          onmouseleave={handleMouseUp}
-          onwheel={handleWheel}
-          ontouchstart={handleTouchStart}
-          ontouchmove={handleTouchMove}
-          ontouchend={handleTouchEnd}
-          ontouchcancel={handleTouchEnd}
-        ></canvas>
+        <CanvasContextMenu
+          svgContent={svgContent}
+          selectedLogo={selectedLogo}
+          exportSize={exportSize}
+          exportColor={exportColor}
+          formattedSvg={formattedSvg}
+          onReset={onReset}
+        >
+          <canvas
+            bind:this={canvas}
+            class="cursor-grab touch-none rounded-l-lg"
+            onmousedown={handleMouseDown}
+            onmousemove={handleMouseMove}
+            onmouseup={handleMouseUp}
+            onmouseleave={handleMouseUp}
+            onwheel={handleWheel}
+            ontouchstart={handleTouchStart}
+            ontouchmove={handleTouchMove}
+            ontouchend={handleTouchEnd}
+            ontouchcancel={handleTouchEnd}
+          ></canvas>
+        </CanvasContextMenu>
 
         <!-- Left Controls -->
         <div class="absolute top-3 left-3 z-10 flex flex-col gap-1">
@@ -910,19 +922,28 @@ $effect(() => {
     </div>
   {:else}
     <!-- Single Canvas Mode -->
-    <canvas
-      bind:this={canvas}
-      class="cursor-grab touch-none rounded-lg"
-      onmousedown={handleMouseDown}
-      onmousemove={handleMouseMove}
-      onmouseup={handleMouseUp}
-      onmouseleave={handleMouseUp}
-      onwheel={handleWheel}
-      ontouchstart={handleTouchStart}
-      ontouchmove={handleTouchMove}
-      ontouchend={handleTouchEnd}
-      ontouchcancel={handleTouchEnd}
-    ></canvas>
+    <CanvasContextMenu
+      svgContent={svgContent}
+      selectedLogo={selectedLogo}
+      exportSize={exportSize}
+      exportColor={exportColor}
+      formattedSvg={formattedSvg}
+      onReset={onReset}
+    >
+      <canvas
+        bind:this={canvas}
+        class="cursor-grab touch-none rounded-lg"
+        onmousedown={handleMouseDown}
+        onmousemove={handleMouseMove}
+        onmouseup={handleMouseUp}
+        onmouseleave={handleMouseUp}
+        onwheel={handleWheel}
+        ontouchstart={handleTouchStart}
+        ontouchmove={handleTouchMove}
+        ontouchend={handleTouchEnd}
+        ontouchcancel={handleTouchEnd}
+      ></canvas>
+    </CanvasContextMenu>
   {/if}
 
   <!-- Controls overlay (only in single canvas mode) -->

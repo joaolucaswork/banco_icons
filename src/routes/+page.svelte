@@ -182,6 +182,8 @@ onMount(() => {
               exportColor={storeData.color}
               showComparison={storeData.showComparison}
               selectedLogo={storeData.selectedLogo}
+              formattedSvg={formattedSvg}
+              onReset={handleReset}
             />
 
             <!-- Controls Group - Overlay on canvas -->
