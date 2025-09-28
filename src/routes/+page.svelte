@@ -8,7 +8,7 @@ import {
 } from "$lib/components/ui/card";
 
 import CodeBlock from "$lib/components/CodeBlock.svelte";
-import BottomControlBar from "$lib/components/BottomControlBar.svelte";
+import PreviewControls from "$lib/components/PreviewControls.svelte";
 import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
 import ComparisonToggle from "$lib/components/ComparisonToggle.svelte";
 import BankCombobox from "$lib/components/BankCombobox.svelte";
@@ -102,7 +102,7 @@ onMount(() => {
   />
 </svelte:head>
 
-<div class="min-h-screen bg-background pb-20">
+<div class="min-h-screen bg-background">
   <div class="container mx-auto px-4 py-8">
     <div class="space-y-6">
       <!-- Main Content Area -->
@@ -165,6 +165,24 @@ onMount(() => {
                 </div>
               {/if}
             </div>
+
+            <!-- Preview Controls - Between combobox and preview -->
+            {#if storeData.selectedLogo}
+              <PreviewControls
+                sizeValue={sizeValue}
+                color={storeData.color}
+                onSizeChange={handleSizeChange}
+                onColorChange={handleColorChange}
+                onReset={handleReset}
+                formattedSvg={formattedSvg}
+                onCopySvg={handleCopySvg}
+                isMultiColor={storeData.isMultiColor}
+                colorableElements={storeData.colorableElements}
+                colorMap={storeData.colorMap}
+                onElementColorChange={handleElementColorChange}
+                onElementReset={handleElementReset}
+              />
+            {/if}
           </div>
         </CardHeader>
         <CardContent class="">
@@ -249,19 +267,3 @@ onMount(() => {
     </div>
   </div>
 </div>
-
-<!-- Bottom Control Bar -->
-<BottomControlBar
-  sizeValue={sizeValue}
-  color={storeData.color}
-  onSizeChange={handleSizeChange}
-  onColorChange={handleColorChange}
-  onReset={handleReset}
-  formattedSvg={formattedSvg}
-  onCopySvg={handleCopySvg}
-  isMultiColor={storeData.isMultiColor}
-  colorableElements={storeData.colorableElements}
-  colorMap={storeData.colorMap}
-  onElementColorChange={handleElementColorChange}
-  onElementReset={handleElementReset}
-/>
