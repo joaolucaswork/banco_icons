@@ -1,13 +1,11 @@
 <script>
 import { Button } from "$lib/components/ui/button";
 import { Slider } from "$lib/components/ui/slider";
-import { Label } from "$lib/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "$lib/components/ui/popover";
-import { RotateCcw } from "lucide-svelte";
+import { Input } from "$lib/components/ui/input";
+import { RotateCcw, Copy, Bug } from "lucide-svelte";
+import { isValidHexColor, normalizeHexColor } from "$lib/utils/color-utils.js";
+import { copyToClipboard, diagnoseClipboard } from "$lib/utils/svg-utils.js";
+import { toast } from "svelte-sonner";
 
 let {
   sizeValue = [24],
@@ -15,12 +13,13 @@ let {
   onSizeChange = () => {},
   onColorChange = () => {},
   onReset = () => {},
+  formattedSvg = "",
+  onCopySvg = () => {},
 } = $props();
 
-// Removed predefined color palette - using only native color picker
-
 let customColor = $state(color);
-let isPopoverOpen = $state(false);
+let colorPickerRef = $state();
+let isValidColor = $state(true);
 
 // Watch for size changes and notify parent
 $effect(() => {
@@ -32,21 +31,99 @@ $effect(() => {
   customColor = color;
 });
 
-function handleCustomColorChange() {
-  onColorChange(customColor);
-  isPopoverOpen = false;
+// Handle real-time color changes from native color picker (during dragging/moving)
+function handleColorPickerInput(event) {
+  const newColor = event.target.value;
+  customColor = newColor;
+  isValidColor = true;
+  onColorChange(newColor);
+}
+
+// Handle final color selection from native color picker
+function handleColorPickerChange(event) {
+  const newColor = event.target.value;
+  customColor = newColor;
+  isValidColor = true;
+  onColorChange(newColor);
+}
+
+// Handle text input changes with validation
+function handleTextInput(event) {
+  const inputValue = event.target.value;
+  customColor = inputValue;
+
+  // Validate the input - allow empty input temporarily
+  if (inputValue === "" || isValidHexColor(inputValue)) {
+    if (inputValue !== "" && isValidHexColor(inputValue)) {
+      const normalizedColor = normalizeHexColor(inputValue);
+      isValidColor = true;
+      onColorChange(normalizedColor);
+
+      // Update the native color picker to match
+      if (colorPickerRef) {
+        colorPickerRef.value = normalizedColor;
+      }
+    } else {
+      isValidColor = inputValue === ""; // Empty is valid temporarily
+    }
+  } else {
+    isValidColor = false;
+  }
+}
+
+// Handle text input blur - normalize valid colors
+function handleTextBlur(event) {
+  const inputValue = event.target.value.trim();
+
+  if (inputValue === "") {
+    // If empty, revert to the current color
+    customColor = color;
+    isValidColor = true;
+  } else if (isValidHexColor(inputValue)) {
+    const normalizedColor = normalizeHexColor(inputValue);
+    customColor = normalizedColor;
+    isValidColor = true;
+    onColorChange(normalizedColor);
+
+    // Update the native color picker to match
+    if (colorPickerRef) {
+      colorPickerRef.value = normalizedColor;
+    }
+  } else {
+    // Revert to the last valid color for invalid input
+    customColor = color;
+    isValidColor = true;
+  }
+}
+
+// Open native color picker directly
+function openColorPicker() {
+  if (colorPickerRef) {
+    colorPickerRef.click();
+  }
 }
 
 function handleReset() {
   onReset();
 }
+
+async function handleCopySvg() {
+  if (formattedSvg) {
+    const success = await copyToClipboard(formattedSvg);
+    if (success) {
+      toast.success("Código SVG copiado para a área de transferência!");
+    } else {
+      toast.error("Falha ao copiar código. Tente novamente.");
+    }
+  }
+}
 </script>
 
 <!-- Bottom Control Bar -->
 <div
-  class="fixed right-0 bottom-0 left-0 z-50 bg-background/95 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/60"
+  class="fixed right-0 bottom-0 left-0 z-50 border-t border-border bg-background shadow-lg"
 >
-  <div class="border-t border-border">
+  <div>
     <div class="container mx-auto px-4 py-4 pb-6">
       <div
         class="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-4 sm:flex-nowrap sm:gap-6"
@@ -86,52 +163,42 @@ function handleReset() {
                 class="text-sm font-medium whitespace-nowrap text-foreground"
                 >Cor</span
               >
-              <Popover bind:open={isPopoverOpen}>
-                <PopoverTrigger class="">
-                  <Button
-                    variant="outline"
-                    class="h-8 w-8 rounded-full border-2 border-border p-0 hover:border-border/80"
-                    style="background-color: {color}"
-                    aria-label="Selecionar cor"
-                    disabled={false}
-                  >
-                    <span class="sr-only">Cor atual: {color}</span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent class="w-64 p-4" side="top" portalProps={{}}>
-                  <div class="space-y-4">
-                    <!-- Native Color Picker -->
-                    <div>
-                      <Label
-                        for="native-color-picker"
-                        class="mb-2 block text-sm font-medium text-popover-foreground"
-                      >
-                        Seletor de Cor
-                      </Label>
-                      <div class="flex gap-2">
-                        <input
-                          id="native-color-picker"
-                          type="color"
-                          bind:value={customColor}
-                          onchange={handleCustomColorChange}
-                          class="h-12 w-full cursor-pointer rounded border border-border"
-                          aria-label="Seletor de cor nativo"
-                        />
-                      </div>
-                      <div class="mt-2 text-center">
-                        <span class="font-mono text-xs text-muted-foreground"
-                          >{customColor}</span
-                        >
-                      </div>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
 
-              <!-- Current color display -->
-              <span class="font-mono text-xs text-muted-foreground"
-                >{color}</span
+              <!-- Hidden native color picker -->
+              <input
+                bind:this={colorPickerRef}
+                type="color"
+                bind:value={customColor}
+                oninput={handleColorPickerInput}
+                onchange={handleColorPickerChange}
+                class="pointer-events-none absolute opacity-0"
+                aria-label="Seletor de cor nativo"
+              />
+
+              <!-- Color button that triggers native picker -->
+              <Button
+                variant="outline"
+                class="h-8 w-8 rounded-full border-2 border-border p-0 hover:border-border/80"
+                style="background-color: {color}"
+                aria-label="Selecionar cor"
+                onclick={openColorPicker}
+                disabled={false}
               >
+                <span class="sr-only">Cor atual: {color}</span>
+              </Button>
+
+              <!-- Editable color input -->
+              <Input
+                type="text"
+                bind:value={customColor}
+                oninput={handleTextInput}
+                onblur={handleTextBlur}
+                placeholder="#000000"
+                class="h-8 w-20 border-border bg-background px-2 py-1 font-mono text-xs text-foreground transition-colors {isValidColor ? '' : 'border-destructive bg-destructive/5'}"
+                aria-label="Hex color input"
+                aria-invalid={!isValidColor}
+                title={isValidColor ? "Enter hex color (e.g., #ff0000)" : "Invalid hex color format"}
+              />
             </div>
           </div>
 
@@ -145,6 +212,21 @@ function handleReset() {
           >
             <RotateCcw class="h-4 w-4" />
             <span class="text-sm font-medium text-foreground">Redefinir</span>
+          </div>
+
+          <!-- Copy Button -->
+          <div
+            class="flex h-14 w-14 cursor-pointer items-center justify-center rounded-lg border border-border bg-primary/90 text-primary-foreground hover:bg-primary"
+            onclick={handleCopySvg}
+            role="button"
+            tabindex="0"
+            onkeydown={(e) => e.key === 'Enter' && handleCopySvg()}
+            class:opacity-50={!formattedSvg}
+            class:cursor-not-allowed={!formattedSvg}
+            class:pointer-events-none={!formattedSvg}
+            title="Copiar código SVG"
+          >
+            <Copy class="h-6 w-6" />
           </div>
         </div>
       </div>

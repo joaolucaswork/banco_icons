@@ -100,8 +100,12 @@ export const svgStore = {
 
   // Select a specific logo
   selectLogo(logoName) {
+    console.log("svgStore.selectLogo chamado com:", logoName);
+    console.log("svgData.logos.has(logoName):", svgData.logos.has(logoName));
+    console.log("svgData.selectedLogo antes:", svgData.selectedLogo);
     if (svgData.logos.has(logoName)) {
       svgData.selectedLogo = logoName;
+      console.log("svgData.selectedLogo depois:", svgData.selectedLogo);
     }
   },
 
