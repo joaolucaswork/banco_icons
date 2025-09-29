@@ -7,6 +7,7 @@ import {
   downloadSvgAsFile,
   copyToClipboard,
   getBankDisplayName,
+  createWebflowOptimizedSvg,
 } from "$lib/utils/svg-utils.js";
 
 let {
@@ -65,10 +66,12 @@ async function handleCopySvg() {
   }
 
   const bankName = getBankDisplayName(selectedLogo);
-  const success = await copyToClipboard(formattedSvg);
+  // Use Webflow-optimized SVG for better compatibility
+  const optimizedSvg = createWebflowOptimizedSvg(formattedSvg);
+  const success = await copyToClipboard(optimizedSvg);
 
   if (success) {
-    toast.success(`Código SVG do ${bankName} copiado!`);
+    toast.success(`Código SVG otimizado do ${bankName} copiado!`);
   } else {
     toast.error("Falha ao copiar código SVG. Tente novamente.");
   }

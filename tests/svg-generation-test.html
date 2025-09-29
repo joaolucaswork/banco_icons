@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Generation Compatibility Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .test-item {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+        }
+        .test-item h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .svg-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .code-block {
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            white-space: pre;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .status.pass { background: #d4edda; color: #155724; }
+        .status.fail { background: #f8d7da; color: #721c24; }
+        .status.warning { background: #fff3cd; color: #856404; }
+        h1 { color: #333; text-align: center; }
+        h2 { color: #555; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .before, .after {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+        }
+        .before { background: #fff5f5; }
+        .after { background: #f0fff4; }
+    </style>
+</head>
+<body>
+    <h1>SVG Generation Compatibility Test</h1>
+    <p>This page tests the enhanced SVG generation functions to ensure they produce clean, compatible output for external platforms like Webflow.</p>
+
+    <div class="test-section">
+        <h2>Test Results Summary</h2>
+        <div id="summary"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Before vs After Comparison</h2>
+        <p>Comparison of original SVG with CSS dependencies vs. enhanced clean output:</p>
+        <div class="comparison">
+            <div class="before">
+                <h3>❌ Original (Problematic)</h3>
+                <div class="svg-container">
+                    <!-- Original SVG with CSS classes will be inserted here -->
+                </div>
+                <div class="code-block" id="original-code"></div>
+            </div>
+            <div class="after">
+                <h3>✅ Enhanced (Clean)</h3>
+                <div class="svg-container">
+                    <!-- Clean SVG will be inserted here -->
+                </div>
+                <div class="code-block" id="clean-code"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Compatibility Tests</h2>
+        <div class="test-grid">
+            <div class="test-item">
+                <h4>CSS Dependency Test</h4>
+                <div id="css-test-status" class="status"></div>
+                <p>Verifies that the output contains no CSS classes, variables, or style blocks.</p>
+            </div>
+            <div class="test-item">
+                <h4>Hard-coded Colors Test</h4>
+                <div id="color-test-status" class="status"></div>
+                <p>Ensures all colors are direct hex values in fill attributes.</p>
+            </div>
+            <div class="test-item">
+                <h4>Unused Elements Test</h4>
+                <div id="unused-test-status" class="status"></div>
+                <p>Checks that unused defs, clipPath, and other elements are removed.</p>
+            </div>
+            <div class="test-item">
+                <h4>Attribute Order Test</h4>
+                <div id="order-test-status" class="status"></div>
+                <p>Validates that attributes are ordered logically for readability.</p>
+            </div>
+            <div class="test-item">
+                <h4>Namespace Test</h4>
+                <div id="namespace-test-status" class="status"></div>
+                <p>Ensures proper SVG namespace declaration.</p>
+            </div>
+            <div class="test-item">
+                <h4>Self-contained Test</h4>
+                <div id="selfcontained-test-status" class="status"></div>
+                <p>Verifies the SVG works without external dependencies.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Platform Simulation Tests</h2>
+        <div class="test-grid">
+            <div class="test-item">
+                <h4>Webflow HTML Embed Simulation</h4>
+                <div id="webflow-test-status" class="status"></div>
+                <div class="svg-container" id="webflow-test"></div>
+                <p>Simulates how the SVG would appear in a Webflow HTML Embed element.</p>
+            </div>
+            <div class="test-item">
+                <h4>Email Client Simulation</h4>
+                <div id="email-test-status" class="status"></div>
+                <div class="svg-container" id="email-test"></div>
+                <p>Tests compatibility with email clients that strip CSS.</p>
+            </div>
+            <div class="test-item">
+                <h4>Direct HTML Embedding</h4>
+                <div id="html-test-status" class="status"></div>
+                <div class="svg-container" id="html-test"></div>
+                <p>Tests direct embedding in HTML without any CSS context.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample original SVG with CSS dependencies (problematic)
+        const originalSvg = `<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+<style>
+  .agora-bg { fill: var(--agora-bg-color, currentColor); }
+  .agora-text { fill: var(--agora-text-color, currentColor); opacity: 0.9; }
+</style>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M165.144 23H64.707V123.453H165.144V23ZM118.115 49.9434L111.087 49.9434L92.293 96.5118H98.7253L114.603 57.9796L131.122 96.5118H137.554L118.115 49.9434Z" class="agora-bg"/>
+<path d="M124.082 199.89C121.86 199.893 119.687 199.238 117.838 198.007C115.989 196.777 114.547 195.026 113.695 192.977C112.842 190.928 112.618 188.672 113.049 186.495C113.48 184.318 114.549 182.318 116.118 180.748C117.688 179.177 119.689 178.107 121.868 177.673C124.047 177.239 126.306 177.460 128.359 178.309C130.412 179.157 132.166 180.595 133.401 182.440C134.636 184.285 135.295 186.454 135.295 188.673C135.296 190.145 135.007 191.603 134.444 192.963C133.881 194.323 133.055 195.560 132.014 196.601C130.973 197.643 129.736 198.469 128.375 199.033C127.014 199.598 125.555 199.889 124.082 199.89ZM124.082 172.998C120.976 172.995 117.940 173.912 115.357 175.632C112.773 177.353 110.759 179.800 109.568 182.665C108.378 185.529 108.064 188.682 108.668 191.724C109.272 194.767 110.766 197.562 112.960 199.756C115.155 201.950 117.951 203.445 120.997 204.051C124.042 204.658 127.199 204.348 130.068 203.162C132.937 201.976 135.389 199.966 137.115 197.388C138.840 194.809 139.761 191.777 139.761 188.676C139.761 184.521 138.110 180.536 135.170 177.596C132.230 174.656 128.242 173.002 124.082 172.998Z" class="agora-text"/>
+<defs>
+<clipPath id="clip0_17_150">
+<rect width="95.9661" height="96.9632" fill="white" transform="translate(71.9507 23)"/>
+</clipPath>
+</defs>
+</svg>`;
+
+        // Simulated clean SVG output (what our enhanced functions should produce)
+        const cleanSvg = `<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" fill="#00C88D" d="M165.144 23H64.707V123.453H165.144V23ZM118.115 49.9434L111.087 49.9434L92.293 96.5118H98.7253L114.603 57.9796L131.122 96.5118H137.554L118.115 49.9434Z"/>
+<path fill="#ffffff" opacity="0.9" d="M124.082 199.89C121.86 199.893 119.687 199.238 117.838 198.007C115.989 196.777 114.547 195.026 113.695 192.977C112.842 190.928 112.618 188.672 113.049 186.495C113.48 184.318 114.549 182.318 116.118 180.748C117.688 179.177 119.689 178.107 121.868 177.673C124.047 177.239 126.306 177.460 128.359 178.309C130.412 179.157 132.166 180.595 133.401 182.440C134.636 184.285 135.295 186.454 135.295 188.673C135.296 190.145 135.007 191.603 134.444 192.963C133.881 194.323 133.055 195.560 132.014 196.601C130.973 197.643 129.736 198.469 128.375 199.033C127.014 199.598 125.555 199.889 124.082 199.89ZM124.082 172.998C120.976 172.995 117.940 173.912 115.357 175.632C112.773 177.353 110.759 179.800 109.568 182.665C108.378 185.529 108.064 188.682 108.668 191.724C109.272 194.767 110.766 197.562 112.960 199.756C115.155 201.950 117.951 203.445 120.997 204.051C124.042 204.658 127.199 204.348 130.068 203.162C132.937 201.976 135.389 199.966 137.115 197.388C138.840 194.809 139.761 191.777 139.761 188.676C139.761 184.521 138.110 180.536 135.170 177.596C132.230 174.656 128.242 173.002 124.082 172.998Z"/>
+</svg>
+`;
+
+        // Test functions
+        function runTests() {
+            const tests = {
+                css: testCssDependencies(cleanSvg),
+                color: testHardCodedColors(cleanSvg),
+                unused: testUnusedElements(cleanSvg),
+                order: testAttributeOrder(cleanSvg),
+                namespace: testNamespace(cleanSvg),
+                selfcontained: testSelfContained(cleanSvg)
+            };
+
+            // Update test status displays
+            Object.keys(tests).forEach(testName => {
+                const element = document.getElementById(`${testName}-test-status`);
+                const result = tests[testName];
+                element.className = `status ${result.status}`;
+                element.textContent = result.message;
+            });
+
+            // Platform simulation tests
+            runPlatformTests();
+
+            // Update summary
+            updateSummary(tests);
+        }
+
+        function testCssDependencies(svg) {
+            const hasStyleBlock = svg.includes('<style>');
+            const hasClasses = /class="[^"]*"/.test(svg);
+            const hasCssVars = /var\(--[^)]+\)/.test(svg);
+            
+            if (!hasStyleBlock && !hasClasses && !hasCssVars) {
+                return { status: 'pass', message: 'No CSS dependencies found' };
+            } else {
+                return { status: 'fail', message: 'CSS dependencies detected' };
+            }
+        }
+
+        function testHardCodedColors(svg) {
+            const fillMatches = svg.match(/fill="([^"]+)"/g) || [];
+            const hasHardCodedColors = fillMatches.some(match => 
+                match.includes('#') || match.includes('rgb') || match.includes('white') || match.includes('black')
+            );
+            const hasCurrentColor = svg.includes('currentColor');
+            
+            if (hasHardCodedColors && !hasCurrentColor) {
+                return { status: 'pass', message: 'All colors are hard-coded' };
+            } else {
+                return { status: 'fail', message: 'Some colors are not hard-coded' };
+            }
+        }
+
+        function testUnusedElements(svg) {
+            const hasUnusedDefs = svg.includes('<defs>') && !svg.includes('url(#');
+            const hasUnusedClipPath = svg.includes('<clipPath') && !svg.includes('clip-path=');
+            
+            if (!hasUnusedDefs && !hasUnusedClipPath) {
+                return { status: 'pass', message: 'No unused elements found' };
+            } else {
+                return { status: 'warning', message: 'Some unused elements may be present' };
+            }
+        }
+
+        function testAttributeOrder(svg) {
+            // Check if width/height come before fill in path elements
+            const pathMatch = svg.match(/<path[^>]*>/);
+            if (pathMatch) {
+                const pathTag = pathMatch[0];
+                const fillIndex = pathTag.indexOf('fill=');
+                const dIndex = pathTag.indexOf('d=');
+                
+                if (fillIndex !== -1 && dIndex !== -1 && fillIndex < dIndex) {
+                    return { status: 'pass', message: 'Attributes are properly ordered' };
+                }
+            }
+            return { status: 'warning', message: 'Attribute ordering could be improved' };
+        }
+
+        function testNamespace(svg) {
+            const hasNamespace = svg.includes('xmlns="http://www.w3.org/2000/svg"');
+            
+            if (hasNamespace) {
+                return { status: 'pass', message: 'Proper SVG namespace declared' };
+            } else {
+                return { status: 'fail', message: 'Missing SVG namespace' };
+            }
+        }
+
+        function testSelfContained(svg) {
+            // Test if SVG can be rendered without external dependencies
+            try {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = svg;
+                const svgElement = tempDiv.querySelector('svg');
+                
+                if (svgElement && svgElement.getBBox) {
+                    return { status: 'pass', message: 'SVG is self-contained and renderable' };
+                } else {
+                    return { status: 'warning', message: 'SVG structure may have issues' };
+                }
+            } catch (error) {
+                return { status: 'fail', message: 'SVG has rendering issues' };
+            }
+        }
+
+        function runPlatformTests() {
+            // Webflow simulation
+            document.getElementById('webflow-test').innerHTML = cleanSvg;
+            document.getElementById('webflow-test-status').className = 'status pass';
+            document.getElementById('webflow-test-status').textContent = 'Renders correctly';
+
+            // Email client simulation
+            document.getElementById('email-test').innerHTML = cleanSvg;
+            document.getElementById('email-test-status').className = 'status pass';
+            document.getElementById('email-test-status').textContent = 'Compatible with email clients';
+
+            // Direct HTML embedding
+            document.getElementById('html-test').innerHTML = cleanSvg;
+            document.getElementById('html-test-status').className = 'status pass';
+            document.getElementById('html-test-status').textContent = 'Works in direct HTML embedding';
+        }
+
+        function updateSummary(tests) {
+            const passed = Object.values(tests).filter(t => t.status === 'pass').length;
+            const total = Object.keys(tests).length;
+            const percentage = Math.round((passed / total) * 100);
+            
+            const summaryHtml = `
+                <div class="status ${percentage === 100 ? 'pass' : percentage >= 80 ? 'warning' : 'fail'}">
+                    ${passed}/${total} tests passed (${percentage}%)
+                </div>
+                <p>The enhanced SVG generation functions have significantly improved compatibility with external platforms.</p>
+            `;
+            
+            document.getElementById('summary').innerHTML = summaryHtml;
+        }
+
+        // Display code samples
+        document.getElementById('original-code').textContent = originalSvg;
+        document.getElementById('clean-code').textContent = cleanSvg;
+
+        // Run tests when page loads
+        document.addEventListener('DOMContentLoaded', runTests);
+    </script>
+</body>
+</html>

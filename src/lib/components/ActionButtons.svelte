@@ -13,6 +13,7 @@ import {
   downloadSvgAsPng,
   downloadSvgAsFile,
   copyToClipboard,
+  createWebflowOptimizedSvg,
 } from "$lib/utils/svg-utils.js";
 import { cn } from "$lib/utils.js";
 import { toast } from "svelte-sonner";
@@ -32,6 +33,21 @@ let {
 // State for Webflow dialog
 let isWebflowDialogOpen = $state(false);
 
+// Generate optimized SVG for Webflow dialog
+const webflowOptimizedSvg = $derived(
+  formattedSvg ? createWebflowOptimizedSvg(formattedSvg) : "",
+);
+
+// Debug: Log the SVG content when dialog opens
+$effect(() => {
+  if (isWebflowDialogOpen && webflowOptimizedSvg) {
+    console.log(
+      "Webflow Dialog SVG Content:",
+      webflowOptimizedSvg.substring(0, 200) + "...",
+    );
+  }
+});
+
 // Handle copy SVG to clipboard
 async function handleCopySvg() {
   if (!formattedSvg || !selectedLogo) {
@@ -40,10 +56,12 @@ async function handleCopySvg() {
   }
 
   const bankName = getBankDisplayName(selectedLogo);
-  const success = await copyToClipboard(formattedSvg);
+  // Use Webflow-optimized SVG for better compatibility
+  const optimizedSvg = createWebflowOptimizedSvg(formattedSvg);
+  const success = await copyToClipboard(optimizedSvg);
 
   if (success) {
-    toast.success(`Código SVG do ${bankName} copiado!`);
+    toast.success(`Código SVG otimizado do ${bankName} copiado!`);
   } else {
     toast.error("Falha ao copiar código SVG. Tente novamente.");
   }
@@ -78,8 +96,9 @@ async function handleOpenInFigma() {
 
   const bankName = getBankDisplayName(selectedLogo);
 
-  // Copy SVG to clipboard first
-  const success = await copyToClipboard(formattedSvg);
+  // Copy optimized SVG to clipboard first
+  const optimizedSvg = createWebflowOptimizedSvg(formattedSvg);
+  const success = await copyToClipboard(optimizedSvg);
 
   if (success) {
     // Try to open Figma desktop app first, then fallback to web
@@ -299,6 +318,6 @@ function handleOpenInWebflow() {
 <!-- Webflow Dialog -->
 <WebflowDialog
   bind:open={isWebflowDialogOpen}
-  svgCode={formattedSvg || ""}
+  svgCode={webflowOptimizedSvg}
   bankName={selectedLogo ? getBankDisplayName(selectedLogo) : ""}
 />
