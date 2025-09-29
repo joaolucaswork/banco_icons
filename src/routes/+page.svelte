@@ -129,7 +129,7 @@ onMount(() => {
 <!-- Background transition animation -->
 <BackgroundTransition currentColor={currentBackgroundColor} />
 
-<div class="min-h-screen bg-background">
+<div class="flex-1 overflow-y-auto bg-background">
   <div class="container mx-auto px-4 py-6">
     <div class="space-y-6">
       <!-- Main Content Area -->
@@ -158,6 +158,23 @@ onMount(() => {
                   />
                 </div>
               </div>
+
+              <!-- Preview Controls - Below combobox -->
+              {#if storeData.selectedLogo}
+                <PreviewControls
+                  sizeValue={sizeValue}
+                  color={storeData.color}
+                  onSizeChange={handleSizeChange}
+                  onColorChange={handleColorChange}
+                  onReset={handleReset}
+                  isMultiColor={storeData.isMultiColor}
+                  colorableElements={storeData.colorableElements}
+                  colorMap={storeData.colorMap}
+                  onElementColorChange={handleElementColorChange}
+                  selectedLogo={storeData.selectedLogo}
+                  bind:showComparison={storeData.showComparison}
+                />
+              {/if}
 
               <!-- Information Panel - Below combobox -->
               <!-- COMMENTED OUT: Visualização, Exportar, and Cor items -->
@@ -193,24 +210,6 @@ onMount(() => {
                 </div>
               {/if}
             </div>
-
-            <!-- Preview Controls - Between combobox and preview -->
-            {#if storeData.selectedLogo}
-              <PreviewControls
-                sizeValue={sizeValue}
-                color={storeData.color}
-                onSizeChange={handleSizeChange}
-                onColorChange={handleColorChange}
-                onReset={handleReset}
-                isMultiColor={storeData.isMultiColor}
-                colorableElements={storeData.colorableElements}
-                colorMap={storeData.colorMap}
-                onElementColorChange={handleElementColorChange}
-                onElementReset={handleElementReset}
-                selectedLogo={storeData.selectedLogo}
-                bind:showComparison={storeData.showComparison}
-              />
-            {/if}
           </div>
         </CardHeader>
         <CardContent class="">

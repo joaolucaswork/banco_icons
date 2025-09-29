@@ -41,6 +41,7 @@
     "@internationalized/date": "^3.9.0",
     "@lucide/svelte": "^0.544.0",
     "@playwright/test": "^1.49.1",
+    "@sveltejs/adapter-auto": "^6.1.0",
     "@sveltejs/adapter-vercel": "^5.6.3",
     "@sveltejs/kit": "^2.22.0",
     "@sveltejs/package": "^2.0.0",
