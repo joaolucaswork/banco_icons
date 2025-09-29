@@ -12,37 +12,107 @@ import { toast } from "svelte-sonner";
 
 let { open = $bindable(false), svgCode = "", bankName = "" } = $props();
 
+// Debug: Log received SVG code
+$effect(() => {
+  if (open && svgCode) {
+    console.log(
+      "WebflowDialog received SVG:",
+      svgCode.substring(0, 200) + "...",
+    );
+    console.log("Contains CSS classes?", svgCode.includes("class="));
+    console.log("Contains CSS variables?", svgCode.includes("var(--"));
+    console.log(
+      "Contains style attribute?",
+      svgCode.includes('style="width: 100%'),
+    );
+  }
+});
+
 async function handleCopy() {
   const success = await copyToClipboard(svgCode);
   if (success) {
-    toast.success("Código SVG copiado para a área de transferência!");
+    toast.success("Código SVG otimizado copiado para a área de transferência!");
   } else {
     toast.error("Falha ao copiar código. Tente novamente.");
   }
 }
 
-// Simple syntax highlighting for XML/SVG
-// Note: SVG code is already formatted by the enhanced formatSvgContent function
+// Ultra-safe syntax highlighting that avoids all regex overlap issues
 function highlightXml(code) {
-  // Use the code as-is since it's already properly formatted by formatSvgContent
-  return code
+  if (!code) return "";
+
+  // First escape HTML entities
+  let result = code
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
+    .replace(/>/g, "&gt;");
+
+  // Use a token-based approach to avoid regex conflicts
+  // Replace each pattern with a unique token first, then replace tokens with HTML
+  const tokens = {
+    TAG_START: "___TAG_START___",
+    TAG_END: "___TAG_END___",
+    ATTR_START: "___ATTR_START___",
+    ATTR_END: "___ATTR_END___",
+    VALUE_START: "___VALUE_START___",
+    VALUE_END: "___VALUE_END___",
+  };
+
+  // Step 1: Mark tag names with tokens
+  result = result.replace(
+    /(&lt;\/?)([\w-]+)/g,
+    `$1${tokens.TAG_START}$2${tokens.TAG_END}`,
+  );
+
+  // Step 2: Mark attribute names with tokens (only match attributes that are NOT inside our tokens)
+  result = result.replace(
+    /(\s)([\w-]+)(=)(?![^<]*___)/g,
+    `$1${tokens.ATTR_START}$2${tokens.ATTR_END}$3`,
+  );
+
+  // Step 3: Mark attribute values with tokens
+  result = result.replace(
+    /="([^"]*)"/g,
+    `="${tokens.VALUE_START}$1${tokens.VALUE_END}"`,
+  );
+
+  // Step 4: Replace tokens with actual HTML spans
+  result = result
     .replace(
-      /(&lt;\/?)([\w-]+)/g,
-      '$1<span class="text-blue-400 font-semibold">$2</span>',
+      new RegExp(tokens.TAG_START, "g"),
+      '<span class="text-blue-400 font-semibold">',
     )
-    .replace(/([\w-]+)(=)/g, '<span class="text-green-400">$1</span>$2')
-    .replace(/="([^"]*)"/g, '="<span class="text-orange-400">$1</span>"')
+    .replace(new RegExp(tokens.TAG_END, "g"), "</span>")
     .replace(
-      /(&lt;!--.*?--&gt;)/g,
-      '<span class="text-gray-500 italic">$1</span>',
-    );
+      new RegExp(tokens.ATTR_START, "g"),
+      '<span class="text-green-400">',
+    )
+    .replace(new RegExp(tokens.ATTR_END, "g"), "</span>")
+    .replace(
+      new RegExp(tokens.VALUE_START, "g"),
+      '<span class="text-orange-400">',
+    )
+    .replace(new RegExp(tokens.VALUE_END, "g"), "</span>");
+
+  // Step 5: Handle comments (safe since they don't contain our tokens)
+  result = result.replace(
+    /(&lt;!--.*?--&gt;)/g,
+    '<span class="text-gray-500 italic">$1</span>',
+  );
+
+  return result;
 }
 
 let highlightedCode = $derived.by(() => {
-  return highlightXml(svgCode);
+  const highlighted = highlightXml(svgCode);
+  if (open && svgCode) {
+    console.log("Original SVG (first 200 chars):", svgCode.substring(0, 200));
+    console.log(
+      "Highlighted SVG (first 200 chars):",
+      highlighted.substring(0, 200),
+    );
+  }
+  return highlighted;
 });
 </script>
 
@@ -198,6 +268,25 @@ let highlightedCode = $derived.by(() => {
           <!-- Divider -->
           <div class="border-t border-border"></div>
 
+          <!-- Step 4 - Sizing Control -->
+          <div class="flex items-start gap-4">
+            <div
+              class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-sm font-bold text-white"
+            >
+              4
+            </div>
+            <div class="flex-1 pt-1">
+              <p class="text-base break-words text-foreground">
+                <strong>Controle o tamanho:</strong> Use os controles de largura
+                e altura do Webflow para redimensionar o logo. O SVG se ajustará
+                automaticamente mantendo as proporções.
+              </p>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="border-t border-border"></div>
+
           <!-- Compatibility tip -->
           <div class="flex items-start gap-4">
             <div
@@ -207,9 +296,9 @@ let highlightedCode = $derived.by(() => {
             </div>
             <div class="flex-1 pt-1">
               <p class="text-base break-words text-foreground">
-                <strong>Código otimizado:</strong> Este SVG foi otimizado para máxima
-                compatibilidade com Webflow e outras plataformas. Todas as cores
-                são hard-coded e não há dependências CSS.
+                <strong>Código responsivo:</strong> Este SVG foi otimizado para Webflow
+                com dimensões responsivas. Todas as cores são hard-coded e não há
+                dependências CSS.
               </p>
             </div>
           </div>

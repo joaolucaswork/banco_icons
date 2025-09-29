@@ -819,6 +819,133 @@ function finalizeFormattedSvg(formattedSvg) {
 }
 
 /**
+ * Group text elements that are positioned close together
+ * This helps keep text letters together as cohesive groups instead of separate elements
+ * @param {Element} svgElement - The SVG DOM element to process
+ */
+function groupTextElements(svgElement) {
+  try {
+    // Get all path elements that could be text
+    const allPaths = Array.from(svgElement.querySelectorAll("path"));
+
+    // Group paths by their vertical position (Y coordinate) to identify text lines
+    const textGroups = new Map();
+
+    allPaths.forEach((path) => {
+      const d = path.getAttribute("d");
+      if (!d) return;
+
+      // Extract the first Y coordinate from the path data
+      const yMatch = d.match(/M[^,]*,?\s*(\d+(?:\.\d+)?)/);
+      if (!yMatch) return;
+
+      const yPosition = parseFloat(yMatch[1]);
+
+      // Check if this looks like a text element based on position and complexity
+      const hasTextLikeCommands =
+        d.includes("M") &&
+        (d.includes("C") || d.includes("L")) &&
+        d.includes("Z");
+      const isInTextArea = yPosition > 160; // Text typically appears in lower portion of logos
+      const hasReasonableComplexity = d.length > 50 && d.length < 2000; // Text paths have moderate complexity
+
+      if (hasTextLikeCommands && isInTextArea && hasReasonableComplexity) {
+        // Group by approximate Y position (within 10 units = same text line)
+        const groupKey = Math.round(yPosition / 10) * 10;
+
+        if (!textGroups.has(groupKey)) {
+          textGroups.set(groupKey, []);
+        }
+        textGroups.get(groupKey).push(path);
+      }
+    });
+
+    // Create groups for text lines that have multiple elements
+    textGroups.forEach((paths, yPosition) => {
+      if (paths.length > 1) {
+        // Sort paths by X position to maintain reading order
+        paths.sort((a, b) => {
+          const aX = parseFloat(
+            a.getAttribute("d").match(/M\s*(\d+(?:\.\d+)?)/)?.[1] || "0",
+          );
+          const bX = parseFloat(
+            b.getAttribute("d").match(/M\s*(\d+(?:\.\d+)?)/)?.[1] || "0",
+          );
+          return aX - bX;
+        });
+
+        // Create a group for this text line
+        const textGroup = svgElement.ownerDocument.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "g",
+        );
+        textGroup.setAttribute("data-text-group", "true");
+        textGroup.setAttribute("data-text-line", yPosition.toString());
+
+        // Insert the group before the first text path
+        const firstPath = paths[0];
+        const parent = firstPath.parentNode;
+        parent.insertBefore(textGroup, firstPath);
+
+        // Move all paths in this line into the group
+        paths.forEach((path) => {
+          textGroup.appendChild(path);
+        });
+      }
+    });
+  } catch (error) {
+    // If grouping fails, continue without grouping
+    console.warn("Text grouping failed:", error);
+  }
+}
+
+/**
+ * Create Webflow-optimized SVG with responsive dimensions
+ * Generates SVG code specifically for Webflow HTML Embed elements with controllable sizing
+ * @param {string} svgContent - Original SVG content
+ * @returns {string} Webflow-optimized SVG content with responsive dimensions
+ */
+export function createWebflowOptimizedSvg(svgContent) {
+  try {
+    // First create clean SVG output
+    let webflowSvg = createCleanSvgOutput(svgContent);
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(webflowSvg, "image/svg+xml");
+    const svgElement = doc.querySelector("svg");
+
+    if (!svgElement) return svgContent;
+
+    // Group text elements for better organization
+    groupTextElements(svgElement);
+
+    // Make SVG responsive for Webflow
+    // Remove fixed width and height attributes to allow Webflow controls to work
+    svgElement.removeAttribute("width");
+    svgElement.removeAttribute("height");
+
+    // Ensure viewBox is present for proper scaling
+    if (!svgElement.getAttribute("viewBox")) {
+      // Default viewBox based on common logo dimensions
+      svgElement.setAttribute("viewBox", "0 0 240 240");
+    }
+
+    // Add responsive attributes for better Webflow compatibility
+    svgElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+    // Add CSS-friendly attributes for Webflow styling
+    svgElement.setAttribute(
+      "style",
+      "width: 100%; height: 100%; display: block;",
+    );
+
+    return new XMLSerializer().serializeToString(doc);
+  } catch (error) {
+    return svgContent;
+  }
+}
+
+/**
  * Copy text to clipboard
  * @param {string} text - Text to copy
  * @returns {Promise<boolean>} Success status
@@ -949,7 +1076,7 @@ export function getDefaultLogoColor(logoName) {
 }
 
 /**
- * Convert SVG to PNG and download it
+ * Convert SVG to PNG and download it with Webflow optimization
  * @param {string} svgContent - The SVG content as string
  * @param {string} filename - The filename for the download (without extension)
  * @param {number} size - The size in pixels (width and height)
@@ -957,6 +1084,9 @@ export function getDefaultLogoColor(logoName) {
  */
 export async function downloadSvgAsPng(svgContent, filename, size = 256) {
   try {
+    // Optimize SVG for better rendering
+    const optimizedSvg = createWebflowOptimizedSvg(svgContent);
+
     // Create a canvas element
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -968,8 +1098,8 @@ export async function downloadSvgAsPng(svgContent, filename, size = 256) {
     // Create an image element
     const img = new Image();
 
-    // Convert SVG to data URL
-    const svgBlob = new Blob([svgContent], {
+    // Convert optimized SVG to data URL
+    const svgBlob = new Blob([optimizedSvg], {
       type: "image/svg+xml;charset=utf-8",
     });
     const svgUrl = URL.createObjectURL(svgBlob);
@@ -1017,15 +1147,18 @@ export async function downloadSvgAsPng(svgContent, filename, size = 256) {
 }
 
 /**
- * Download SVG content as a file
+ * Download SVG content as a file with Webflow optimization
  * @param {string} svgContent - The SVG content as string
  * @param {string} filename - The filename for the download (without extension)
  * @returns {boolean} Success status
  */
 export function downloadSvgAsFile(svgContent, filename) {
   try {
-    // Create a blob with the SVG content
-    const svgBlob = new Blob([svgContent], {
+    // Optimize SVG for better compatibility
+    const optimizedSvg = createWebflowOptimizedSvg(svgContent);
+
+    // Create a blob with the optimized SVG content
+    const svgBlob = new Blob([optimizedSvg], {
       type: "image/svg+xml;charset=utf-8",
     });
 

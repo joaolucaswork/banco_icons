@@ -25,6 +25,7 @@ import {
   downloadSvgAsFile,
   copyToClipboard,
   getBankDisplayName,
+  createWebflowOptimizedSvg,
 } from "$lib/utils/svg-utils.js";
 import { isDarkColor } from "$lib/utils/color-utils.js";
 
@@ -440,10 +441,12 @@ async function handleCopySvg() {
   }
 
   const bankName = getBankDisplayName(selectedLogo);
-  const success = await copyToClipboard(formattedSvg);
+  // Use Webflow-optimized SVG for better compatibility
+  const optimizedSvg = createWebflowOptimizedSvg(formattedSvg);
+  const success = await copyToClipboard(optimizedSvg);
 
   if (success) {
-    toast.success(`Código SVG do ${bankName} copiado!`);
+    toast.success(`Código SVG otimizado do ${bankName} copiado!`);
   } else {
     toast.error("Falha ao copiar código SVG. Tente novamente.");
   }
@@ -491,10 +494,12 @@ async function handleOriginalCopySvg() {
   }
 
   const bankName = getBankDisplayName(selectedLogo);
-  const success = await copyToClipboard(originalSvgContent);
+  // Use Webflow-optimized SVG even for original content
+  const optimizedSvg = createWebflowOptimizedSvg(originalSvgContent);
+  const success = await copyToClipboard(optimizedSvg);
 
   if (success) {
-    toast.success(`Código SVG original do ${bankName} copiado!`);
+    toast.success(`Código SVG original otimizado do ${bankName} copiado!`);
   } else {
     toast.error("Falha ao copiar código SVG original. Tente novamente.");
   }

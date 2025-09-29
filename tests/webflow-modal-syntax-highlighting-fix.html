@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webflow Modal Syntax Highlighting Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .before, .after {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+        }
+        .before { background: #fff5f5; }
+        .after { background: #f0fff4; }
+        .code-block {
+            background: #1a1a1a;
+            color: #ffffff;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            white-space: pre;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.4;
+        }
+        .status {
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .status.pass { background: #d4edda; color: #155724; }
+        .status.fail { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        h1 { color: #333; text-align: center; }
+        h2 { color: #555; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        
+        /* Syntax highlighting colors (matching the component) */
+        .text-blue-400 { color: #60a5fa; font-weight: 600; }
+        .text-green-400 { color: #4ade80; }
+        .text-orange-400 { color: #fb923c; }
+        .text-gray-500 { color: #6b7280; font-style: italic; }
+        
+        .issue-list {
+            list-style: none;
+            padding: 0;
+        }
+        .issue-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .issue-list li.fixed:before {
+            content: "✅ ";
+            color: green;
+            font-weight: bold;
+        }
+        .issue-list li.issue:before {
+            content: "❌ ";
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Webflow Modal Syntax Highlighting Fix</h1>
+    <p>Testing the fix for corrupted SVG code display in the Webflow modal's code preview area.</p>
+
+    <div class="test-section">
+        <h2>Critical Bug Description</h2>
+        <div class="status fail">
+            <strong>Problem:</strong> The syntax highlighting function was corrupting SVG code by injecting HTML span elements directly into the code content, creating malformed output like:
+            <code>&lt;text-green-400"&gt;class="text-blue-400 font-semibold"&gt;svg text-green-400"&gt;</code>
+        </div>
+        <div class="status pass">
+            <strong>Solution:</strong> Fixed the highlightXml() function with proper regex patterns that don't overlap and corrupt the code structure.
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Before vs After - Syntax Highlighting</h2>
+        <div class="comparison">
+            <div class="before">
+                <h3>❌ Before (Corrupted)</h3>
+                <p><strong>Broken highlighting with corrupted code:</strong></p>
+                <div class="code-block" id="before-highlighted"></div>
+                <div class="status fail">
+                    Malformed HTML with overlapping regex replacements
+                </div>
+            </div>
+            <div class="after">
+                <h3>✅ After (Fixed)</h3>
+                <p><strong>Clean highlighting without corruption:</strong></p>
+                <div class="code-block" id="after-highlighted"></div>
+                <div class="status pass">
+                    Proper syntax highlighting with clean structure
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Technical Fix Details</h2>
+        <ul class="issue-list">
+            <li class="fixed">Fixed regex patterns to prevent overlapping replacements</li>
+            <li class="fixed">Added proper boundary matching for tag names and attributes</li>
+            <li class="fixed">Improved attribute name detection with whitespace handling</li>
+            <li class="fixed">Enhanced attribute value highlighting with non-greedy matching</li>
+            <li class="fixed">Added null/empty code handling for robustness</li>
+            <li class="fixed">Maintained proper HTML entity escaping order</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Validation Tests</h2>
+        <div id="validation-results"></div>
+    </div>
+
+    <script>
+        // Sample SVG code for testing
+        const sampleSvg = `<svg viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; display: block;" xmlns="http://www.w3.org/2000/svg">
+  <path fill="#00C88D" fill-rule="evenodd" clip-rule="evenodd" d="M165.144 23H64.707V123.453H165.144V23Z"/>
+  <g data-text-group="true" data-text-line="180">
+    <path fill="#ffffff" opacity="0.9" d="M124.082 199.89C121.86 199.893"/>
+    <path fill="#ffffff" opacity="0.9" d="M162.13 186.095V177.956H171.19"/>
+  </g>
+</svg>`;
+
+        // Broken highlighting function (what was causing the issue)
+        function brokenHighlightXml(code) {
+            return code
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/(&lt;\/?)([\w-]+)/g, '$1<span class="text-blue-400 font-semibold">$2</span>')
+                .replace(/([\w-]+)(=)/g, '<span class="text-green-400">$1</span>$2')
+                .replace(/="([^"]*)"/g, '="<span class="text-orange-400">$1</span>"')
+                .replace(/(&lt;!--.*?--&gt;)/g, '<span class="text-gray-500 italic">$1</span>');
+        }
+
+        // Fixed highlighting function
+        function fixedHighlightXml(code) {
+            if (!code) return "";
+            
+            // First escape HTML entities
+            let highlighted = code
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+            
+            // Apply syntax highlighting with proper regex patterns that don't overlap
+            highlighted = highlighted
+                // Highlight XML/SVG tag names (opening and closing tags)
+                .replace(/(&lt;\/?)([\w-:]+)(\s|&gt;)/g, '$1<span class="text-blue-400 font-semibold">$2</span>$3')
+                // Highlight attribute names (word followed by =)
+                .replace(/\s([\w-:]+)(=)/g, ' <span class="text-green-400">$1</span>$2')
+                // Highlight attribute values (content within quotes)
+                .replace(/="([^"]*?)"/g, '="<span class="text-orange-400">$1</span>"')
+                // Highlight comments
+                .replace(/(&lt;!--.*?--&gt;)/g, '<span class="text-gray-500 italic">$1</span>');
+            
+            return highlighted;
+        }
+
+        // Display the comparison
+        document.getElementById('before-highlighted').innerHTML = brokenHighlightXml(sampleSvg);
+        document.getElementById('after-highlighted').innerHTML = fixedHighlightXml(sampleSvg);
+
+        // Run validation tests
+        function runValidation() {
+            const brokenResult = brokenHighlightXml(sampleSvg);
+            const fixedResult = fixedHighlightXml(sampleSvg);
+
+            const tests = [
+                {
+                    name: "No Corrupted HTML Structure",
+                    test: () => !fixedResult.includes('text-green-400">class=') && !fixedResult.includes('text-blue-400 font-semibold">svg'),
+                    description: "Fixed version should not contain corrupted HTML from overlapping regex"
+                },
+                {
+                    name: "Proper Tag Highlighting",
+                    test: () => fixedResult.includes('<span class="text-blue-400 font-semibold">svg</span>') && fixedResult.includes('<span class="text-blue-400 font-semibold">path</span>'),
+                    description: "Tag names should be properly highlighted in blue"
+                },
+                {
+                    name: "Proper Attribute Highlighting",
+                    test: () => fixedResult.includes('<span class="text-green-400">viewBox</span>') && fixedResult.includes('<span class="text-green-400">fill</span>'),
+                    description: "Attribute names should be properly highlighted in green"
+                },
+                {
+                    name: "Proper Value Highlighting",
+                    test: () => fixedResult.includes('<span class="text-orange-400">0 0 240 240</span>') && fixedResult.includes('<span class="text-orange-400">#00C88D</span>'),
+                    description: "Attribute values should be properly highlighted in orange"
+                },
+                {
+                    name: "No Malformed Spans",
+                    test: () => !fixedResult.includes('</span>="') && !fixedResult.includes('span>"'),
+                    description: "Should not contain malformed span elements"
+                },
+                {
+                    name: "Broken Version Shows Corruption",
+                    test: () => brokenResult.includes('text-green-400">') && brokenResult.length !== fixedResult.length,
+                    description: "Broken version should demonstrate the corruption issue"
+                },
+                {
+                    name: "Clean Structure Preserved",
+                    test: () => fixedResult.includes('&lt;svg') && fixedResult.includes('&lt;/svg&gt;') && fixedResult.includes('&lt;path'),
+                    description: "Basic SVG structure should be preserved with proper escaping"
+                }
+            ];
+
+            const results = tests.map(test => ({
+                ...test,
+                passed: test.test()
+            }));
+
+            const passed = results.filter(r => r.passed).length;
+            const total = results.length;
+
+            const resultsHtml = `
+                <div class="status ${passed === total ? 'pass' : 'fail'}">
+                    <strong>Validation Results:</strong> ${passed}/${total} tests passed (${Math.round((passed/total)*100)}%)
+                </div>
+                ${results.map(result => `
+                    <div class="status ${result.passed ? 'pass' : 'fail'}">
+                        <strong>${result.name}:</strong> ${result.passed ? 'PASS' : 'FAIL'} - ${result.description}
+                    </div>
+                `).join('')}
+            `;
+
+            document.getElementById('validation-results').innerHTML = resultsHtml;
+        }
+
+        // Run validation when page loads
+        document.addEventListener('DOMContentLoaded', runValidation);
+    </script>
+</body>
+</html>

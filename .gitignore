@@ -15,7 +15,7 @@ yarn-error.log*
 # Package manager lock files
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
+# pnpm-lock.yaml  # Mantido para consistência de versões
 bun.lockb
 
 # Package manager cache
@@ -190,7 +190,6 @@ coverage/
 # Debug files
 debug/
 *.debug
-.vscode/launch.json
 
 # Profiling
 *.prof
@@ -380,17 +379,8 @@ docker-compose.override.yml
 
 # Editor directories and files
 .history/
-.vscode/
-.idea/
 
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+# OS generated files (already covered above in macOS section)
 
 # =============================================================================
 # PROJETO ESPECÍFICO
