@@ -1,7 +1,4 @@
-import {
-
-	createTable,
-} from "@tanstack/table-core";
+import { createTable } from "@tanstack/table-core";
 
 /**
  * Creates a reactive TanStack table object for Svelte.
@@ -30,47 +27,44 @@ import {
  * ```
  */
 export function createSvelteTable(options) {
-	const resolvedOptions = mergeObjects(
-		{
-			state: {},
-			onStateChange() {},
-			renderFallbackValue: null,
-			mergeOptions: (
-				defaultOptions,
-				options
-			) => {
-				return mergeObjects(defaultOptions, options);
-			},
-		},
-		options
-	);
+  const resolvedOptions = mergeObjects(
+    {
+      state: {},
+      onStateChange() {},
+      renderFallbackValue: null,
+      mergeOptions: (defaultOptions, options) => {
+        return mergeObjects(defaultOptions, options);
+      },
+    },
+    options,
+  );
 
-	const table = createTable(resolvedOptions);
-	let state = $state(table.initialState);
+  const table = createTable(resolvedOptions);
+  let state = $state(table.initialState);
 
-	function updateOptions() {
-		table.setOptions((prev) => {
-			return mergeObjects(prev, options, {
-				state: mergeObjects(state, options.state || {}),
+  function updateOptions() {
+    table.setOptions((prev) => {
+      return mergeObjects(prev, options, {
+        state: mergeObjects(state, options.state || {}),
 
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				onStateChange: (updater) => {
-					if (updater instanceof Function) state = updater(state);
-					else state = mergeObjects(state, updater);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onStateChange: (updater) => {
+          if (updater instanceof Function) state = updater(state);
+          else state = mergeObjects(state, updater);
 
-					options.onStateChange?.(updater);
-				},
-			});
-		});
-	}
+          options.onStateChange?.(updater);
+        },
+      });
+    });
+  }
 
-	updateOptions();
+  updateOptions();
 
-	$effect.pre(() => {
-		updateOptions();
-	});
+  $effect.pre(() => {
+    updateOptions();
+  });
 
-	return table;
+  return table;
 }
 
 /**
@@ -80,55 +74,53 @@ export function createSvelteTable(options) {
  * Proxy-based to avoid known WebKit recursion issue.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function mergeObjects(
-	...sources
-) {
-	const resolve = (src) =>
-		typeof src === "function" ? (src() ?? undefined) : src;
+export function mergeObjects(...sources) {
+  const resolve = (src) =>
+    typeof src === "function" ? (src() ?? undefined) : src;
 
-	const findSourceWithKey = (key) => {
-		for (let i = sources.length - 1; i >= 0; i--) {
-			const obj = resolve(sources[i]);
-			if (obj && key in obj) return obj;
-		}
-		return undefined;
-	};
+  const findSourceWithKey = (key) => {
+    for (let i = sources.length - 1; i >= 0; i--) {
+      const obj = resolve(sources[i]);
+      if (obj && key in obj) return obj;
+    }
+    return undefined;
+  };
 
-	return new Proxy(Object.create(null), {
-		get(_, key) {
-			const src = findSourceWithKey(key);
+  return new Proxy(Object.create(null), {
+    get(_, key) {
+      const src = findSourceWithKey(key);
 
-			return src?.[key ];
-		},
+      return src?.[key];
+    },
 
-		has(_, key) {
-			return !!findSourceWithKey(key);
-		},
+    has(_, key) {
+      return !!findSourceWithKey(key);
+    },
 
-		ownKeys() {
-			// eslint-disable-next-line svelte/prefer-svelte-reactivity
-			const all = new Set();
-			for (const s of sources) {
-				const obj = resolve(s);
-				if (obj) {
-					for (const k of Reflect.ownKeys(obj) ) {
-						all.add(k);
-					}
-				}
-			}
-			return [...all];
-		},
+    ownKeys() {
+      // eslint-disable-next-line svelte/prefer-svelte-reactivity
+      const all = new Set();
+      for (const s of sources) {
+        const obj = resolve(s);
+        if (obj) {
+          for (const k of Reflect.ownKeys(obj)) {
+            all.add(k);
+          }
+        }
+      }
+      return [...all];
+    },
 
-		getOwnPropertyDescriptor(_, key) {
-			const src = findSourceWithKey(key);
-			if (!src) return undefined;
-			return {
-				configurable: true,
-				enumerable: true,
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				value: (src )[key],
-				writable: true,
-			};
-		},
-	}) ;
+    getOwnPropertyDescriptor(_, key) {
+      const src = findSourceWithKey(key);
+      if (!src) return undefined;
+      return {
+        configurable: true,
+        enumerable: true,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        value: src[key],
+        writable: true,
+      };
+    },
+  });
 }

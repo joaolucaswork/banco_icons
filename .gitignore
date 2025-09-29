@@ -402,3 +402,4 @@ Thumbs.db
 # uploads/
 # storage/
 .vercel
+.playwright-mcp/
