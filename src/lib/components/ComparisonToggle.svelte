@@ -37,13 +37,16 @@ function toggleComparison() {
             {...restProps}
             variant="secondary"
             size="icon"
-            class={cn("h-8 w-8 bg-background/80 backdrop-blur-sm transition-all duration-200 hover:bg-background/90", className)}
+            class={cn(
+              "h-10 w-10 border border-border/20 bg-white transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95",
+              className
+            )}
             onclick={toggleComparison}
           >
             {#if showComparison}
-              <Square class="h-6 w-6" />
+              <Square class="h-5 w-5" />
             {:else}
-              <GitCompare class="h-6 w-6" />
+              <GitCompare class="h-5 w-5" />
             {/if}
           </Button>
         {/snippet}

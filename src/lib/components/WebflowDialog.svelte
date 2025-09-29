@@ -116,7 +116,7 @@ let highlightedCode = $derived.by(() => {
             </g>
             <defs>
               <clipPath id="clip0_4_21">
-                <rect width="32" height="20" fill="white" />
+                <rect width="32" height="20" />
               </clipPath>
             </defs>
           </svg>

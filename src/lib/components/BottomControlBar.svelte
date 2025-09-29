@@ -1,9 +1,9 @@
 <script>
 import { Button } from "$lib/components/ui/button";
 import { Slider } from "$lib/components/ui/slider";
-import { Input } from "$lib/components/ui/input";
+
 import { RotateCcw } from "lucide-svelte";
-import { isValidHexColor, normalizeHexColor } from "$lib/utils/color-utils.js";
+
 import {
   Tooltip,
   TooltipContent,
@@ -29,8 +29,6 @@ let {
 
 let customColor = $state(color);
 let colorPickerRef = $state();
-let isValidColor = $state(true);
-
 // Color picker refs for multi-color elements
 let colorPickerRefs = /** @type {Record<string, HTMLInputElement>} */ ({});
 
@@ -55,7 +53,6 @@ $effect(() => {
 function handleColorPickerInput(event) {
   const newColor = event.target.value;
   customColor = newColor;
-  isValidColor = true;
   onColorChange(newColor);
 }
 
@@ -63,57 +60,7 @@ function handleColorPickerInput(event) {
 function handleColorPickerChange(event) {
   const newColor = event.target.value;
   customColor = newColor;
-  isValidColor = true;
   onColorChange(newColor);
-}
-
-// Handle text input changes with validation
-function handleTextInput(event) {
-  const inputValue = event.target.value;
-  customColor = inputValue;
-
-  // Validate the input - allow empty input temporarily
-  if (inputValue === "" || isValidHexColor(inputValue)) {
-    if (inputValue !== "" && isValidHexColor(inputValue)) {
-      const normalizedColor = normalizeHexColor(inputValue);
-      isValidColor = true;
-      onColorChange(normalizedColor);
-
-      // Update the native color picker to match
-      if (colorPickerRef) {
-        colorPickerRef.value = normalizedColor;
-      }
-    } else {
-      isValidColor = inputValue === ""; // Empty is valid temporarily
-    }
-  } else {
-    isValidColor = false;
-  }
-}
-
-// Handle text input blur - normalize valid colors
-function handleTextBlur(event) {
-  const inputValue = event.target.value.trim();
-
-  if (inputValue === "") {
-    // If empty, revert to the current color
-    customColor = color;
-    isValidColor = true;
-  } else if (isValidHexColor(inputValue)) {
-    const normalizedColor = normalizeHexColor(inputValue);
-    customColor = normalizedColor;
-    isValidColor = true;
-    onColorChange(normalizedColor);
-
-    // Update the native color picker to match
-    if (colorPickerRef) {
-      colorPickerRef.value = normalizedColor;
-    }
-  } else {
-    // Revert to the last valid color for invalid input
-    customColor = color;
-    isValidColor = true;
-  }
 }
 
 // Open native color picker directly
@@ -247,50 +194,46 @@ function handleElementColorChange(elementKey, event) {
             {:else}
               <!-- Single color picker -->
               <div class="flex items-center gap-4">
-                <div
-                  class="flex h-[42px] items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2"
-                >
-                  <span
-                    class="text-sm font-medium whitespace-nowrap text-foreground"
-                    >Cor</span
-                  >
+                <!-- Hidden native color picker -->
+                <input
+                  bind:this={colorPickerRef}
+                  type="color"
+                  bind:value={customColor}
+                  oninput={handleColorPickerInput}
+                  onchange={handleColorPickerChange}
+                  class="pointer-events-none absolute opacity-0"
+                  aria-label="Seletor de cor nativo"
+                />
 
-                  <!-- Hidden native color picker -->
-                  <input
-                    bind:this={colorPickerRef}
-                    type="color"
-                    bind:value={customColor}
-                    oninput={handleColorPickerInput}
-                    onchange={handleColorPickerChange}
-                    class="pointer-events-none absolute opacity-0"
-                    aria-label="Seletor de cor nativo"
-                  />
-
-                  <!-- Color button that triggers native picker -->
-                  <Button
-                    variant="outline"
-                    class="h-8 w-8 rounded-full border-2 border-border p-0 hover:border-border/80"
-                    style="background-color: {color}"
-                    aria-label="Selecionar cor"
-                    onclick={openColorPicker}
-                    disabled={false}
-                  >
-                    <span class="sr-only">Cor atual: {color}</span>
-                  </Button>
-
-                  <!-- Editable color input -->
-                  <Input
-                    type="text"
-                    bind:value={customColor}
-                    oninput={handleTextInput}
-                    onblur={handleTextBlur}
-                    placeholder="#000000"
-                    class="h-8 w-20 border-border bg-background px-2 py-1 font-mono text-xs text-foreground transition-colors {isValidColor ? '' : 'border-destructive bg-destructive/5'}"
-                    aria-label="Hex color input"
-                    aria-invalid={!isValidColor}
-                    title={isValidColor ? "Enter hex color (e.g., #ff0000)" : "Invalid hex color format"}
-                  />
-                </div>
+                <!-- Color button with tooltip -->
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      {#snippet child({ props })}
+                        <Button
+                          {...props}
+                          variant="outline"
+                          class="h-8 w-8 rounded border border-border p-0 hover:border-border/80"
+                          style="background-color: {color}"
+                          aria-label="Selecionar cor"
+                          onclick={openColorPicker}
+                          disabled={false}
+                        >
+                          <span class="sr-only">Cor atual: {color}</span>
+                        </Button>
+                      {/snippet}
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      align="center"
+                      sideOffset={8}
+                      class=""
+                      arrowClasses=""
+                    >
+                      <p class="text-sm">Cor</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             {/if}
           </div>
@@ -303,7 +246,8 @@ function handleElementColorChange(elementKey, event) {
             >
               <TooltipTrigger asChild>
                 <div
-                  class="group flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/30 transition-all duration-200 hover:scale-105 hover:border-muted-foreground/20 hover:bg-muted/60 active:scale-95"
+                  class="group flex h-[42px] w-[42px] cursor-pointer items-center justify-center rounded-lg bg-muted/30 transition-all duration-200 hover:scale-105 hover:bg-muted/60 active:scale-95"
+                  style="border: none !important;"
                   onclick={handleReset}
                   role="button"
                   tabindex="0"

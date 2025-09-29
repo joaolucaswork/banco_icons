@@ -28,13 +28,9 @@ let selectedDisplayName = $derived(
 
 // We want to close the popover when the user selects an item
 function closeAndFocusTrigger(selectedValue) {
-  console.log("closeAndFocusTrigger chamado com:", selectedValue);
-  console.log("logos.has(selectedValue):", logos.has(selectedValue));
-  console.log("selectedLogo antes:", selectedLogo);
   open = false;
   if (selectedValue && logos.has(selectedValue)) {
     selectedLogo = selectedValue;
-    console.log("selectedLogo depois:", selectedLogo);
     onLogoSelect(selectedValue);
   }
 }

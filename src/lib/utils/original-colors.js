@@ -127,7 +127,6 @@ export async function analyzeOriginalSvgColors(logoName) {
   try {
     const originalFilename = ORIGINAL_LOGO_MAPPING[logoName];
     if (!originalFilename) {
-      console.warn(`No original logo mapping found for: ${logoName}`);
       return [];
     }
 
@@ -139,10 +138,6 @@ export async function analyzeOriginalSvgColors(logoName) {
     const svgContent = await response.text();
     return extractColorsFromSvg(svgContent);
   } catch (error) {
-    console.error(
-      `Error analyzing original SVG colors for ${logoName}:`,
-      error,
-    );
     return [];
   }
 }

@@ -116,10 +116,7 @@ function handleOpenInWebflow() {
 <!-- Action Buttons -->
 {#if selectedLogo && modifiedSvg && formattedSvg}
   <TooltipProvider delayDuration={400}>
-    <div
-      class={cn("flex items-center gap-2 rounded-lg border border-border bg-background p-1", className)}
-      {...restProps}
-    >
+    <div class={cn("action-buttons-group", className)} {...restProps}>
       <!-- Open in Figma Button -->
       <Tooltip
         disableHoverableContent={false}
@@ -131,7 +128,7 @@ function handleOpenInWebflow() {
               {...props}
               variant="outline"
               size="icon"
-              class="h-14 w-14 shrink-0 transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
+              class="h-14 w-14 shrink-0 !text-white transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
               onclick={handleOpenInFigma}
               disabled={loading}
             >
@@ -178,9 +175,6 @@ function handleOpenInWebflow() {
         </TooltipContent>
       </Tooltip>
 
-      <!-- Divisor Vertical -->
-      <div class="h-8 w-px bg-border"></div>
-
       <!-- Open in Webflow Button -->
       <Tooltip
         disableHoverableContent={false}
@@ -192,30 +186,21 @@ function handleOpenInWebflow() {
               {...props}
               variant="outline"
               size="icon"
-              class="h-14 w-14 shrink-0 transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
+              class="h-14 w-14 shrink-0 !text-white transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
               onclick={handleOpenInWebflow}
               disabled={loading}
             >
-              <!-- Webflow Icon SVG -->
+              <!-- Webflow Icon SVG - Recreated -->
               <svg
                 class="h-6 w-6"
-                viewBox="0 0 32 20"
-                fill="none"
+                viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
+                style="fill: white !important; stroke: none !important;"
               >
-                <g clip-path="url(#clip0_webflow_button)">
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M31.9998 0L21.789 19.9906H12.1981L16.4714 11.7057H16.2796C12.7543 16.2888 7.49436 19.3059 -0.000236511 19.9906V11.8203C-0.000236511 11.8203 4.79424 11.5367 7.61276 8.56902H-0.000236511V0.00015727H8.55596V7.04792L8.74799 7.04715L12.2443 0.00015727H18.7152V7.00323L18.9072 7.00294L22.5347 0H31.9998Z"
-                    fill="currentColor"
-                  />
-                </g>
-                <defs>
-                  <clipPath id="clip0_webflow_button">
-                    <rect width="32" height="20" fill="white" />
-                  </clipPath>
-                </defs>
+                <path
+                  d="M21 2L13.5 17H7.5L10.5 10.5H10.3C8 13.5 4.5 16 0 17V10C0 10 3 9.8 4.8 7.5H0V2H6V7L6.2 7L8.5 2H13V7L13.2 7L15.8 2H21Z"
+                  style="fill: white !important; stroke: none !important;"
+                />
               </svg>
             </Button>
           {/snippet}
@@ -233,9 +218,6 @@ function handleOpenInWebflow() {
           </p>
         </TooltipContent>
       </Tooltip>
-
-      <!-- Divisor Vertical -->
-      <div class="h-8 w-px bg-border"></div>
 
       <!-- Copy SVG Button -->
       <Tooltip
@@ -270,69 +252,46 @@ function handleOpenInWebflow() {
         </TooltipContent>
       </Tooltip>
 
-      <!-- Divisor Vertical -->
-      <div class="h-8 w-px bg-border"></div>
-
       <!-- Download Dropdown Button -->
-      <Tooltip
-        disableHoverableContent={false}
-        disableCloseOnTriggerClick={true}
-      >
-        <TooltipTrigger asChild>
-          {#snippet child({ props: tooltipProps })}
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger asChild>
-                {#snippet child({ props })}
-                  <Button
-                    {...props}
-                    {...tooltipProps}
-                    variant="outline"
-                    size="icon"
-                    class="h-14 w-14 shrink-0 transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
-                    disabled={loading}
-                  >
-                    <Download class="h-6 w-6" />
-                  </Button>
-                {/snippet}
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content
-                align="center"
-                side="bottom"
-                sideOffset={8}
-                alignOffset={0}
-                class="w-fit min-w-[80px] p-0"
-                portalProps={{}}
-              >
-                <DropdownMenu.Item
-                  onclick={handleDownloadPng}
-                  class="!flex w-full !items-center !justify-center !gap-0 !px-0 !py-3 !text-center !text-base !font-medium"
-                  inset={false}
-                >
-                  PNG
-                </DropdownMenu.Item>
-                <DropdownMenu.Separator class="!mx-0 !my-1" />
-                <DropdownMenu.Item
-                  onclick={handleDownloadSvg}
-                  class="!flex w-full !items-center !justify-center !gap-0 !px-0 !py-3 !text-center !text-base !font-medium"
-                  inset={false}
-                >
-                  SVG
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Root>
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild>
+          {#snippet child({ props })}
+            <Button
+              {...props}
+              variant="outline"
+              size="icon"
+              class="h-14 w-14 shrink-0 transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
+              disabled={loading}
+            >
+              <Download class="h-6 w-6" />
+            </Button>
           {/snippet}
-        </TooltipTrigger>
-        <TooltipContent
-          side="top"
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content
           align="center"
+          side="bottom"
           sideOffset={8}
-          class=""
-          arrowClasses=""
+          alignOffset={0}
+          class="z-[60] w-fit min-w-[80px] p-0"
+          portalProps={{}}
         >
-          <p class="text-sm">Baixar logo</p>
-          <p class="text-xs text-muted-foreground">PNG ou SVG</p>
-        </TooltipContent>
-      </Tooltip>
+          <DropdownMenu.Item
+            onclick={handleDownloadPng}
+            class="!flex w-full !items-center !justify-center !gap-0 !px-0 !py-3 !text-center !text-base !font-medium"
+            inset={false}
+          >
+            PNG
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator class="!mx-0 !my-1" />
+          <DropdownMenu.Item
+            onclick={handleDownloadSvg}
+            class="!flex w-full !items-center !justify-center !gap-0 !px-0 !py-3 !text-center !text-base !font-medium"
+            inset={false}
+          >
+            SVG
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
     </div>
   </TooltipProvider>
 {/if}

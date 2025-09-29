@@ -18,6 +18,9 @@ import {
   validateColorMap,
   isDefaultColorMap,
 } from "../utils/multi-color-utils.js";
+import { getPrimaryOriginalColor } from "../utils/original-colors.js";
+import { applyThemeColors, resetThemeColors } from "../utils/theme-colors.js";
+import { hexToRgb, calculateLuminance } from "../utils/color-utils.js";
 
 // Default settings
 const DEFAULT_SIZE = 24;
@@ -37,6 +40,9 @@ let svgData = $state({
   colorMap: {},
   // Comparison mode
   showComparison: false,
+  // Background toggle state
+  manualBackgroundOverride: false, // When true, disables automatic contrast detection
+  manualBackgroundColor: "transparent", // The manually selected background color
 });
 
 // Computed values
@@ -148,7 +154,6 @@ export const svgStore = {
         this.selectLogo(BANK_LOGOS[0]);
       }
     } catch (error) {
-      console.error("Erro ao carregar logos:", error);
       svgData.error = "Falha ao carregar logos SVG";
     } finally {
       svgData.loading = false;
@@ -157,12 +162,12 @@ export const svgStore = {
 
   // Select a specific logo
   selectLogo(logoName) {
-    console.log("svgStore.selectLogo chamado com:", logoName);
-    console.log("svgData.logos.has(logoName):", svgData.logos.has(logoName));
-    console.log("svgData.selectedLogo antes:", svgData.selectedLogo);
     if (svgData.logos.has(logoName)) {
       svgData.selectedLogo = logoName;
-      console.log("svgData.selectedLogo depois:", svgData.selectedLogo);
+
+      // Reset background toggle state when changing logos - re-enable automatic contrast detection
+      svgData.manualBackgroundOverride = false;
+      svgData.manualBackgroundColor = "transparent";
 
       // Check if this logo supports multiple colors
       svgData.isMultiColor = hasMultipleColors(logoName);
@@ -178,10 +183,8 @@ export const svgStore = {
         // Initialize color map with defaults
         svgData.colorMap = getDefaultColorMap(logoName);
 
-        console.log("Multi-color logo detected:", {
-          elements: svgData.colorableElements,
-          colorMap: svgData.colorMap,
-        });
+        // Also set the main color to the primary color for background calculation
+        svgData.color = getDefaultLogoColor(logoName);
       } else {
         // Reset multi-color state and set single color to original
         svgData.colorableElements = [];
@@ -189,6 +192,10 @@ export const svgStore = {
         // Set the single color to the original color of the logo
         svgData.color = getDefaultLogoColor(logoName);
       }
+
+      // Apply theme colors based on logo's primary color
+      const primaryColor = getPrimaryOriginalColor(logoName);
+      applyThemeColors(primaryColor);
     }
   },
 
@@ -220,6 +227,18 @@ export const svgStore = {
       // Fallback to default white if no logo selected
       svgData.color = DEFAULT_COLOR;
     }
+
+    // Reset background toggle state - re-enable automatic contrast detection
+    svgData.manualBackgroundOverride = false;
+    svgData.manualBackgroundColor = "transparent";
+
+    // Reset theme colors to default when resetting
+    if (svgData.selectedLogo) {
+      const primaryColor = getPrimaryOriginalColor(svgData.selectedLogo);
+      applyThemeColors(primaryColor);
+    } else {
+      resetThemeColors();
+    }
   },
 
   // Multi-color methods
@@ -232,12 +251,6 @@ export const svgStore = {
       ...svgData.colorMap,
       [elementKey]: color,
     };
-
-    console.log("Element color updated:", {
-      elementKey,
-      color,
-      colorMap: svgData.colorMap,
-    });
   },
 
   // Reset color for a specific element
@@ -290,6 +303,53 @@ export const svgStore = {
   // Set comparison mode
   setComparison(show) {
     svgData.showComparison = show;
+  },
+
+  // Background toggle methods
+
+  // Toggle background between white and transparent
+  toggleBackground() {
+    if (!svgData.manualBackgroundOverride) {
+      // First toggle: enable manual override and set to the opposite of current automatic background
+      svgData.manualBackgroundOverride = true;
+
+      // Import getContrastBackground to determine current automatic background
+      import("../utils/color-utils.js").then(({ getContrastBackground }) => {
+        const currentAutomaticBg = getContrastBackground(svgData.color);
+        // Set to the opposite of what would be automatic
+        svgData.manualBackgroundColor =
+          currentAutomaticBg === "#ffffff" ? "transparent" : "#ffffff";
+      });
+
+      // Fallback synchronous calculation (same logic as getContrastBackground)
+      // This ensures immediate response while async import loads
+      const rgb = hexToRgb(svgData.color);
+      const luminance = calculateLuminance(rgb);
+      const isCurrentlyDark = luminance < 0.179;
+      svgData.manualBackgroundColor = isCurrentlyDark
+        ? "transparent"
+        : "#ffffff";
+    } else if (svgData.manualBackgroundColor === "#ffffff") {
+      // Second toggle: change to transparent
+      svgData.manualBackgroundColor = "transparent";
+    } else {
+      // Third toggle: back to white
+      svgData.manualBackgroundColor = "#ffffff";
+    }
+  },
+
+  // Get the current background color (either manual or automatic)
+  getCurrentBackgroundColor() {
+    if (svgData.manualBackgroundOverride) {
+      return svgData.manualBackgroundColor;
+    }
+    // Return null to indicate automatic contrast detection should be used
+    return null;
+  },
+
+  // Check if manual background override is active
+  isManualBackgroundActive() {
+    return svgData.manualBackgroundOverride;
   },
 };
 

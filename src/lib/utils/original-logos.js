@@ -24,9 +24,6 @@ export async function loadOriginalSvgContent(modifiedLogoFilename) {
     const originalFilename = ORIGINAL_LOGO_MAPPING[modifiedLogoFilename];
 
     if (!originalFilename) {
-      console.warn(
-        `No original logo mapping found for: ${modifiedLogoFilename}`,
-      );
       return null;
     }
 
@@ -42,7 +39,6 @@ export async function loadOriginalSvgContent(modifiedLogoFilename) {
     const content = await response.text();
     return content;
   } catch (error) {
-    console.error("Error loading original SVG:", error);
     return null;
   }
 }

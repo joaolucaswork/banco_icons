@@ -6,7 +6,15 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from "$lib/components/ui/tooltip";
-import { ZoomIn, ZoomOut, RotateCcw, Copy, Download } from "lucide-svelte";
+import {
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Copy,
+  Download,
+  Sun,
+  Moon,
+} from "lucide-svelte";
 import CheckIcon from "@lucide/svelte/icons/check";
 import { onMount } from "svelte";
 import { loadOriginalSvgContent } from "$lib/utils/original-logos.js";
@@ -18,6 +26,7 @@ import {
   copyToClipboard,
   getBankDisplayName,
 } from "$lib/utils/svg-utils.js";
+import { isDarkColor } from "$lib/utils/color-utils.js";
 
 let {
   svgContent = null,
@@ -34,9 +43,37 @@ let {
   selectedLogo = null,
   formattedSvg = null,
   onReset = () => {},
+  // Background toggle support
+  onBackgroundToggle = () => {},
+  isManualBackgroundActive = false,
+  currentBackgroundColor = null,
   class: className = "",
   ...restProps
 } = $props();
+
+// Calculate icon color based on background for contrast
+let iconColor = $derived.by(() => {
+  // Get the current background color - use manual override if active, otherwise automatic
+  let bgColor;
+
+  if (isManualBackgroundActive && currentBackgroundColor !== null) {
+    bgColor = currentBackgroundColor;
+  } else {
+    bgColor = previewBackground;
+  }
+
+  // If background is transparent, use light color for dark theme
+  if (bgColor === "transparent") {
+    return "text-foreground"; // Use theme foreground color for transparent backgrounds
+  }
+
+  // For solid backgrounds, use contrast logic
+  if (isDarkColor(bgColor)) {
+    return "text-white"; // White text on dark backgrounds
+  } else {
+    return "text-black"; // Black text on light backgrounds
+  }
+});
 
 // Canvas state for modified logo (left side)
 let canvasContainer = $state(/** @type {HTMLDivElement | null} */ (null));
@@ -174,7 +211,6 @@ function loadSvgImage(/** @type {string | null} */ svgString) {
   };
 
   img.onerror = () => {
-    console.error("Failed to load SVG image");
     svgImage = null;
     URL.revokeObjectURL(url);
     draw();
@@ -203,7 +239,6 @@ function loadOriginalSvgImage(/** @type {string | null} */ svgString) {
   };
 
   img.onerror = () => {
-    console.error("Failed to load original SVG image");
     originalSvgImage = null;
     URL.revokeObjectURL(url);
     drawOriginal();
@@ -262,7 +297,8 @@ function drawOriginal() {
     );
     originalCtx.scale(originalScale, originalScale);
 
-    // Draw original SVG
+    // Draw original SVG logo without glow effect
+
     const imgWidth = 120; // Fixed size for consistency
     const imgHeight = 120;
     originalCtx.drawImage(
@@ -288,7 +324,8 @@ function drawSingleLogo() {
   ctx.translate(canvasWidth / 2 + translateX, canvasHeight / 2 + translateY);
   ctx.scale(scale, scale);
 
-  // Draw SVG if available
+  // Draw SVG logo without glow effect
+
   const imgWidth = 120; // Fixed size for consistency
   const imgHeight = 120;
   ctx.drawImage(svgImage, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
@@ -666,7 +703,7 @@ $effect(() => {
         }
       })
       .catch((error) => {
-        console.error("Failed to load original logo:", error);
+        // Failed to load original logo
       });
   }
 });
@@ -1118,7 +1155,7 @@ $effect(() => {
                 onclick={handleCopySvg}
                 disabled={!formattedSvg || !selectedLogo}
               >
-                <Copy class="h-5 w-5" />
+                <Copy class="h-5 w-5" style="color: #000000 !important;" />
               </Button>
             {/snippet}
           </TooltipTrigger>
@@ -1148,7 +1185,7 @@ $effect(() => {
                 onclick={handleDownloadSvg}
                 disabled={!formattedSvg || !selectedLogo}
               >
-                <Download class="h-5 w-5" />
+                <Download class="h-5 w-5" style="color: #000000 !important;" />
               </Button>
             {/snippet}
           </TooltipTrigger>
@@ -1181,7 +1218,10 @@ $effect(() => {
                 onclick={zoomIn}
                 disabled={scale >= MAX_SCALE}
               >
-                <ZoomIn class="h-4 w-4" />
+                <ZoomIn
+                  class="h-4 w-4"
+                  style="color: {iconColor === 'text-black' ? '#000000' : iconColor === 'text-white' ? '#ffffff' : 'hsl(var(--foreground))'} !important;"
+                />
               </Button>
             {/snippet}
           </TooltipTrigger>
@@ -1211,7 +1251,10 @@ $effect(() => {
                 onclick={zoomOut}
                 disabled={scale <= MIN_SCALE}
               >
-                <ZoomOut class="h-4 w-4" />
+                <ZoomOut
+                  class="h-4 w-4"
+                  style="color: {iconColor === 'text-black' ? '#000000' : iconColor === 'text-white' ? '#ffffff' : 'hsl(var(--foreground))'} !important;"
+                />
               </Button>
             {/snippet}
           </TooltipTrigger>
@@ -1243,6 +1286,7 @@ $effect(() => {
               >
                 <RotateCcw
                   class="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                  style="color: {iconColor === 'text-black' ? '#000000' : iconColor === 'text-white' ? '#ffffff' : 'hsl(var(--foreground))'} !important;"
                 />
               </Button>
             {/snippet}
@@ -1260,6 +1304,67 @@ $effect(() => {
       </div>
     </TooltipProvider>
   {/if}
+
+  <!-- Background Toggle Button - Bottom Right (always visible) -->
+  <TooltipProvider delayDuration={400}>
+    <div class="absolute right-6 bottom-3 z-10">
+      <Tooltip
+        disableHoverableContent={false}
+        disableCloseOnTriggerClick={true}
+      >
+        <TooltipTrigger asChild>
+          {#snippet child({ props })}
+            <Button
+              {...props}
+              variant="secondary"
+              size="icon"
+              class="h-10 w-10 border-2 border-border bg-background/90 text-foreground shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:bg-background active:scale-95"
+              onclick={onBackgroundToggle}
+              disabled={false}
+            >
+              {#if isManualBackgroundActive}
+                {#if currentBackgroundColor === "#ffffff"}
+                  <!-- White background active - Sun icon with black color for contrast -->
+                  <Sun class="h-5 w-5" style="color: #000000 !important;" />
+                {:else}
+                  <!-- Transparent background active - Moon icon with theme color -->
+                  <Moon
+                    class="h-5 w-5"
+                    style="color: hsl(var(--foreground)) !important;"
+                  />
+                {/if}
+              {:else}
+                <!-- Automatic mode - Dimmed sun icon with dynamic color -->
+                <Sun
+                  class="h-5 w-5 opacity-50"
+                  style="color: {iconColor === 'text-black' ? '#000000' : iconColor === 'text-white' ? '#ffffff' : 'hsl(var(--foreground))'} !important;"
+                />
+              {/if}
+            </Button>
+          {/snippet}
+        </TooltipTrigger>
+        <TooltipContent
+          side="left"
+          align="center"
+          sideOffset={8}
+          class=""
+          arrowClasses=""
+        >
+          <p class="text-sm">
+            {#if isManualBackgroundActive}
+              {#if currentBackgroundColor === "#ffffff"}
+                Fundo branco (clique para transparente)
+              {:else}
+                Fundo transparente (clique para branco)
+              {/if}
+            {:else}
+              Alternar fundo (automático ativo)
+            {/if}
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  </TooltipProvider>
 
   <!-- Loading state -->
   {#if loading}
