@@ -21,12 +21,11 @@ async function handleCopy() {
   }
 }
 
-// Simple syntax highlighting for XML/SVG with proper formatting
+// Simple syntax highlighting for XML/SVG
+// Note: SVG code is already formatted by the enhanced formatSvgContent function
 function highlightXml(code) {
-  // First, format the SVG with proper indentation and line breaks
-  const formatted = formatSvgCode(code);
-
-  return formatted
+  // Use the code as-is since it's already properly formatted by formatSvgContent
+  return code
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -40,47 +39,6 @@ function highlightXml(code) {
       /(&lt;!--.*?--&gt;)/g,
       '<span class="text-gray-500 italic">$1</span>',
     );
-}
-
-// Format SVG code with proper indentation and line breaks
-function formatSvgCode(code) {
-  if (!code) return code;
-
-  // Add line breaks after > and before <
-  let formatted = code
-    .replace(/></g, ">\n<")
-    .replace(/\s+/g, " ") // Normalize whitespace
-    .trim();
-
-  // Add proper indentation
-  const lines = formatted.split("\n");
-  let indentLevel = 0;
-  const indentSize = 2;
-
-  return lines
-    .map((line) => {
-      const trimmed = line.trim();
-      if (!trimmed) return "";
-
-      // Decrease indent for closing tags
-      if (trimmed.startsWith("</")) {
-        indentLevel = Math.max(0, indentLevel - 1);
-      }
-
-      const indented = " ".repeat(indentLevel * indentSize) + trimmed;
-
-      // Increase indent for opening tags (but not self-closing)
-      if (
-        trimmed.startsWith("<") &&
-        !trimmed.startsWith("</") &&
-        !trimmed.endsWith("/>")
-      ) {
-        indentLevel++;
-      }
-
-      return indented;
-    })
-    .join("\n");
 }
 
 let highlightedCode = $derived.by(() => {
@@ -240,25 +198,18 @@ let highlightedCode = $derived.by(() => {
           <!-- Divider -->
           <div class="border-t border-border"></div>
 
-          <!-- Color tip -->
+          <!-- Compatibility tip -->
           <div class="flex items-start gap-4">
             <div
               class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-sm font-bold text-white"
             >
-              💡
+              ✅
             </div>
             <div class="flex-1 pt-1">
               <p class="text-base break-words text-foreground">
-                <strong>Para alterar cores:</strong> Use a propriedade CSS
-                <code
-                  class="rounded bg-muted px-2 py-1 font-mono text-sm break-words text-foreground"
-                  >fill</code
-                >
-                ou
-                <code
-                  class="rounded bg-muted px-2 py-1 font-mono text-sm break-words text-foreground"
-                  >color</code
-                > no elemento pai
+                <strong>Código otimizado:</strong> Este SVG foi otimizado para máxima
+                compatibilidade com Webflow e outras plataformas. Todas as cores
+                são hard-coded e não há dependências CSS.
               </p>
             </div>
           </div>
