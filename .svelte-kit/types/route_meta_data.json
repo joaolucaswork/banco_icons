@@ -1,4 +1,9 @@
 {
-	"/": [],
-	"/style-guide": []
+	"/": [
+		"src/routes/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/style-guide": [
+		"src/routes/+layout.js"
+	]
 }
