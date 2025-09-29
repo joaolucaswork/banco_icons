@@ -88,9 +88,13 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
+    ],
+    "ignoredBuiltDependencies": [
+      "@vercel/speed-insights"
     ]
   },
   "dependencies": {
+    "@vercel/speed-insights": "^1.2.0",
     "lucide": "^0.544.0",
     "lucide-svelte": "^0.544.0",
     "motion": "^12.23.22"

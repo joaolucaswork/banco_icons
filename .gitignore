@@ -401,3 +401,4 @@ Thumbs.db
 # config/local.js
 # uploads/
 # storage/
+.vercel
