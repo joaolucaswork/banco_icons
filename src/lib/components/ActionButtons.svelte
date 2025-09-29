@@ -116,10 +116,7 @@ function handleOpenInWebflow() {
 <!-- Action Buttons -->
 {#if selectedLogo && modifiedSvg && formattedSvg}
   <TooltipProvider delayDuration={400}>
-    <div
-      class={cn("flex items-center gap-2 rounded-lg p-1", className)}
-      {...restProps}
-    >
+    <div class={cn("action-buttons-group", className)} {...restProps}>
       <!-- Open in Figma Button -->
       <Tooltip
         disableHoverableContent={false}
@@ -178,9 +175,6 @@ function handleOpenInWebflow() {
         </TooltipContent>
       </Tooltip>
 
-      <!-- Divisor Vertical -->
-      <div class="h-8 w-px bg-border"></div>
-
       <!-- Open in Webflow Button -->
       <Tooltip
         disableHoverableContent={false}
@@ -225,9 +219,6 @@ function handleOpenInWebflow() {
         </TooltipContent>
       </Tooltip>
 
-      <!-- Divisor Vertical -->
-      <div class="h-8 w-px bg-border"></div>
-
       <!-- Copy SVG Button -->
       <Tooltip
         disableHoverableContent={false}
@@ -260,9 +251,6 @@ function handleOpenInWebflow() {
           </p>
         </TooltipContent>
       </Tooltip>
-
-      <!-- Divisor Vertical -->
-      <div class="h-8 w-px bg-border"></div>
 
       <!-- Download Dropdown Button -->
       <DropdownMenu.Root>

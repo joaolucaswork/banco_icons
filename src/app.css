@@ -344,28 +344,78 @@
     background-color: transparent !important;
   }
 
-  /* Remove background from background toggle button (with Sun/Moon icons) */
-  button:has(svg.text-yellow-500),
-  button:has(svg.text-blue-400),
-  button:has(svg.text-muted-foreground.opacity-50),
-  [data-slot="button"]:has(svg.text-yellow-500),
-  [data-slot="button"]:has(svg.text-blue-400),
-  [data-slot="button"]:has(svg.text-muted-foreground.opacity-50) {
+  /* Right group controls styling */
+  .right-controls-group {
     background: transparent !important;
     background-color: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
   }
 
-  /* Hover effect for reset and background toggle buttons */
-  div.group.flex[class*="h-"][class*="w-"][class*="bg-muted"][role="button"]:hover,
-  button:has(svg.text-yellow-500):hover,
-  button:has(svg.text-blue-400):hover,
-  button:has(svg.text-muted-foreground.opacity-50):hover,
-  [data-slot="button"]:has(svg.text-yellow-500):hover,
-  [data-slot="button"]:has(svg.text-blue-400):hover,
-  [data-slot="button"]:has(svg.text-muted-foreground.opacity-50):hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    background-color: rgba(255, 255, 255, 0.1) !important;
+  /* Remove background from buttons in right group */
+  .right-controls-group button,
+  .right-controls-group [data-slot="button"] {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+  }
+
+  /* Hover effect for buttons in right group */
+  .right-controls-group button:hover,
+  .right-controls-group [data-slot="button"]:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
     transform: scale(1.05) !important;
     transition: all 0.2s ease !important;
+  }
+
+  /* Vertical divider between buttons in right group */
+  .vertical-divider {
+    width: 2px !important;
+    height: 28px !important;
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-radius: 1px !important;
+  }
+
+  /* Action buttons group styling */
+  .action-buttons-group {
+    background: rgba(255, 255, 255, 0.15) !important;
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 0.5rem !important;
+    padding: 0.375rem !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Remove background from buttons in action group */
+  .action-buttons-group button,
+  .action-buttons-group [data-slot="button"] {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+  }
+
+  /* Hover effect for buttons in action group */
+  .action-buttons-group button:hover,
+  .action-buttons-group [data-slot="button"]:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    transform: scale(1.05) !important;
+    transition: all 0.2s ease !important;
+  }
+
+  /* Update existing vertical divider in action buttons to match style */
+  .action-buttons-group .h-8.w-px.bg-border {
+    width: 2px !important;
+    height: 28px !important;
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-radius: 1px !important;
   }
 }

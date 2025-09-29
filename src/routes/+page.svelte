@@ -209,9 +209,6 @@ onMount(() => {
                 onElementReset={handleElementReset}
                 selectedLogo={storeData.selectedLogo}
                 bind:showComparison={storeData.showComparison}
-                onBackgroundToggle={handleBackgroundToggle}
-                isManualBackgroundActive={storeData.manualBackgroundOverride}
-                currentBackgroundColor={storeData.manualBackgroundColor}
               />
             {/if}
           </div>
@@ -233,6 +230,9 @@ onMount(() => {
               selectedLogo={storeData.selectedLogo}
               formattedSvg={formattedSvg}
               onReset={handleReset}
+              onBackgroundToggle={handleBackgroundToggle}
+              isManualBackgroundActive={storeData.manualBackgroundOverride}
+              currentBackgroundColor={storeData.manualBackgroundColor}
             />
 
             <!-- Controls Group - Overlay on canvas -->
