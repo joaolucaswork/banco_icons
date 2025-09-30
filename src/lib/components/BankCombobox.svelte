@@ -46,7 +46,7 @@ function closeAndFocusTrigger(selectedValue) {
           role="combobox"
           aria-expanded={open}
           disabled={loading}
-          class="h-12 w-full justify-between px-4 py-2"
+          class="h-12 w-full justify-between px-8 py-4"
         >
           <div class="flex items-center">
             {#if selectedLogo && logos.has(selectedLogo)}
