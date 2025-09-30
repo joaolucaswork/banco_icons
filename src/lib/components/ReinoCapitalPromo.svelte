@@ -46,19 +46,22 @@ function handleVisit() {
     class="fixed right-6 bottom-6 z-50 transition-all duration-500 ease-out"
     style="transform: translateY({visible ? '0' : '150%'}); opacity: {visible ? '1' : '0'};"
   >
-    <Card class="w-80 border-border bg-card shadow-2xl">
-      <CardHeader class="relative pt-4 pb-1">
+    <Card
+      class="w-80 bg-card shadow-2xl"
+      style="border: 1px solid rgba(255, 255, 255, 0.2) !important;"
+    >
+      <CardHeader class="relative px-6 pt-4 pb-0">
         <button
           onclick={handleDismiss}
-          class="absolute top-2 right-2 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
+          class="absolute top-4 right-6 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
           aria-label="Fechar"
         >
           <X class="h-4 w-4" />
         </button>
-        <CardTitle class="pr-6 text-lg">Conheça a Reino Capital</CardTitle>
+        <CardTitle class="pr-8 text-lg">Conheça a Reino Capital</CardTitle>
       </CardHeader>
-      <CardContent class="space-y-3 pt-1 pb-4">
-        <p class="text-sm text-muted-foreground">
+      <CardContent class="pt-1 pb-4">
+        <p class="mb-6 text-sm text-muted-foreground">
           Gestão de patrimônio transparente, sem taxas escondidas.
         </p>
         <Button
