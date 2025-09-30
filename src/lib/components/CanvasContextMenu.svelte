@@ -65,13 +65,12 @@ async function handleCopySvg() {
     return;
   }
 
-  const bankName = getBankDisplayName(selectedLogo);
   // Use Webflow-optimized SVG for better compatibility
   const optimizedSvg = createWebflowOptimizedSvg(formattedSvg);
   const success = await copyToClipboard(optimizedSvg);
 
   if (success) {
-    toast.success(`Código SVG otimizado do ${bankName} copiado!`);
+    toast.success("SVG copiado");
   } else {
     toast.error("Falha ao copiar código SVG. Tente novamente.");
   }

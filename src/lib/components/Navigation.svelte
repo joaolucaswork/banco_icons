@@ -40,7 +40,7 @@ import InstagramIcon from "@lucide/svelte/icons/instagram";
     <!-- Right Section -->
     <div class="flex items-center space-x-4">
       <span class="hidden text-sm text-muted-foreground sm:block">
-        Construído por Lucas com ❤️ em Recife
+        Por Lucas Work
       </span>
       <a
         href="https://www.instagram.com/jlucas.wrk/"

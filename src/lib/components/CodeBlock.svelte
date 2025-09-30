@@ -9,7 +9,7 @@ let { code = "", language = "xml", title = "Código" } = $props();
 async function handleCopy() {
   const success = await copyToClipboard(code);
   if (success) {
-    toast.success("Código copiado para a área de transferência!");
+    toast.success("SVG copiado");
   } else {
     toast.error("Falha ao copiar código. Tente novamente.");
   }

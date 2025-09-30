@@ -31,7 +31,7 @@ $effect(() => {
 async function handleCopy() {
   const success = await copyToClipboard(svgCode);
   if (success) {
-    toast.success("Código SVG otimizado copiado para a área de transferência!");
+    toast.success("SVG copiado");
   } else {
     toast.error("Falha ao copiar código. Tente novamente.");
   }

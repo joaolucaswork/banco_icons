@@ -273,28 +273,31 @@
 
   /* Custom toast styles */
   [data-sonner-toaster] {
-    --normal-bg: rgb(23 23 23) !important;
-    --normal-border: var(--color-border) !important;
-    --normal-text: rgb(250 250 250) !important;
-    --success-bg: rgb(23 23 23) !important;
-    --success-border: var(--color-border) !important;
-    --success-text: rgb(250 250 250) !important;
-    --error-bg: rgb(23 23 23) !important;
-    --error-border: var(--color-border) !important;
-    --error-text: rgb(250 250 250) !important;
+    --normal-bg: rgba(255, 255, 255, 0.1) !important;
+    --normal-border: transparent !important;
+    --normal-text: rgb(255, 255, 255) !important;
+    --success-bg: rgba(255, 255, 255, 0.1) !important;
+    --success-border: transparent !important;
+    --success-text: rgb(255, 255, 255) !important;
+    --error-bg: rgba(255, 255, 255, 0.1) !important;
+    --error-border: transparent !important;
+    --error-text: rgb(255, 255, 255) !important;
   }
 
   [data-sonner-toast] {
-    background: rgb(23 23 23) !important;
-    border: 1px solid var(--color-border) !important;
-    color: rgb(250 250 250) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: none !important;
+    color: rgb(255, 255, 255) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    width: fit-content !important;
+    max-width: fit-content !important;
+    min-width: auto !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
   }
 
   [data-sonner-toast][data-type="success"] [data-icon] {
-    color: rgb(34 197 94) !important;
-    width: 24px !important;
-    height: 24px !important;
+    display: none !important;
   }
 
   [data-sonner-toast][data-type="error"] [data-icon] {
@@ -303,39 +306,47 @@
     height: 24px !important;
   }
 
-  /* Position toasts in bottom-center with margin above bottom navigation */
-  [data-sonner-toaster][data-position="bottom-center"] {
-    bottom: 200px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    right: auto !important;
+  /* Position toasts in bottom-right */
+  [data-sonner-toaster][data-position="bottom-right"] {
+    position: fixed !important;
+    bottom: 24px !important;
+    right: 24px !important;
     top: auto !important;
+    left: auto !important;
+    transform: none !important;
   }
 
-  /* Ensure toasts are properly centered and have adequate spacing */
-  [data-sonner-toaster][data-position="bottom-center"] [data-sonner-toast] {
-    margin: 0 auto !important;
+  /* Ensure toasts are properly positioned */
+  [data-sonner-toaster][data-position="bottom-right"] [data-sonner-toast] {
+    margin: 0 !important;
   }
 
   /* Remove background from action buttons (FIG, Webflow, Copy, Download) only */
   button.h-14.w-14,
-  [data-slot="button"].h-14.w-14 {
+  button.h-12.w-12,
+  [data-slot="button"].h-14.w-14,
+  [data-slot="button"].h-12.w-12 {
     background: transparent !important;
     background-color: transparent !important;
   }
 
   /* Add hover effect for action buttons with subtle background */
   button.h-14.w-14:hover,
-  [data-slot="button"].h-14.w-14:hover {
+  button.h-12.w-12:hover,
+  [data-slot="button"].h-14.w-14:hover,
+  [data-slot="button"].h-12.w-12:hover {
     background: rgba(255, 255, 255, 0.1) !important;
     background-color: rgba(255, 255, 255, 0.1) !important;
     transform: scale(1.05) !important;
     transition: all 0.2s ease !important;
   }
 
-  /* Make action buttons closer together by reducing gap */
-  .flex.items-center.gap-2:has(button.h-14.w-14) {
-    gap: 0.25rem !important; /* Reduced from gap-2 (0.5rem) to 0.25rem */
+  /* Ensure action button icons are white */
+  button.h-14.w-14 svg,
+  button.h-12.w-12 svg,
+  [data-slot="button"].h-14.w-14 svg,
+  [data-slot="button"].h-12.w-12 svg {
+    color: white !important;
   }
 
   /* Remove background from reset button in BottomControlBar only - Very specific selector */

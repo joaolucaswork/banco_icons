@@ -1,6 +1,7 @@
 <script>
-import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+import * as Popover from "$lib/components/ui/popover";
 import { Button } from "$lib/components/ui/button";
+import { Input } from "$lib/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
@@ -18,7 +19,7 @@ import {
 import { cn } from "$lib/utils.js";
 import { toast } from "svelte-sonner";
 
-import { Copy, Download } from "lucide-svelte";
+import { Copy, Download, Maximize2 } from "lucide-svelte";
 
 let {
   selectedLogo = null,
@@ -32,6 +33,12 @@ let {
 
 // State for Webflow dialog
 let isWebflowDialogOpen = $state(false);
+
+// State for download popover
+let isDownloadPopoverOpen = $state(false);
+
+// Custom export size (defaults to the current size prop)
+let customExportSize = $state(size);
 
 // Generate optimized SVG for Webflow dialog
 const webflowOptimizedSvg = $derived(
@@ -48,6 +55,11 @@ $effect(() => {
   }
 });
 
+// Sync customExportSize with size prop when it changes
+$effect(() => {
+  customExportSize = size;
+});
+
 // Handle copy SVG to clipboard
 async function handleCopySvg() {
   if (!formattedSvg || !selectedLogo) {
@@ -55,13 +67,12 @@ async function handleCopySvg() {
     return;
   }
 
-  const bankName = getBankDisplayName(selectedLogo);
   // Use Webflow-optimized SVG for better compatibility
   const optimizedSvg = createWebflowOptimizedSvg(formattedSvg);
   const success = await copyToClipboard(optimizedSvg);
 
   if (success) {
-    toast.success(`Código SVG otimizado do ${bankName} copiado!`);
+    toast.success("SVG copiado");
   } else {
     toast.error("Falha ao copiar código SVG. Tente novamente.");
   }
@@ -73,8 +84,17 @@ async function handleDownloadPng() {
     return;
   }
 
-  const filename = `${selectedLogo}-${size}px`;
-  await downloadSvgAsPng(modifiedSvg, filename, size);
+  const exportSize = customExportSize || size;
+  const filename = `${selectedLogo}-${exportSize}px`;
+  const success = await downloadSvgAsPng(modifiedSvg, filename, exportSize);
+
+  if (success) {
+    const bankName = getBankDisplayName(selectedLogo);
+    toast.success(`${bankName} baixado como PNG!`);
+    isDownloadPopoverOpen = false;
+  } else {
+    toast.error("Falha ao baixar PNG. Tente novamente.");
+  }
 }
 
 // Handle SVG download
@@ -83,41 +103,16 @@ async function handleDownloadSvg() {
     return;
   }
 
-  const filename = `${selectedLogo}-${size}px`;
-  downloadSvgAsFile(formattedSvg, filename);
-}
-
-// Handle open in Figma
-async function handleOpenInFigma() {
-  if (!formattedSvg || !selectedLogo) {
-    toast.error("Nenhum logo selecionado para abrir no Figma.");
-    return;
-  }
-
-  const bankName = getBankDisplayName(selectedLogo);
-
-  // Copy optimized SVG to clipboard first
-  const optimizedSvg = createWebflowOptimizedSvg(formattedSvg);
-  const success = await copyToClipboard(optimizedSvg);
+  const exportSize = customExportSize || size;
+  const filename = `${selectedLogo}-${exportSize}px`;
+  const success = downloadSvgAsFile(formattedSvg, filename);
 
   if (success) {
-    // Try to open Figma desktop app first, then fallback to web
-    window.open("figma://", "_blank");
-
-    // If desktop app doesn't open or after a short delay, open web version
-    setTimeout(() => {
-      window.open("https://www.figma.com/", "_blank");
-    }, 500);
-
-    toast.success(
-      `SVG do ${bankName} copiado! Cole no Figma com Ctrl+V (Cmd+V no Mac)`,
-      {
-        duration: 5000,
-        description: "O Figma foi aberto. Cole o SVG em um novo arquivo.",
-      },
-    );
+    const bankName = getBankDisplayName(selectedLogo);
+    toast.success(`${bankName} baixado como SVG!`);
+    isDownloadPopoverOpen = false;
   } else {
-    toast.error("Falha ao copiar SVG. Tente novamente.");
+    toast.error("Falha ao baixar SVG. Tente novamente.");
   }
 }
 
@@ -135,65 +130,10 @@ function handleOpenInWebflow() {
 <!-- Action Buttons -->
 {#if selectedLogo && modifiedSvg && formattedSvg}
   <TooltipProvider delayDuration={400}>
-    <div class={cn("action-buttons-group", className)} {...restProps}>
-      <!-- Open in Figma Button -->
-      <Tooltip
-        disableHoverableContent={false}
-        disableCloseOnTriggerClick={true}
-      >
-        <TooltipTrigger asChild>
-          {#snippet child({ props })}
-            <Button
-              {...props}
-              variant="outline"
-              size="icon"
-              class="h-14 w-14 shrink-0 !text-white transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
-              onclick={handleOpenInFigma}
-              disabled={loading}
-            >
-              <!-- Figma Icon SVG -->
-              <svg
-                class="h-6 w-6"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M8 24C10.2091 24 12 22.2091 12 20V16H8C5.79086 16 4 17.7909 4 20C4 22.2091 5.79086 24 8 24Z"
-                  fill="currentColor"
-                />
-                <path
-                  d="M4 12C4 9.79086 5.79086 8 8 8H12V16H8C5.79086 16 4 14.2091 4 12Z"
-                  fill="currentColor"
-                />
-                <path
-                  d="M4 4C4 1.79086 5.79086 0 8 0H12V8H8C5.79086 8 4 6.20914 4 4Z"
-                  fill="currentColor"
-                />
-                <path
-                  d="M12 0H16C18.2091 0 20 1.79086 20 4C20 6.20914 18.2091 8 16 8H12V0Z"
-                  fill="currentColor"
-                />
-                <path
-                  d="M20 12C20 14.2091 18.2091 16 16 16C13.7909 16 12 14.2091 12 12C12 9.79086 13.7909 8 16 8C18.2091 8 20 9.79086 20 12Z"
-                  fill="currentColor"
-                />
-              </svg>
-            </Button>
-          {/snippet}
-        </TooltipTrigger>
-        <TooltipContent
-          side="top"
-          align="center"
-          sideOffset={8}
-          class=""
-          arrowClasses=""
-        >
-          <p class="text-sm">Abrir no Figma</p>
-          <p class="text-xs text-muted-foreground">Copia SVG e abre o Figma</p>
-        </TooltipContent>
-      </Tooltip>
-
+    <div
+      class={cn("action-buttons-group flex flex-wrap justify-between gap-2 sm:justify-start", className)}
+      {...restProps}
+    >
       <!-- Open in Webflow Button -->
       <Tooltip
         disableHoverableContent={false}
@@ -205,13 +145,13 @@ function handleOpenInWebflow() {
               {...props}
               variant="outline"
               size="icon"
-              class="h-14 w-14 shrink-0 !text-white transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
+              class="h-12 w-12 shrink-0 !text-white transition-all duration-200 hover:!bg-white/10 hover:!text-white sm:h-14 sm:w-14"
               onclick={handleOpenInWebflow}
               disabled={loading}
             >
               <!-- Webflow Icon SVG - Recreated -->
               <svg
-                class="h-6 w-6"
+                class="h-5 w-5 sm:h-6 sm:w-6"
                 viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
                 style="fill: white !important; stroke: none !important;"
@@ -249,11 +189,11 @@ function handleOpenInWebflow() {
               {...props}
               variant="outline"
               size="icon"
-              class="h-14 w-14 shrink-0 transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
+              class="h-12 w-12 shrink-0 !text-white transition-all duration-200 hover:!bg-white/10 hover:!text-white sm:h-14 sm:w-14"
               onclick={handleCopySvg}
               disabled={loading}
             >
-              <Copy class="h-6 w-6" />
+              <Copy class="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>
           {/snippet}
         </TooltipTrigger>
@@ -271,46 +211,73 @@ function handleOpenInWebflow() {
         </TooltipContent>
       </Tooltip>
 
-      <!-- Download Dropdown Button -->
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger asChild>
+      <!-- Download Popover Button -->
+      <Popover.Root bind:open={isDownloadPopoverOpen}>
+        <Popover.Trigger asChild>
           {#snippet child({ props })}
             <Button
               {...props}
               variant="outline"
               size="icon"
-              class="h-14 w-14 shrink-0 transition-all duration-200 hover:scale-105 hover:!bg-white/10 hover:!text-current active:scale-95"
+              class="h-12 w-12 shrink-0 border-[1px] !text-white transition-colors duration-200 hover:!bg-white/10 hover:!text-white sm:h-14 sm:w-14"
               disabled={loading}
             >
-              <Download class="h-6 w-6" />
+              <Download class="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>
           {/snippet}
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content
-          align="center"
+        </Popover.Trigger>
+        <Popover.Content
+          align="end"
           side="bottom"
           sideOffset={8}
-          alignOffset={0}
-          class="z-[60] w-fit min-w-[80px] p-0"
+          class="z-[60] w-80 border-border/50 bg-background/95 p-4 backdrop-blur-sm"
           portalProps={{}}
         >
-          <DropdownMenu.Item
-            onclick={handleDownloadPng}
-            class="!flex w-full !items-center !justify-center !gap-0 !px-0 !py-3 !text-center !text-base !font-medium"
-            inset={false}
-          >
-            PNG
-          </DropdownMenu.Item>
-          <DropdownMenu.Separator class="!mx-0 !my-1" />
-          <DropdownMenu.Item
-            onclick={handleDownloadSvg}
-            class="!flex w-full !items-center !justify-center !gap-0 !px-0 !py-3 !text-center !text-base !font-medium"
-            inset={false}
-          >
-            SVG
-          </DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu.Root>
+          <div class="flex flex-col gap-4">
+            <!-- Custom Size Input -->
+            <div class="relative">
+              <Maximize2
+                class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              />
+              <Input
+                id="export-size"
+                type="number"
+                bind:value={customExportSize}
+                min={16}
+                max={2048}
+                step={1}
+                placeholder="Tamanho (px)"
+                class="h-10 w-full [appearance:textfield] border-white/20 pr-3 pl-10 font-mono [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                style="background-color: rgba(255, 255, 255, 0.15) !important;"
+              />
+            </div>
+
+            <!-- Format Selection -->
+            <div class="flex flex-col gap-2">
+              <span
+                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                >Selecione o formato:</span
+              >
+              <div class="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  class="h-12 border-border/50 bg-background/50 font-semibold transition-all hover:scale-105 hover:border-foreground/30 hover:bg-accent active:scale-95"
+                  onclick={handleDownloadPng}
+                >
+                  PNG
+                </Button>
+                <Button
+                  variant="outline"
+                  class="h-12 border-border/50 bg-background/50 font-semibold transition-all hover:scale-105 hover:border-foreground/30 hover:bg-accent active:scale-95"
+                  onclick={handleDownloadSvg}
+                >
+                  SVG
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Popover.Content>
+      </Popover.Root>
     </div>
   </TooltipProvider>
 {/if}

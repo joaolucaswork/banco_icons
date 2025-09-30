@@ -36,53 +36,55 @@ function closeAndFocusTrigger(selectedValue) {
 }
 </script>
 
-<div class={cn("w-fit", className)} {...restProps}>
+<div class={cn("w-full sm:w-auto", className)} {...restProps}>
   <Popover.Root bind:open={open}>
-    <Popover.Trigger asChild class="">
+    <Popover.Trigger asChild class="w-full sm:w-auto">
       {#snippet child({ props })}
         <Button
           {...props}
-          variant="outline"
+          variant="ghost"
           role="combobox"
           aria-expanded={open}
           disabled={loading}
-          class="h-12 w-full justify-between px-8 py-4"
+          class="h-14 w-full justify-between border-0 bg-transparent px-4 py-4 hover:bg-transparent sm:h-12 sm:w-auto sm:px-12 sm:py-6"
         >
           <div class="flex items-center">
             {#if selectedLogo && logos.has(selectedLogo)}
               <!-- Selected bank name only -->
               <span
-                class="truncate text-left text-3xl font-bold tracking-tight"
+                class="text-left text-xl font-bold tracking-tight whitespace-nowrap sm:text-2xl md:text-3xl"
               >
                 {selectedDisplayName}
               </span>
             {:else}
               <!-- Placeholder -->
               <span
-                class="text-left text-3xl font-bold tracking-tight text-muted-foreground"
+                class="text-left text-xl font-bold tracking-tight whitespace-nowrap text-muted-foreground sm:text-2xl md:text-3xl"
               >
                 {placeholder}
               </span>
             {/if}
           </div>
-          <ChevronsUpDown class="ml-2 h-6 w-6 shrink-0 opacity-50" />
+          <ChevronsUpDown
+            class="ml-2 h-5 w-5 shrink-0 opacity-50 sm:h-6 sm:w-6"
+          />
         </Button>
       {/snippet}
     </Popover.Trigger>
     <Popover.Content
-      class="w-full p-0"
+      class="w-full border-0 bg-background p-0"
       style="width: var(--bits-popover-trigger-width);"
       side="bottom"
       align="start"
       sideOffset={4}
       portalProps={{}}
     >
-      <Command.Root class="">
-        <Command.Input placeholder="Buscar instituição..." class="h-9" />
-        <Command.List class="">
-          <Command.Empty class="">Nenhuma instituição encontrada.</Command.Empty
+      <Command.Root class="bg-background">
+        <Command.List class="bg-background">
+          <Command.Empty class="bg-background"
+            >Nenhuma instituição encontrada.</Command.Empty
           >
-          <Command.Group class="" heading="" value="">
+          <Command.Group class="bg-background" heading="" value="">
             {#if loading}
               <!-- Loading state -->
               <div class="p-4 text-center text-sm text-muted-foreground">
@@ -98,7 +100,7 @@ function closeAndFocusTrigger(selectedValue) {
               {#each logoOptions as logoName}
                 <Command.Item
                   value={logoName}
-                  class=""
+                  class="hover:bg-accent/30 aria-selected:bg-accent/50"
                   onSelect={() => {
                     closeAndFocusTrigger(logoName);
                   }}

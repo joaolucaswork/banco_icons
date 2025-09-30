@@ -35,10 +35,10 @@ function toggleComparison() {
           <Button
             {...props}
             {...restProps}
-            variant="secondary"
+            variant="outline"
             size="icon"
             class={cn(
-              "h-10 w-10 border border-border/20 bg-white transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95",
+              "h-10 w-10 transition-all duration-200",
               className
             )}
             onclick={toggleComparison}

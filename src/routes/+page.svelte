@@ -119,11 +119,8 @@ onMount(() => {
 </script>
 
 <svelte:head>
-  <title>Controlador de Ícones SVG - Banco Icons</title>
-  <meta
-    name="description"
-    content="Controle o tamanho e cores de ícones SVG de bancos com visualização em tempo real"
-  />
+  <title>LB | Logos de bancos e corretoras</title>
+  <meta name="description" content="Logos de bancos e corretoras" />
 </svelte:head>
 
 <!-- Background transition animation -->
@@ -140,22 +137,32 @@ onMount(() => {
             <!-- Bank Selection Combobox and Information Panel Container -->
             <div class="space-y-4">
               <!-- Bank Selection Combobox and Action Buttons -->
-              <div class="px-6">
-                <div class="flex w-full items-center justify-between gap-3">
-                  <BankCombobox
-                    bind:selectedLogo={storeData.selectedLogo}
-                    logos={storeData.logos}
-                    loading={storeData.loading}
-                    onLogoSelect={handleLogoSelect}
-                    placeholder="Selecionar uma instituição"
-                  />
-                  <ActionButtons
-                    selectedLogo={storeData.selectedLogo}
-                    modifiedSvg={svgStore.modifiedSvg}
-                    formattedSvg={formattedSvg}
-                    size={storeData.size}
-                    loading={storeData.loading}
-                  />
+              <div class="px-3 sm:px-6">
+                <!-- Mobile: Stack vertically, Desktop: Side by side -->
+                <div
+                  class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+                >
+                  <!-- Combobox - Full width on mobile, fit-content on desktop -->
+                  <div class="w-full sm:w-auto">
+                    <BankCombobox
+                      bind:selectedLogo={storeData.selectedLogo}
+                      logos={storeData.logos}
+                      loading={storeData.loading}
+                      onLogoSelect={handleLogoSelect}
+                      placeholder="Selecionar uma instituição"
+                      class="w-full sm:w-auto"
+                    />
+                  </div>
+                  <!-- Action Buttons - Hidden on mobile, visible on desktop -->
+                  <div class="hidden w-auto sm:block">
+                    <ActionButtons
+                      selectedLogo={storeData.selectedLogo}
+                      modifiedSvg={svgStore.modifiedSvg}
+                      formattedSvg={formattedSvg}
+                      size={storeData.size}
+                      loading={storeData.loading}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -235,19 +242,7 @@ onMount(() => {
             />
 
             <!-- Controls Group - Overlay on canvas -->
-            {#if storeData.selectedLogo}
-              {#if storeData.showComparison}
-                <!-- Comparison mode: Exclamation on right side of left canvas -->
-                <div class="absolute top-3 left-1/2 z-20 -translate-x-12">
-                  <BrandingGuidelinesDialog />
-                </div>
-              {:else}
-                <!-- Single mode: Only exclamation on right side -->
-                <div class="absolute top-3 right-3 z-20">
-                  <BrandingGuidelinesDialog />
-                </div>
-              {/if}
-            {/if}
+            <!-- Removed BrandingGuidelinesDialog icon -->
 
             <!-- Empty state overlay -->
             {#if !storeData.loading && !storeData.error && !previewSvg}

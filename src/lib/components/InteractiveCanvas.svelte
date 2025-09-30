@@ -91,7 +91,13 @@ let originalCtx = $state(/** @type {CanvasRenderingContext2D | null} */ (null));
 let originalSvgImage = $state(/** @type {HTMLImageElement | null} */ (null));
 
 // Transform state for modified logo (left side)
-let scale = $state(Math.pow(1.2, 4)); // Start with 4x zoom (1.2^4 ≈ 2.07)
+// Smaller initial scale on mobile (2x) vs desktop (4x zoom)
+// Use default desktop scale for SSR, will be updated on mount
+let scale = $state(
+  typeof window !== "undefined" && window.innerWidth < 768
+    ? Math.pow(1.2, 2)
+    : Math.pow(1.2, 4),
+);
 let translateX = $state(0);
 let translateY = $state(0);
 let isDragging = $state(false);
@@ -99,7 +105,11 @@ let lastMouseX = $state(0);
 let lastMouseY = $state(0);
 
 // Transform state for original logo (right side)
-let originalScale = $state(Math.pow(1.2, 4));
+let originalScale = $state(
+  typeof window !== "undefined" && window.innerWidth < 768
+    ? Math.pow(1.2, 2)
+    : Math.pow(1.2, 4),
+);
 let originalTranslateX = $state(0);
 let originalTranslateY = $state(0);
 let originalIsDragging = $state(false);
@@ -125,6 +135,12 @@ onMount(() => {
     originalCtx = originalCanvas.getContext("2d");
   }
 
+  // Set correct initial scale based on screen size
+  const isMobile = window.innerWidth < 768;
+  const initialScale = isMobile ? Math.pow(1.2, 2) : Math.pow(1.2, 4);
+  scale = initialScale;
+  originalScale = initialScale;
+
   updateCanvasSize();
   window.addEventListener("resize", updateCanvasSize);
 
@@ -146,12 +162,20 @@ $effect(() => {
 });
 
 function updateCanvasSize() {
-  // Update modified logo canvas (left side)
+  // Check if we're on mobile (screen width < 768px)
+  const isMobile = window.innerWidth < 768;
+
+  // Update modified logo canvas (top on mobile / left on desktop)
   if (canvasContainer && canvas) {
     const rect = canvasContainer.getBoundingClientRect();
-    const containerWidth = showComparison ? rect.width / 2 - 5 : rect.width; // Split width if comparison mode
+    // On mobile (stacked), use full width. On desktop (side by side), split width
+    const containerWidth =
+      showComparison && !isMobile ? rect.width / 2 - 5 : rect.width;
     canvasWidth = containerWidth;
-    canvasHeight = Math.max(200, Math.min(300, rect.height));
+    // Smaller height on mobile: 150-200px vs desktop: 200-300px
+    canvasHeight = isMobile
+      ? Math.max(150, Math.min(200, rect.height))
+      : Math.max(200, Math.min(300, rect.height));
 
     canvas.width = canvasWidth * window.devicePixelRatio;
     canvas.height = canvasHeight * window.devicePixelRatio;
@@ -167,12 +191,15 @@ function updateCanvasSize() {
     }
   }
 
-  // Update original logo canvas (right side)
+  // Update original logo canvas (bottom on mobile / right on desktop)
   if (showComparison && originalCanvasContainer && originalCanvas) {
     const rect = originalCanvasContainer.getBoundingClientRect();
-    const containerWidth = rect.width; // Use full width of the right container
+    const containerWidth = rect.width; // Use full width of the container
     originalCanvasWidth = containerWidth;
-    originalCanvasHeight = Math.max(200, Math.min(300, rect.height));
+    // Smaller height on mobile: 150-200px vs desktop: 200-300px
+    originalCanvasHeight = isMobile
+      ? Math.max(150, Math.min(200, rect.height))
+      : Math.max(200, Math.min(300, rect.height));
 
     originalCanvas.width = originalCanvasWidth * window.devicePixelRatio;
     originalCanvas.height = originalCanvasHeight * window.devicePixelRatio;
@@ -403,7 +430,9 @@ function zoomOut() {
 }
 
 function resetView() {
-  scale = Math.pow(1.2, 4); // Reset to 4x zoom (1.2^4 ≈ 2.07)
+  // Reset to smaller scale on mobile (2x) vs desktop (4x)
+  const isMobile = window.innerWidth < 768;
+  scale = isMobile ? Math.pow(1.2, 2) : Math.pow(1.2, 4);
   translateX = 0;
   translateY = 0;
   draw();
@@ -426,7 +455,9 @@ function originalZoomOut() {
 }
 
 function originalResetView() {
-  originalScale = Math.pow(1.2, 4); // Reset to 4x zoom (1.2^4 ≈ 2.07)
+  // Reset to smaller scale on mobile (2x) vs desktop (4x)
+  const isMobile = window.innerWidth < 768;
+  originalScale = isMobile ? Math.pow(1.2, 2) : Math.pow(1.2, 4);
   originalTranslateX = 0;
   originalTranslateY = 0;
   drawOriginal();
@@ -440,13 +471,12 @@ async function handleCopySvg() {
     return;
   }
 
-  const bankName = getBankDisplayName(selectedLogo);
   // Use Webflow-optimized SVG for better compatibility
   const optimizedSvg = createWebflowOptimizedSvg(formattedSvg);
   const success = await copyToClipboard(optimizedSvg);
 
   if (success) {
-    toast.success(`Código SVG otimizado do ${bankName} copiado!`);
+    toast.success("SVG copiado");
   } else {
     toast.error("Falha ao copiar código SVG. Tente novamente.");
   }
@@ -493,13 +523,12 @@ async function handleOriginalCopySvg() {
     return;
   }
 
-  const bankName = getBankDisplayName(selectedLogo);
   // Use Webflow-optimized SVG even for original content
   const optimizedSvg = createWebflowOptimizedSvg(originalSvgContent);
   const success = await copyToClipboard(optimizedSvg);
 
   if (success) {
-    toast.success(`Código SVG original otimizado do ${bankName} copiado!`);
+    toast.success("SVG copiado");
   } else {
     toast.error("Falha ao copiar código SVG original. Tente novamente.");
   }
@@ -756,15 +785,15 @@ $effect(() => {
 
 <div
   bind:this={canvasContainer}
-  class="relative flex min-h-[180px] items-center justify-center rounded-lg border border-border transition-colors duration-200 lg:min-h-[200px] {className}"
+  class="relative flex min-h-[150px] items-center justify-center rounded-lg border border-border transition-colors duration-200 md:min-h-[180px] lg:min-h-[200px] {className}"
   {...restProps}
 >
   {#if showComparison}
-    <!-- Comparison Mode: Two Canvas Side by Side -->
-    <div class="flex h-full w-full">
-      <!-- Modified Logo Canvas (Left) -->
+    <!-- Comparison Mode: Two Canvas Side by Side (Desktop) / Stacked (Mobile) -->
+    <div class="flex h-full w-full flex-col md:flex-row">
+      <!-- Modified Logo Canvas (Top on Mobile / Left on Desktop) -->
       <div
-        class="relative flex flex-1 items-center justify-center border-r border-border/50"
+        class="relative flex flex-1 items-center justify-center border-b border-border/50 md:border-r md:border-b-0 md:border-border/50"
       >
         <CanvasContextMenu
           svgContent={svgContent}
@@ -776,7 +805,7 @@ $effect(() => {
         >
           <canvas
             bind:this={canvas}
-            class="cursor-grab touch-none rounded-l-lg"
+            class="cursor-grab touch-none rounded-t-lg md:rounded-l-lg md:rounded-tr-none"
             onmousedown={handleMouseDown}
             onmousemove={handleMouseMove}
             onmouseup={handleMouseUp}
@@ -790,32 +819,38 @@ $effect(() => {
         </CanvasContextMenu>
 
         <!-- Left Top Controls - Copy and Download -->
-        <div class="absolute top-3 left-3 z-10 flex flex-col gap-3">
+        <div
+          class="absolute top-2 left-2 z-10 flex flex-col gap-2 md:top-3 md:left-3 md:gap-3"
+        >
+          <!-- Copy Button - Hidden on Mobile -->
           <Button
             variant="secondary"
             size="icon"
-            class="h-10 w-10 border border-border/20 bg-white text-black hover:bg-white/90"
+            class="hidden h-10 w-10 border border-border/20 bg-white text-black hover:bg-white/90 md:flex md:items-center md:justify-center"
             onclick={handleCopySvg}
             disabled={!formattedSvg || !selectedLogo}
             title="Copiar SVG"
           >
             <Copy class="h-5 w-5" />
           </Button>
+          <!-- Download Button -->
           <Button
             variant="secondary"
             size="icon"
-            class="h-10 w-10 border border-border/20 bg-white text-black hover:bg-white/90"
+            class="h-8 w-8 border border-border/20 bg-white text-black hover:bg-white/90 md:h-10 md:w-10"
             onclick={handleDownloadSvg}
             disabled={!formattedSvg || !selectedLogo}
             title="Baixar SVG"
           >
-            <Download class="h-5 w-5" />
+            <Download class="h-4 w-4 md:h-5 md:w-5" />
           </Button>
         </div>
 
-        <!-- Left Bottom Controls - Zoom -->
+        <!-- Left Bottom Controls - Zoom (Hidden on Mobile) -->
         <TooltipProvider delayDuration={400}>
-          <div class="absolute bottom-12 left-3 z-10 flex flex-col gap-1">
+          <div
+            class="absolute bottom-12 left-3 z-10 hidden flex-col gap-1 md:flex"
+          >
             <!-- Zoom In Button -->
             <Tooltip
               disableHoverableContent={false}
@@ -926,7 +961,7 @@ $effect(() => {
       >
         <canvas
           bind:this={originalCanvas}
-          class="cursor-grab touch-none rounded-r-lg"
+          class="cursor-grab touch-none rounded-b-lg md:rounded-r-lg md:rounded-bl-none"
           onmousedown={handleOriginalMouseDown}
           onmousemove={handleOriginalMouseMove}
           onmouseup={handleOriginalMouseUp}
@@ -936,8 +971,10 @@ $effect(() => {
 
         <!-- Right Top Controls - Copy and Download -->
         <TooltipProvider delayDuration={400}>
-          <div class="absolute top-3 left-3 z-10 flex flex-col gap-3">
-            <!-- Copy Original Button -->
+          <div
+            class="absolute top-2 left-2 z-10 flex flex-col gap-2 md:top-3 md:left-3 md:gap-3"
+          >
+            <!-- Copy Original Button - Hidden on Mobile -->
             <Tooltip
               disableHoverableContent={false}
               disableCloseOnTriggerClick={true}
@@ -948,7 +985,7 @@ $effect(() => {
                     {...props}
                     variant="secondary"
                     size="icon"
-                    class="h-10 w-10 border border-border/20 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95"
+                    class="hidden h-10 w-10 border border-border/20 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95 md:flex md:items-center md:justify-center"
                     onclick={handleOriginalCopySvg}
                     disabled={!originalSvgContent || !selectedLogo}
                   >
@@ -978,11 +1015,11 @@ $effect(() => {
                     {...props}
                     variant="secondary"
                     size="icon"
-                    class="h-10 w-10 border border-border/20 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95"
+                    class="h-8 w-8 border border-border/20 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95 md:h-10 md:w-10"
                     onclick={handleOriginalDownloadSvg}
                     disabled={!originalSvgContent || !selectedLogo}
                   >
-                    <Download class="h-5 w-5" />
+                    <Download class="h-4 w-4 md:h-5 md:w-5" />
                   </Button>
                 {/snippet}
               </TooltipTrigger>
@@ -999,9 +1036,11 @@ $effect(() => {
           </div>
         </TooltipProvider>
 
-        <!-- Right Bottom Controls - Zoom -->
+        <!-- Right Bottom Controls - Zoom (Hidden on Mobile) -->
         <TooltipProvider delayDuration={400}>
-          <div class="absolute bottom-12 left-3 z-10 flex flex-col gap-1">
+          <div
+            class="absolute bottom-12 left-3 z-10 hidden flex-col gap-1 md:flex"
+          >
             <!-- Zoom In Button -->
             <Tooltip
               disableHoverableContent={false}
@@ -1096,11 +1135,13 @@ $effect(() => {
         </TooltipProvider>
 
         <!-- Green Checkmark Icon - Top Right -->
-        <div class="absolute top-3 right-3 z-30">
+        <div class="absolute top-2 right-2 z-30 md:top-3 md:right-3">
           <div
             class="cursor-pointer rounded-full p-1 transition-all duration-200 hover:scale-110 hover:bg-green-500/20"
           >
-            <CheckIcon class="h-5 w-5 text-green-600 drop-shadow-sm" />
+            <CheckIcon
+              class="h-4 w-4 text-green-600 drop-shadow-sm md:h-5 md:w-5"
+            />
           </div>
         </div>
 
@@ -1156,7 +1197,7 @@ $effect(() => {
                 {...props}
                 variant="secondary"
                 size="icon"
-                class="h-10 w-10 border border-border/20 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95"
+                class="flex h-10 w-10 items-center justify-center border border-border/20 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-white/90 active:scale-95"
                 onclick={handleCopySvg}
                 disabled={!formattedSvg || !selectedLogo}
               >
@@ -1206,8 +1247,8 @@ $effect(() => {
         </Tooltip>
       </div>
 
-      <!-- Bottom Controls - Zoom -->
-      <div class="absolute bottom-3 left-3 z-10 flex flex-col gap-1">
+      <!-- Bottom Controls - Zoom (Hidden on Mobile) -->
+      <div class="absolute bottom-3 left-3 z-10 hidden flex-col gap-1 md:flex">
         <!-- Zoom In Button -->
         <Tooltip
           disableHoverableContent={false}
