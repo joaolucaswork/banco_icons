@@ -142,91 +142,111 @@ onMount(() => {
       <Card class="relative z-10 border-border bg-card">
         <CardHeader class="px-0">
           <div class="space-y-4">
-            <!-- Bank Selection Combobox and Information Panel Container -->
-            <div class="space-y-4">
-              <!-- Bank Selection Combobox and Action Buttons -->
-              <div class="px-3 sm:px-6">
-                <!-- Mobile: Stack vertically, Desktop: Side by side -->
-                <div
-                  class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
-                >
-                  <!-- Combobox - Full width on mobile, fit-content on desktop -->
-                  <div class="w-full sm:w-auto">
-                    <BankCombobox
-                      bind:selectedLogo={storeData.selectedLogo}
-                      logos={storeData.logos}
-                      loading={storeData.loading}
-                      onLogoSelect={handleLogoSelect}
-                      placeholder="Selecionar uma instituição"
-                      class="w-full sm:w-auto"
-                    />
-                  </div>
-                  <!-- Action Buttons - Hidden on mobile, visible on desktop -->
-                  <div class="hidden w-auto sm:block">
-                    <ActionButtons
-                      selectedLogo={storeData.selectedLogo}
-                      modifiedSvg={svgStore.modifiedSvg}
-                      formattedSvg={formattedSvg}
-                      size={storeData.size}
-                      loading={storeData.loading}
-                      viewMode={viewMode}
-                      onViewModeToggle={handleViewModeToggle}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <!-- Preview Controls - Below combobox -->
-              {#if storeData.selectedLogo}
-                <PreviewControls
-                  sizeValue={sizeValue}
-                  color={storeData.color}
-                  onSizeChange={handleSizeChange}
-                  onColorChange={handleColorChange}
-                  onReset={handleReset}
-                  isMultiColor={storeData.isMultiColor}
-                  colorableElements={storeData.colorableElements}
-                  colorMap={storeData.colorMap}
-                  onElementColorChange={handleElementColorChange}
+            <!-- View Mode Toggle - Always visible at the top -->
+            <div class="px-3 sm:px-6">
+              <div class="flex justify-end">
+                <ActionButtons
                   selectedLogo={storeData.selectedLogo}
-                  bind:showComparison={storeData.showComparison}
+                  modifiedSvg={svgStore.modifiedSvg}
+                  formattedSvg={formattedSvg}
+                  size={storeData.size}
+                  loading={storeData.loading}
+                  viewMode={viewMode}
+                  onViewModeToggle={handleViewModeToggle}
+                  showOnlyToggle={true}
                 />
-              {/if}
+              </div>
+            </div>
 
-              <!-- Information Panel - Below combobox -->
-              <!-- COMMENTED OUT: Visualização, Exportar, and Cor items -->
-              {#if false && storeData.selectedLogo}
-                <div class="flex flex-wrap gap-6 px-6 text-sm">
-                  <!-- Preview Size Info -->
-                  <div class="flex items-center gap-2">
-                    <span class="text-muted-foreground">Visualização:</span>
-                    <span class="font-medium text-foreground">120px</span>
-                  </div>
-
-                  <!-- Export Size Info -->
-                  <div class="flex items-center gap-2">
-                    <span class="text-muted-foreground">Exportar:</span>
-                    <span class="font-medium text-foreground"
-                      >{sizeValue[0]}px</span
-                    >
-                  </div>
-
-                  <!-- Color Info -->
-                  <div class="flex items-center gap-2">
-                    <span class="text-muted-foreground">Cor:</span>
-                    <div class="flex items-center gap-1.5">
-                      <div
-                        class="h-3 w-3 rounded border border-border"
-                        style="background-color: {storeData.color}"
-                      ></div>
-                      <span class="font-mono font-medium text-foreground"
-                        >{storeData.color}</span
-                      >
+            <!-- Single View Mode Controls -->
+            {#if viewMode === "single"}
+              <!-- Bank Selection Combobox and Information Panel Container -->
+              <div class="space-y-4">
+                <!-- Bank Selection Combobox and Action Buttons -->
+                <div class="px-3 sm:px-6">
+                  <!-- Mobile: Stack vertically, Desktop: Side by side -->
+                  <div
+                    class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+                  >
+                    <!-- Combobox - Full width on mobile, fit-content on desktop -->
+                    <div class="w-full sm:w-auto">
+                      <BankCombobox
+                        bind:selectedLogo={storeData.selectedLogo}
+                        logos={storeData.logos}
+                        loading={storeData.loading}
+                        onLogoSelect={handleLogoSelect}
+                        placeholder="Selecionar uma instituição"
+                        class="w-full sm:w-auto"
+                      />
+                    </div>
+                    <!-- Action Buttons - Hidden on mobile, visible on desktop -->
+                    <div class="hidden w-auto sm:block">
+                      <ActionButtons
+                        selectedLogo={storeData.selectedLogo}
+                        modifiedSvg={svgStore.modifiedSvg}
+                        formattedSvg={formattedSvg}
+                        size={storeData.size}
+                        loading={storeData.loading}
+                        viewMode={viewMode}
+                        onViewModeToggle={handleViewModeToggle}
+                        showOnlyToggle={false}
+                      />
                     </div>
                   </div>
                 </div>
-              {/if}
-            </div>
+
+                <!-- Preview Controls - Below combobox -->
+                {#if storeData.selectedLogo}
+                  <PreviewControls
+                    sizeValue={sizeValue}
+                    color={storeData.color}
+                    onSizeChange={handleSizeChange}
+                    onColorChange={handleColorChange}
+                    onReset={handleReset}
+                    isMultiColor={storeData.isMultiColor}
+                    colorableElements={storeData.colorableElements}
+                    colorMap={storeData.colorMap}
+                    onElementColorChange={handleElementColorChange}
+                    selectedLogo={storeData.selectedLogo}
+                    bind:showComparison={storeData.showComparison}
+                  />
+                {/if}
+
+                <!-- Information Panel - Below combobox -->
+                <!-- COMMENTED OUT: Visualização, Exportar, and Cor items -->
+                {#if false && storeData.selectedLogo}
+                  <div class="flex flex-wrap gap-6 px-6 text-sm">
+                    <!-- Preview Size Info -->
+                    <div class="flex items-center gap-2">
+                      <span class="text-muted-foreground">Visualização:</span>
+                      <span class="font-medium text-foreground">120px</span>
+                    </div>
+
+                    <!-- Export Size Info -->
+                    <div class="flex items-center gap-2">
+                      <span class="text-muted-foreground">Exportar:</span>
+                      <span class="font-medium text-foreground"
+                        >{sizeValue[0]}px</span
+                      >
+                    </div>
+
+                    <!-- Color Info -->
+                    <div class="flex items-center gap-2">
+                      <span class="text-muted-foreground">Cor:</span>
+                      <div class="flex items-center gap-1.5">
+                        <div
+                          class="h-3 w-3 rounded border border-border"
+                          style="background-color: {storeData.color}"
+                        ></div>
+                        <span class="font-mono font-medium text-foreground"
+                          >{storeData.color}</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                {/if}
+              </div>
+            {/if}
           </div>
         </CardHeader>
         <CardContent class="">

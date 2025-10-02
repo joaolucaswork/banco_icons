@@ -29,6 +29,7 @@ let {
   loading = false,
   viewMode = "single",
   onViewModeToggle = () => {},
+  showOnlyToggle = false,
   class: className = "",
   ...restProps
 } = $props();
@@ -165,7 +166,7 @@ function handleOpenInWebflow() {
       </TooltipContent>
     </Tooltip>
 
-    {#if selectedLogo && modifiedSvg && formattedSvg}
+    {#if !showOnlyToggle && selectedLogo && modifiedSvg && formattedSvg}
       <!-- Open in Webflow Button -->
       <Tooltip
         disableHoverableContent={false}
