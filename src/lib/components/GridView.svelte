@@ -8,12 +8,7 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from "$lib/components/ui/tooltip";
-import { getBankDisplayName } from "$lib/utils/svg-utils.js";
-import {
-  hasMultipleColors,
-  getMultiColorConfig,
-} from "$lib/utils/multi-color-utils.js";
-import { isDarkColor } from "$lib/utils/color-utils.js";
+import LogoCard from "./LogoCard.svelte";
 
 let {
   logos = new Map(),
@@ -33,123 +28,14 @@ let logoArray = $derived(Array.from(logos.entries()));
 // Canvas refs for each logo
 let canvasRefs = $state({});
 
-// Function to draw dotted pattern background
-function drawDottedPattern(ctx, width, height, dotColor = "#666666") {
-  const dotSize = 1;
-  const spacing = 15;
+// Individual colors for each logo (starts with global color)
+let individualColors = $state({});
 
-  ctx.fillStyle = dotColor;
-
-  for (let x = spacing / 2; x < width; x += spacing) {
-    for (let y = spacing / 2; y < height; y += spacing) {
-      ctx.beginPath();
-      ctx.arc(x, y, dotSize, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-}
-
-// Function to render a single logo on canvas
-async function renderLogoOnCanvas(canvas, svgContent, color, size, logoName) {
-  if (!canvas || !svgContent) return;
-
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-
-  // Use high DPI canvas for crisp rendering
-  const dpr = window.devicePixelRatio || 1;
-  const canvasSize = 300; // Larger base size for better quality
-
-  // Set actual canvas size (accounting for device pixel ratio)
-  canvas.width = canvasSize * dpr;
-  canvas.height = canvasSize * dpr;
-
-  // Scale context to match device pixel ratio
-  ctx.scale(dpr, dpr);
-
-  // Clear canvas
-  ctx.clearRect(0, 0, canvasSize, canvasSize);
-
-  // Draw transparent background
-  ctx.fillStyle = "transparent";
-  ctx.fillRect(0, 0, canvasSize, canvasSize);
-
-  // Draw dotted pattern
-  drawDottedPattern(ctx, canvasSize, canvasSize, "#666666");
-
-  // Apply color to SVG
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(svgContent, "image/svg+xml");
-  const svgElement = doc.querySelector("svg");
-
-  if (!svgElement) return;
-
-  // Use larger size for rendering to maintain quality
-  const renderSize = size * 2; // Render at 2x size for better quality
-  svgElement.setAttribute("width", renderSize.toString());
-  svgElement.setAttribute("height", renderSize.toString());
-
-  // Set color on the SVG element using CSS color property
-  // This works with currentColor in the SVG, which is used by both
-  // simple logos and multi-color logos with CSS variables
-  svgElement.style.color = color;
-
-  // Apply automatic contrast for multi-color logos with overlapping elements
-  if (hasMultipleColors(logoName)) {
-    const config = getMultiColorConfig(logoName);
-    if (config) {
-      // Find elements with autoContrastVar (text elements that need contrast)
-      config.elements.forEach((element) => {
-        if (element.autoContrastVar) {
-          // Calculate contrast color based on the background color
-          // Use the global color as background
-          const bgColor = color;
-
-          // Determine text color based on background luminance
-          const textColor = isDarkColor(bgColor) ? "#ffffff" : "#000000";
-
-          // Apply the contrast color to the auto-contrast CSS variable
-          svgElement.style.setProperty(element.autoContrastVar, textColor);
-        }
-      });
-    }
-  }
-
-  const modifiedSvg = new XMLSerializer().serializeToString(doc);
-
-  // Create image from SVG
-  const img = new Image();
-  const blob = new Blob([modifiedSvg], { type: "image/svg+xml" });
-  const url = URL.createObjectURL(blob);
-
-  img.onload = () => {
-    // Enable image smoothing for better quality
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-
-    // Center the logo on canvas
-    const x = (canvasSize - renderSize) / 2;
-    const y = (canvasSize - renderSize) / 2;
-    ctx.drawImage(img, x, y, renderSize, renderSize);
-    URL.revokeObjectURL(url);
-  };
-
-  img.src = url;
-}
-
-// Render all logos when color or size changes
+// Initialize individual colors when logos change
 $effect(() => {
-  const currentSize = logoSize[0];
-  logoArray.forEach(([logoName, svgContent]) => {
-    const canvas = canvasRefs[logoName];
-    if (canvas) {
-      renderLogoOnCanvas(
-        canvas,
-        svgContent,
-        globalColor,
-        currentSize,
-        logoName,
-      );
+  logoArray.forEach(([logoName]) => {
+    if (!individualColors[logoName]) {
+      individualColors[logoName] = globalColor;
     }
   });
 });
@@ -164,6 +50,10 @@ function openColorPicker() {
 // Handle color change with real-time preview
 function handleColorPickerInput(event) {
   globalColor = event.target.value;
+  // Update all logos with the new global color
+  logoArray.forEach(([logoName]) => {
+    individualColors[logoName] = globalColor;
+  });
 }
 </script>
 
@@ -246,37 +136,13 @@ function handleColorPickerInput(event) {
       {:else}
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {#each logoArray as [logoName, svgContent]}
-            <div class="flex flex-col items-center gap-2">
-              <!-- Canvas Container -->
-              <div
-                class="relative w-full overflow-hidden rounded-lg border border-border bg-background"
-              >
-                <canvas
-                  bind:this={canvasRefs[logoName]}
-                  class="h-auto w-full"
-                  style="aspect-ratio: 1 / 1;"
-                ></canvas>
-              </div>
-
-              <!-- Logo Name -->
-              <TooltipProvider delayDuration={400}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    {#snippet child({ props })}
-                      <p
-                        {...props}
-                        class="w-full truncate text-center text-xs font-medium text-muted-foreground"
-                      >
-                        {getBankDisplayName(logoName)}
-                      </p>
-                    {/snippet}
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    <p>{getBankDisplayName(logoName)}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
+            <LogoCard
+              logoName={logoName}
+              svgContent={svgContent}
+              bind:color={individualColors[logoName]}
+              size={logoSize[0]}
+              bind:canvasRef={canvasRefs[logoName]}
+            />
           {/each}
         </div>
       {/if}
