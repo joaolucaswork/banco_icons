@@ -23,7 +23,7 @@ let {
 } = $props();
 
 // State for global controls
-let globalColor = $state("#808080"); // Start with gray
+let globalColor = $state("#ffffff"); // Start with white
 let logoSize = $state([80]); // Default size for grid items
 let colorPickerRef = $state();
 
@@ -169,15 +169,18 @@ function handleColorPickerInput(event) {
 
 <div class={className} {...restProps}>
   <Card class="border-border bg-card">
-    <CardContent class="p-6">
+    <CardContent class="p-0">
       <!-- Global Controls -->
-      <div
-        class="mb-6 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between"
-      >
+      <div class="mb-6 flex gap-6">
         <!-- Color Control -->
-        <div class="flex flex-col gap-2">
-          <Label class="text-sm font-medium text-foreground">Cor Global</Label>
-          <div class="flex items-center gap-3">
+        <div class="flex w-48 flex-col gap-2">
+          <div class="flex h-5 items-center justify-between">
+            <Label class="text-sm font-medium text-foreground">HEX</Label>
+            <span class="font-mono text-sm text-muted-foreground"
+              >{globalColor}</span
+            >
+          </div>
+          <div class="flex h-10 items-center">
             <!-- Hidden native color picker -->
             <input
               bind:this={colorPickerRef}
@@ -195,7 +198,7 @@ function handleColorPickerInput(event) {
                     <button
                       {...props}
                       onclick={openColorPicker}
-                      class="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-border transition-all hover:border-border/80"
+                      class="flex h-10 w-full items-center justify-center rounded-lg border-2 border-border transition-all hover:border-border/80"
                       style="background-color: {globalColor};"
                       aria-label="Abrir seletor de cor"
                     >
@@ -208,28 +211,26 @@ function handleColorPickerInput(event) {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-
-            <span class="font-mono text-sm text-muted-foreground"
-              >{globalColor}</span
-            >
           </div>
         </div>
 
         <!-- Size Control -->
-        <div class="flex flex-col gap-2 sm:min-w-[200px]">
-          <div class="flex items-center justify-between">
+        <div class="flex w-48 flex-col gap-2">
+          <div class="flex h-5 items-center justify-between">
             <Label class="text-sm font-medium text-foreground">Tamanho</Label>
-            <span class="font-mono text-xs text-muted-foreground"
+            <span class="font-mono text-sm text-muted-foreground"
               >{logoSize[0]}px</span
             >
           </div>
-          <Slider
-            bind:value={logoSize}
-            min={40}
-            max={150}
-            step={5}
-            class="w-full"
-          />
+          <div class="flex h-10 items-center">
+            <Slider
+              bind:value={logoSize}
+              min={40}
+              max={150}
+              step={5}
+              class="w-full"
+            />
+          </div>
         </div>
       </div>
 

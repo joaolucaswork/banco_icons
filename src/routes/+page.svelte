@@ -131,151 +131,149 @@ onMount(() => {
 <BackgroundTransition currentColor={currentBackgroundColor} />
 
 <div class="flex-1 overflow-y-auto bg-background">
-  <div class="container mx-auto px-4 pt-12 pb-6">
-    <div class="space-y-6">
-      <!-- Main Content Area -->
-      <!-- Unified Preview Area -->
-      <Card class="relative z-10 border-border bg-card">
-        <CardHeader class="px-0">
-          <div class="space-y-4">
-            <!-- Single View Mode Controls -->
-            {#if viewMode === "single"}
-              <!-- Bank Selection Combobox and Information Panel Container -->
-              <div class="space-y-4">
-                <!-- Bank Selection Combobox and Action Buttons -->
-                <div class="px-3 sm:px-6">
-                  <!-- Combobox - Centered -->
-                  <div class="flex justify-center">
-                    <BankCombobox
-                      bind:selectedLogo={storeData.selectedLogo}
-                      logos={storeData.logos}
-                      loading={storeData.loading}
-                      onLogoSelect={handleLogoSelect}
-                      placeholder="Selecionar uma instituição"
-                      class="w-full sm:w-auto"
-                    />
-                  </div>
-                </div>
-
-                <!-- Preview Controls - Below combobox -->
-                {#if storeData.selectedLogo}
-                  <PreviewControls
-                    sizeValue={sizeValue}
-                    color={storeData.color}
-                    onSizeChange={handleSizeChange}
-                    onColorChange={handleColorChange}
-                    onReset={handleReset}
-                    isMultiColor={storeData.isMultiColor}
-                    colorableElements={storeData.colorableElements}
-                    colorMap={storeData.colorMap}
-                    onElementColorChange={handleElementColorChange}
-                    selectedLogo={storeData.selectedLogo}
-                    bind:showComparison={storeData.showComparison}
+  <div class="container mx-auto px-2 pt-2 pb-6">
+    <!-- Main Content Area -->
+    <!-- Unified Preview Area -->
+    <Card class="relative z-10 border-border bg-card">
+      <CardHeader class="px-0">
+        <div class="space-y-4">
+          <!-- Single View Mode Controls -->
+          {#if viewMode === "single"}
+            <!-- Bank Selection Combobox and Information Panel Container -->
+            <div class="space-y-4">
+              <!-- Bank Selection Combobox and Action Buttons -->
+              <div class="px-3 sm:px-6">
+                <!-- Combobox - Centered -->
+                <div class="flex justify-center">
+                  <BankCombobox
+                    bind:selectedLogo={storeData.selectedLogo}
+                    logos={storeData.logos}
+                    loading={storeData.loading}
+                    onLogoSelect={handleLogoSelect}
+                    placeholder="Selecionar uma instituição"
+                    class="w-full sm:w-auto"
                   />
-                {/if}
+                </div>
+              </div>
 
-                <!-- Information Panel - Below combobox -->
-                <!-- COMMENTED OUT: Visualização, Exportar, and Cor items -->
-                {#if false && storeData.selectedLogo}
-                  <div class="flex flex-wrap gap-6 px-6 text-sm">
-                    <!-- Preview Size Info -->
-                    <div class="flex items-center gap-2">
-                      <span class="text-muted-foreground">Visualização:</span>
-                      <span class="font-medium text-foreground">120px</span>
-                    </div>
+              <!-- Preview Controls - Below combobox -->
+              {#if storeData.selectedLogo}
+                <PreviewControls
+                  sizeValue={sizeValue}
+                  color={storeData.color}
+                  onSizeChange={handleSizeChange}
+                  onColorChange={handleColorChange}
+                  onReset={handleReset}
+                  isMultiColor={storeData.isMultiColor}
+                  colorableElements={storeData.colorableElements}
+                  colorMap={storeData.colorMap}
+                  onElementColorChange={handleElementColorChange}
+                  selectedLogo={storeData.selectedLogo}
+                  bind:showComparison={storeData.showComparison}
+                />
+              {/if}
 
-                    <!-- Export Size Info -->
-                    <div class="flex items-center gap-2">
-                      <span class="text-muted-foreground">Exportar:</span>
-                      <span class="font-medium text-foreground"
-                        >{sizeValue[0]}px</span
+              <!-- Information Panel - Below combobox -->
+              <!-- COMMENTED OUT: Visualização, Exportar, and Cor items -->
+              {#if false && storeData.selectedLogo}
+                <div class="flex flex-wrap gap-6 px-6 text-sm">
+                  <!-- Preview Size Info -->
+                  <div class="flex items-center gap-2">
+                    <span class="text-muted-foreground">Visualização:</span>
+                    <span class="font-medium text-foreground">120px</span>
+                  </div>
+
+                  <!-- Export Size Info -->
+                  <div class="flex items-center gap-2">
+                    <span class="text-muted-foreground">Exportar:</span>
+                    <span class="font-medium text-foreground"
+                      >{sizeValue[0]}px</span
+                    >
+                  </div>
+
+                  <!-- Color Info -->
+                  <div class="flex items-center gap-2">
+                    <span class="text-muted-foreground">Cor:</span>
+                    <div class="flex items-center gap-1.5">
+                      <div
+                        class="h-3 w-3 rounded border border-border"
+                        style="background-color: {storeData.color}"
+                      ></div>
+                      <span class="font-mono font-medium text-foreground"
+                        >{storeData.color}</span
                       >
                     </div>
-
-                    <!-- Color Info -->
-                    <div class="flex items-center gap-2">
-                      <span class="text-muted-foreground">Cor:</span>
-                      <div class="flex items-center gap-1.5">
-                        <div
-                          class="h-3 w-3 rounded border border-border"
-                          style="background-color: {storeData.color}"
-                        ></div>
-                        <span class="font-mono font-medium text-foreground"
-                          >{storeData.color}</span
-                        >
-                      </div>
-                    </div>
-                  </div>
-                {/if}
-              </div>
-            {/if}
-          </div>
-        </CardHeader>
-        <CardContent class="">
-          {#if viewMode === "single"}
-            <div class="relative">
-              <!-- Interactive Canvas Preview -->
-              <InteractiveCanvas
-                svgContent={previewSvg}
-                previewBackground={previewBackground}
-                dotColor={dotColor}
-                originalPreviewBackground={originalPreviewBackground}
-                originalDotColor={originalDotColor}
-                loading={storeData.loading}
-                error={storeData.error}
-                exportSize={storeData.size}
-                exportColor={storeData.color}
-                showComparison={storeData.showComparison}
-                selectedLogo={storeData.selectedLogo}
-                formattedSvg={formattedSvg}
-                onReset={handleReset}
-                onBackgroundToggle={handleBackgroundToggle}
-                isManualBackgroundActive={storeData.manualBackgroundOverride}
-                currentBackgroundColor={storeData.manualBackgroundColor}
-              />
-
-              <!-- Controls Group - Overlay on canvas -->
-              <!-- Removed BrandingGuidelinesDialog icon -->
-
-              <!-- Empty state overlay -->
-              {#if !storeData.loading && !storeData.error && !previewSvg}
-                <div
-                  class="absolute inset-0 flex items-center justify-center rounded-lg bg-background/50 backdrop-blur-sm"
-                >
-                  <div class="text-center text-muted-foreground">
-                    <Palette class="mx-auto mb-4 h-20 w-20 opacity-50" />
-                    <p class="text-lg font-medium">Nenhum logo selecionado</p>
-                    <p class="text-sm">
-                      Selecione uma instituição financeira acima para começar
-                    </p>
                   </div>
                 </div>
               {/if}
             </div>
-          {:else}
-            <!-- Grid View Mode -->
-            <GridView logos={storeData.logos} loading={storeData.loading} />
           {/if}
+        </div>
+      </CardHeader>
+      <CardContent class="">
+        {#if viewMode === "single"}
+          <div class="relative">
+            <!-- Interactive Canvas Preview -->
+            <InteractiveCanvas
+              svgContent={previewSvg}
+              previewBackground={previewBackground}
+              dotColor={dotColor}
+              originalPreviewBackground={originalPreviewBackground}
+              originalDotColor={originalDotColor}
+              loading={storeData.loading}
+              error={storeData.error}
+              exportSize={storeData.size}
+              exportColor={storeData.color}
+              showComparison={storeData.showComparison}
+              selectedLogo={storeData.selectedLogo}
+              formattedSvg={formattedSvg}
+              onReset={handleReset}
+              onBackgroundToggle={handleBackgroundToggle}
+              isManualBackgroundActive={storeData.manualBackgroundOverride}
+              currentBackgroundColor={storeData.manualBackgroundColor}
+            />
+
+            <!-- Controls Group - Overlay on canvas -->
+            <!-- Removed BrandingGuidelinesDialog icon -->
+
+            <!-- Empty state overlay -->
+            {#if !storeData.loading && !storeData.error && !previewSvg}
+              <div
+                class="absolute inset-0 flex items-center justify-center rounded-lg bg-background/50 backdrop-blur-sm"
+              >
+                <div class="text-center text-muted-foreground">
+                  <Palette class="mx-auto mb-4 h-20 w-20 opacity-50" />
+                  <p class="text-lg font-medium">Nenhum logo selecionado</p>
+                  <p class="text-sm">
+                    Selecione uma instituição financeira acima para começar
+                  </p>
+                </div>
+              </div>
+            {/if}
+          </div>
+        {:else}
+          <!-- Grid View Mode -->
+          <GridView logos={storeData.logos} loading={storeData.loading} />
+        {/if}
+      </CardContent>
+    </Card>
+
+    <!-- Code Display -->
+    <!-- {#if showCode && formattedSvg}
+      <Card class="relative z-10 border-border bg-card">
+        <CardHeader class="">
+          <CardTitle class="text-xl text-card-foreground"
+            >Código SVG</CardTitle
+          >
+        </CardHeader>
+        <CardContent class="">
+          <CodeBlock
+            code={formattedSvg}
+            language="xml"
+            title="SVG Personalizado"
+          />
         </CardContent>
       </Card>
-
-      <!-- Code Display -->
-      <!-- {#if showCode && formattedSvg}
-        <Card class="relative z-10 border-border bg-card">
-          <CardHeader class="">
-            <CardTitle class="text-xl text-card-foreground"
-              >Código SVG</CardTitle
-            >
-          </CardHeader>
-          <CardContent class="">
-            <CodeBlock
-              code={formattedSvg}
-              language="xml"
-              title="SVG Personalizado"
-            />
-          </CardContent>
-        </Card>
-      {/if} -->
-    </div>
+    {/if} -->
   </div>
 </div>
