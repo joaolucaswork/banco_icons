@@ -48,16 +48,6 @@ const webflowOptimizedSvg = $derived(
   formattedSvg ? createWebflowOptimizedSvg(formattedSvg) : "",
 );
 
-// Debug: Log the SVG content when dialog opens
-$effect(() => {
-  if (isWebflowDialogOpen && webflowOptimizedSvg) {
-    console.log(
-      "Webflow Dialog SVG Content:",
-      webflowOptimizedSvg.substring(0, 200) + "...",
-    );
-  }
-});
-
 // Sync customExportSize with size prop when it changes
 $effect(() => {
   customExportSize = size;

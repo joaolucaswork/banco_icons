@@ -39,14 +39,6 @@ let logosArray = $derived.by(() => {
   const loading = storeData.loading;
   const size = storeData.logos.size;
   const array = Array.from(storeData.logos.entries());
-  console.log(
-    "[+page] Converting Map to Array, size:",
-    size,
-    "loading:",
-    loading,
-    "array length:",
-    array.length,
-  );
   return array;
 });
 
@@ -118,18 +110,6 @@ function handleBackgroundToggle() {
   svgStore.toggleBackground();
 }
 
-// Debug: Log store data changes
-$effect(() => {
-  console.log(
-    "[+page] Store data - Loading:",
-    storeData.loading,
-    "| Logos size:",
-    storeData.logos.size,
-    "| View mode:",
-    viewMode,
-  );
-});
-
 // Auto-select first logo when switching to single view mode
 $effect(() => {
   // When switching to single view mode, if no logo is selected and logos are loaded
@@ -140,10 +120,6 @@ $effect(() => {
     !storeData.loading
   ) {
     const firstLogo = Array.from(storeData.logos.keys())[0];
-    console.log(
-      "[+page] Auto-selecting first logo when switching to single mode:",
-      firstLogo,
-    );
     svgStore.selectLogo(firstLogo);
   }
 });
@@ -151,7 +127,6 @@ $effect(() => {
 // Reset theme colors when switching to grid view mode
 $effect(() => {
   if (viewMode === "grid") {
-    console.log("[+page] Switching to grid mode - resetting theme colors");
     // Import and call resetThemeColors
     import("$lib/utils/theme-colors.js").then(({ resetThemeColors }) => {
       resetThemeColors();

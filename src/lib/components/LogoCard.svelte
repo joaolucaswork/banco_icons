@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { Button } from "$lib/components/ui/button";
 import * as Popover from "$lib/components/ui/popover";
 import {
@@ -48,6 +48,10 @@ let colorPickerPopoverOpen = $state(false);
 let toolbarRef = $state();
 let downloadButtonRef = $state();
 let paletteButtonRef = $state();
+
+// Throttling for canvas rendering
+let rafId: number | null = null;
+let pendingRender = false;
 
 // Function to draw dotted pattern background
 function drawDottedPattern(ctx, width, height, dotColor = "#666666") {
@@ -168,55 +172,78 @@ async function renderLogoOnCanvas() {
   img.src = url;
 }
 
-// Render logo when color, size, or canvas size changes
+// Throttled render function using requestAnimationFrame
+function scheduleRender() {
+  if (pendingRender) return; // Already scheduled
+
+  pendingRender = true;
+
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+  }
+
+  rafId = requestAnimationFrame(() => {
+    renderLogoOnCanvas();
+    pendingRender = false;
+    rafId = null;
+  });
+}
+
+// Render logo when color, size, or canvas size changes (throttled with RAF)
 $effect(() => {
-  renderLogoOnCanvas();
+  // Track dependencies
+  const _ = [color, size, canvasSize, svgContent];
+
+  scheduleRender();
+
+  // Cleanup
+  return () => {
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+      pendingRender = false;
+    }
+  };
 });
 
 // Animate toolbar on hover with Motion.dev
 $effect(() => {
-  if (toolbarRef) {
-    if (isHovered) {
-      console.log("Animating toolbar in for", logoName);
-      // Animate toolbar sliding up from bottom (entrance)
-      animate(
-        toolbarRef,
-        {
-          y: [20, 0],
-          opacity: [0, 1],
-        },
-        {
-          duration: 0.3,
-          ease: [0.25, 0.46, 0.45, 0.94],
-        },
-      );
-    } else {
-      console.log("Animating toolbar out for", logoName);
-      // Animate toolbar sliding down and fading out (exit)
-      animate(
-        toolbarRef,
-        {
-          y: [0, 20],
-          opacity: [1, 0],
-        },
-        {
-          duration: 0.25,
-          ease: [0.25, 0.46, 0.45, 0.94],
-        },
-      );
-    }
+  if (isHovered && toolbarRef) {
+    // Animate toolbar sliding up from bottom (entrance)
+    animate(
+      toolbarRef,
+      {
+        y: [20, 0],
+        opacity: [0, 1],
+      },
+      {
+        duration: 0.3,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      },
+    );
+  } else if (!isHovered && toolbarRef) {
+    // Animate toolbar sliding down and fading out (exit)
+    animate(
+      toolbarRef,
+      {
+        y: [0, 20],
+        opacity: [1, 0],
+      },
+      {
+        duration: 0.25,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      },
+    );
   }
 });
 
 // Animate button separately when it becomes available
 $effect(() => {
-  if (downloadButtonRef) {
-    if (isHovered) {
-      console.log("Download button ref available for", logoName);
-
-      // Small delay to let toolbar animation start first
-      setTimeout(() => {
-        console.log("Animating button in for", logoName);
+  if (isHovered && downloadButtonRef) {
+    // Small delay to let toolbar animation start first
+    setTimeout(() => {
+      // Check if element still exists before animating
+      if (downloadButtonRef) {
         animate(
           downloadButtonRef,
           {
@@ -228,32 +255,31 @@ $effect(() => {
             ease: [0.25, 0.46, 0.45, 0.94],
           },
         );
-      }, 100);
-    } else {
-      console.log("Animating button out for", logoName);
-      // Animate button fading out (exit)
-      animate(
-        downloadButtonRef,
-        {
-          opacity: [1, 0],
-          y: [0, 10],
-        },
-        {
-          duration: 0.2,
-          ease: [0.25, 0.46, 0.45, 0.94],
-        },
-      );
-    }
+      }
+    }, 100);
+  } else if (!isHovered && downloadButtonRef) {
+    // Animate button fading out (exit)
+    animate(
+      downloadButtonRef,
+      {
+        opacity: [1, 0],
+        y: [0, 10],
+      },
+      {
+        duration: 0.2,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      },
+    );
   }
 });
 
 // Animate palette button with staggered delay
 $effect(() => {
-  if (paletteButtonRef) {
-    if (isHovered) {
-      // Staggered delay after download button (0.08s difference)
-      setTimeout(() => {
-        console.log("Animating palette button in for", logoName);
+  if (isHovered && paletteButtonRef) {
+    // Staggered delay after download button (0.08s difference)
+    setTimeout(() => {
+      // Check if element still exists before animating
+      if (paletteButtonRef) {
         animate(
           paletteButtonRef,
           {
@@ -265,22 +291,21 @@ $effect(() => {
             ease: [0.25, 0.46, 0.45, 0.94],
           },
         );
-      }, 180); // 100ms + 80ms stagger
-    } else {
-      console.log("Animating palette button out for", logoName);
-      // Animate button fading out (exit)
-      animate(
-        paletteButtonRef,
-        {
-          opacity: [1, 0],
-          y: [0, 10],
-        },
-        {
-          duration: 0.2,
-          ease: [0.25, 0.46, 0.45, 0.94],
-        },
-      );
-    }
+      }
+    }, 180); // 100ms + 80ms stagger
+  } else if (!isHovered && paletteButtonRef) {
+    // Animate button fading out (exit)
+    animate(
+      paletteButtonRef,
+      {
+        opacity: [1, 0],
+        y: [0, 10],
+      },
+      {
+        duration: 0.2,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      },
+    );
   }
 });
 

@@ -148,12 +148,9 @@ export const svgStore = {
         }
       });
 
-      console.log("[SVG Store] Loaded", svgData.logos.size, "logos");
-
       // Auto-select first logo if requested (for single view mode)
       if (autoSelectFirst && svgData.logos.size > 0) {
         const firstLogo = Array.from(svgData.logos.keys())[0];
-        console.log("[SVG Store] Auto-selecting first logo:", firstLogo);
         this.selectLogo(firstLogo);
       }
     } catch (error) {

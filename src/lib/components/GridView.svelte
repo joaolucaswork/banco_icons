@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { Card, CardContent } from "$lib/components/ui/card";
 import { Slider } from "$lib/components/ui/slider";
 import { Label } from "$lib/components/ui/label";
@@ -49,16 +49,6 @@ $effect(() => {
 
 $effect(() => {
   sizeInputValue = logoSize[0].toString();
-});
-
-// Debug: Log when logos or loading state changes
-$effect(() => {
-  console.log(
-    "[GridView] Loading:",
-    loading,
-    "| Logos count:",
-    logosArray.length,
-  );
 });
 
 // Calculate dynamic canvas size based on logo size
