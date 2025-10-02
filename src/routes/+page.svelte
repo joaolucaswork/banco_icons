@@ -13,6 +13,7 @@ import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.s
 import BankCombobox from "$lib/components/BankCombobox.svelte";
 import ActionButtons from "$lib/components/ActionButtons.svelte";
 import InteractiveCanvas from "$lib/components/InteractiveCanvas.svelte";
+import GridView from "$lib/components/GridView.svelte";
 import BackgroundTransition from "$lib/components/BackgroundTransition.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
 import {
@@ -24,6 +25,9 @@ import { Palette } from "lucide-svelte";
 
 let sizeValue = $state([24]);
 // let showCode = $state(true);
+
+// View mode state: "single" or "grid"
+let viewMode = $state("single");
 
 // Background animation state
 let currentBackgroundColor = $state("#000000");
@@ -101,6 +105,10 @@ function handleBackgroundToggle() {
   svgStore.toggleBackground();
 }
 
+function handleViewModeToggle() {
+  viewMode = viewMode === "single" ? "grid" : "single";
+}
+
 onMount(() => {
   // Store should auto-load, but ensure it's loaded
   if (storeData.logos.size === 0 && !storeData.loading) {
@@ -161,6 +169,8 @@ onMount(() => {
                       formattedSvg={formattedSvg}
                       size={storeData.size}
                       loading={storeData.loading}
+                      viewMode={viewMode}
+                      onViewModeToggle={handleViewModeToggle}
                     />
                   </div>
                 </div>
@@ -220,45 +230,50 @@ onMount(() => {
           </div>
         </CardHeader>
         <CardContent class="">
-          <div class="relative">
-            <!-- Interactive Canvas Preview -->
-            <InteractiveCanvas
-              svgContent={previewSvg}
-              previewBackground={previewBackground}
-              dotColor={dotColor}
-              originalPreviewBackground={originalPreviewBackground}
-              originalDotColor={originalDotColor}
-              loading={storeData.loading}
-              error={storeData.error}
-              exportSize={storeData.size}
-              exportColor={storeData.color}
-              showComparison={storeData.showComparison}
-              selectedLogo={storeData.selectedLogo}
-              formattedSvg={formattedSvg}
-              onReset={handleReset}
-              onBackgroundToggle={handleBackgroundToggle}
-              isManualBackgroundActive={storeData.manualBackgroundOverride}
-              currentBackgroundColor={storeData.manualBackgroundColor}
-            />
+          {#if viewMode === "single"}
+            <div class="relative">
+              <!-- Interactive Canvas Preview -->
+              <InteractiveCanvas
+                svgContent={previewSvg}
+                previewBackground={previewBackground}
+                dotColor={dotColor}
+                originalPreviewBackground={originalPreviewBackground}
+                originalDotColor={originalDotColor}
+                loading={storeData.loading}
+                error={storeData.error}
+                exportSize={storeData.size}
+                exportColor={storeData.color}
+                showComparison={storeData.showComparison}
+                selectedLogo={storeData.selectedLogo}
+                formattedSvg={formattedSvg}
+                onReset={handleReset}
+                onBackgroundToggle={handleBackgroundToggle}
+                isManualBackgroundActive={storeData.manualBackgroundOverride}
+                currentBackgroundColor={storeData.manualBackgroundColor}
+              />
 
-            <!-- Controls Group - Overlay on canvas -->
-            <!-- Removed BrandingGuidelinesDialog icon -->
+              <!-- Controls Group - Overlay on canvas -->
+              <!-- Removed BrandingGuidelinesDialog icon -->
 
-            <!-- Empty state overlay -->
-            {#if !storeData.loading && !storeData.error && !previewSvg}
-              <div
-                class="absolute inset-0 flex items-center justify-center rounded-lg bg-background/50 backdrop-blur-sm"
-              >
-                <div class="text-center text-muted-foreground">
-                  <Palette class="mx-auto mb-4 h-20 w-20 opacity-50" />
-                  <p class="text-lg font-medium">Nenhum logo selecionado</p>
-                  <p class="text-sm">
-                    Selecione uma instituição financeira acima para começar
-                  </p>
+              <!-- Empty state overlay -->
+              {#if !storeData.loading && !storeData.error && !previewSvg}
+                <div
+                  class="absolute inset-0 flex items-center justify-center rounded-lg bg-background/50 backdrop-blur-sm"
+                >
+                  <div class="text-center text-muted-foreground">
+                    <Palette class="mx-auto mb-4 h-20 w-20 opacity-50" />
+                    <p class="text-lg font-medium">Nenhum logo selecionado</p>
+                    <p class="text-sm">
+                      Selecione uma instituição financeira acima para começar
+                    </p>
+                  </div>
                 </div>
-              </div>
-            {/if}
-          </div>
+              {/if}
+            </div>
+          {:else}
+            <!-- Grid View Mode -->
+            <GridView logos={storeData.logos} loading={storeData.loading} />
+          {/if}
         </CardContent>
       </Card>
 
