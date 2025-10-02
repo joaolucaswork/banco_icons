@@ -11,11 +11,11 @@ import {
 import PreviewControls from "$lib/components/PreviewControls.svelte";
 import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
 import BankCombobox from "$lib/components/BankCombobox.svelte";
-import ActionButtons from "$lib/components/ActionButtons.svelte";
 import InteractiveCanvas from "$lib/components/InteractiveCanvas.svelte";
 import GridView from "$lib/components/GridView.svelte";
 import BackgroundTransition from "$lib/components/BackgroundTransition.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
+import { viewModeStore } from "$lib/stores/view-mode-store.svelte.js";
 import {
   getContrastBackground,
   getDottedPatternColor,
@@ -26,8 +26,8 @@ import { Palette } from "lucide-svelte";
 let sizeValue = $state([24]);
 // let showCode = $state(true);
 
-// View mode state: "single" or "grid"
-let viewMode = $state("single");
+// View mode state from store
+let viewMode = $derived(viewModeStore.viewMode);
 
 // Background animation state
 let currentBackgroundColor = $state("#000000");
@@ -105,10 +105,6 @@ function handleBackgroundToggle() {
   svgStore.toggleBackground();
 }
 
-function handleViewModeToggle() {
-  viewMode = viewMode === "single" ? "grid" : "single";
-}
-
 onMount(() => {
   // Store should auto-load, but ensure it's loaded
   if (storeData.logos.size === 0 && !storeData.loading) {
@@ -135,63 +131,29 @@ onMount(() => {
 <BackgroundTransition currentColor={currentBackgroundColor} />
 
 <div class="flex-1 overflow-y-auto bg-background">
-  <div class="container mx-auto px-4 py-6">
+  <div class="container mx-auto px-4 pt-12 pb-6">
     <div class="space-y-6">
       <!-- Main Content Area -->
       <!-- Unified Preview Area -->
       <Card class="relative z-10 border-border bg-card">
         <CardHeader class="px-0">
           <div class="space-y-4">
-            <!-- View Mode Toggle - Always visible at the top -->
-            <div class="px-3 sm:px-6">
-              <div class="flex justify-end">
-                <ActionButtons
-                  selectedLogo={storeData.selectedLogo}
-                  modifiedSvg={svgStore.modifiedSvg}
-                  formattedSvg={formattedSvg}
-                  size={storeData.size}
-                  loading={storeData.loading}
-                  viewMode={viewMode}
-                  onViewModeToggle={handleViewModeToggle}
-                  showOnlyToggle={true}
-                />
-              </div>
-            </div>
-
             <!-- Single View Mode Controls -->
             {#if viewMode === "single"}
               <!-- Bank Selection Combobox and Information Panel Container -->
               <div class="space-y-4">
                 <!-- Bank Selection Combobox and Action Buttons -->
                 <div class="px-3 sm:px-6">
-                  <!-- Mobile: Stack vertically, Desktop: Side by side -->
-                  <div
-                    class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
-                  >
-                    <!-- Combobox - Full width on mobile, fit-content on desktop -->
-                    <div class="w-full sm:w-auto">
-                      <BankCombobox
-                        bind:selectedLogo={storeData.selectedLogo}
-                        logos={storeData.logos}
-                        loading={storeData.loading}
-                        onLogoSelect={handleLogoSelect}
-                        placeholder="Selecionar uma instituição"
-                        class="w-full sm:w-auto"
-                      />
-                    </div>
-                    <!-- Action Buttons - Hidden on mobile, visible on desktop -->
-                    <div class="hidden w-auto sm:block">
-                      <ActionButtons
-                        selectedLogo={storeData.selectedLogo}
-                        modifiedSvg={svgStore.modifiedSvg}
-                        formattedSvg={formattedSvg}
-                        size={storeData.size}
-                        loading={storeData.loading}
-                        viewMode={viewMode}
-                        onViewModeToggle={handleViewModeToggle}
-                        showOnlyToggle={false}
-                      />
-                    </div>
+                  <!-- Combobox - Centered -->
+                  <div class="flex justify-center">
+                    <BankCombobox
+                      bind:selectedLogo={storeData.selectedLogo}
+                      logos={storeData.logos}
+                      loading={storeData.loading}
+                      onLogoSelect={handleLogoSelect}
+                      placeholder="Selecionar uma instituição"
+                      class="w-full sm:w-auto"
+                    />
                   </div>
                 </div>
 
