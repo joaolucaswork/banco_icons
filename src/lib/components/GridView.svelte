@@ -2,6 +2,7 @@
 import { Card, CardContent } from "$lib/components/ui/card";
 import { Slider } from "$lib/components/ui/slider";
 import { Label } from "$lib/components/ui/label";
+import { Input } from "$lib/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
@@ -22,6 +23,10 @@ let globalColor = $state("#ffffff"); // Start with white
 let logoSize = $state([80]); // Default size for grid items
 let colorPickerRef = $state();
 
+// Input field values (for manual editing)
+let colorInputValue = $state("#ffffff");
+let sizeInputValue = $state("80");
+
 // Canvas refs for each logo
 let canvasRefs = $state({});
 
@@ -37,6 +42,15 @@ $effect(() => {
   });
 });
 
+// Sync input values with state
+$effect(() => {
+  colorInputValue = globalColor;
+});
+
+$effect(() => {
+  sizeInputValue = logoSize[0].toString();
+});
+
 // Debug: Log when logos or loading state changes
 $effect(() => {
   console.log(
@@ -45,6 +59,41 @@ $effect(() => {
     "| Logos count:",
     logosArray.length,
   );
+});
+
+// Calculate dynamic canvas size based on logo size
+// Formula: canvas size scales proportionally with logo size
+// Minimum canvas: 120px (for 16px logos), Maximum canvas: 400px (for 150px logos)
+const dynamicCanvasSize = $derived(() => {
+  const minLogoSize = 16;
+  const maxLogoSize = 150;
+  const minCanvasSize = 120;
+  const maxCanvasSize = 400;
+
+  const currentSize = logoSize[0];
+  const sizeRange = maxLogoSize - minLogoSize;
+  const canvasRange = maxCanvasSize - minCanvasSize;
+  const ratio = (currentSize - minLogoSize) / sizeRange;
+
+  return Math.round(minCanvasSize + ratio * canvasRange);
+});
+
+// Calculate optimal grid columns based on logo size
+// Smaller logos = more columns, larger logos = fewer columns
+const gridColumns = $derived(() => {
+  const currentSize = logoSize[0];
+
+  if (currentSize <= 30) {
+    return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7";
+  } else if (currentSize <= 50) {
+    return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6";
+  } else if (currentSize <= 80) {
+    return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
+  } else if (currentSize <= 110) {
+    return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4";
+  } else {
+    return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+  }
 });
 
 // Open native color picker
@@ -62,20 +111,79 @@ function handleColorPickerInput(event) {
     individualColors[logoName] = globalColor;
   });
 }
+
+// Handle manual color input change (real-time)
+function handleColorInputInput(event) {
+  const value = event.target.value.trim();
+
+  // Validate hex color format
+  const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+
+  if (hexRegex.test(value)) {
+    globalColor = value;
+    // Update all logos with the new global color
+    logosArray.forEach(([logoName]) => {
+      individualColors[logoName] = globalColor;
+    });
+  }
+}
+
+// Handle color input blur to validate and reset if needed
+function handleColorInputBlur() {
+  const value = colorInputValue.trim();
+  const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+
+  if (!hexRegex.test(value)) {
+    // Reset to current valid color if invalid
+    colorInputValue = globalColor;
+  }
+}
+
+// Handle manual size input change (real-time)
+function handleSizeInputInput(event) {
+  const value = parseInt(event.target.value, 10);
+
+  // Validate size range (16-150)
+  if (!isNaN(value) && value >= 16 && value <= 150) {
+    logoSize = [value];
+  }
+}
+
+// Handle size input blur to ensure valid value
+function handleSizeInputBlur() {
+  const value = parseInt(sizeInputValue, 10);
+
+  if (isNaN(value) || value < 16) {
+    logoSize = [16];
+    sizeInputValue = "16";
+  } else if (value > 150) {
+    logoSize = [150];
+    sizeInputValue = "150";
+  } else {
+    // Ensure the input shows the actual value
+    sizeInputValue = logoSize[0].toString();
+  }
+}
 </script>
 
 <div class={className} {...restProps}>
   <Card class="border-transparent bg-transparent">
     <CardContent class="p-0">
       <!-- Global Controls -->
-      <div class="mb-6 flex gap-6">
+      <div class="mb-6 flex gap-8">
         <!-- Color Control -->
-        <div class="flex w-48 flex-col gap-2">
-          <div class="flex h-5 items-center justify-between">
+        <div class="flex w-48 flex-col gap-6">
+          <div class="flex h-5 items-center justify-between gap-6">
             <Label class="text-sm font-medium text-foreground">HEX</Label>
-            <span class="font-mono text-sm text-muted-foreground"
-              >{globalColor}</span
-            >
+            <Input
+              type="text"
+              bind:value={colorInputValue}
+              oninput={handleColorInputInput}
+              onblur={handleColorInputBlur}
+              placeholder="#ffffff"
+              class="h-7 w-24 border-2 border-border bg-transparent px-3 py-1 text-right font-mono text-xs"
+              aria-label="Código de cor hexadecimal"
+            />
           </div>
           <div class="flex h-10 items-center">
             <!-- Hidden native color picker -->
@@ -112,19 +220,28 @@ function handleColorPickerInput(event) {
         </div>
 
         <!-- Size Control -->
-        <div class="flex w-48 flex-col gap-2">
-          <div class="flex h-5 items-center justify-between">
+        <div class="flex w-48 flex-col gap-6">
+          <div class="flex h-5 items-center justify-between gap-6">
             <Label class="text-sm font-medium text-foreground">Tamanho</Label>
-            <span class="font-mono text-sm text-muted-foreground"
-              >{logoSize[0]}px</span
-            >
+            <Input
+              type="number"
+              bind:value={sizeInputValue}
+              oninput={handleSizeInputInput}
+              onblur={handleSizeInputBlur}
+              min={16}
+              max={150}
+              step={1}
+              placeholder="80"
+              class="h-7 w-20 [appearance:textfield] border-2 border-border bg-transparent px-3 py-1 text-right font-mono text-xs [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              aria-label="Tamanho do logo em pixels"
+            />
           </div>
           <div class="flex h-10 items-center">
             <Slider
               bind:value={logoSize}
-              min={40}
+              min={16}
               max={150}
-              step={5}
+              step={1}
               class="w-full"
             />
           </div>
@@ -146,13 +263,14 @@ function handleColorPickerInput(event) {
           </div>
         </div>
       {:else}
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div class="grid gap-4 {gridColumns()}">
           {#each logosArray as [logoName, svgContent] (logoName)}
             <LogoCard
               logoName={logoName}
               svgContent={svgContent}
               bind:color={individualColors[logoName]}
               size={logoSize[0]}
+              canvasSize={dynamicCanvasSize()}
               bind:canvasRef={canvasRefs[logoName]}
             />
           {/each}

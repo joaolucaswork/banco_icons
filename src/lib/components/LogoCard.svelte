@@ -31,6 +31,7 @@ let {
   svgContent,
   color = $bindable(),
   size,
+  canvasSize = 300, // Default canvas size
   canvasRef = $bindable(),
 } = $props();
 
@@ -73,7 +74,6 @@ async function renderLogoOnCanvas() {
 
   // Use high DPI canvas for crisp rendering
   const dpr = window.devicePixelRatio || 1;
-  const canvasSize = 300;
 
   // Set actual canvas size (accounting for device pixel ratio)
   canvasRef.width = canvasSize * dpr;
@@ -168,7 +168,7 @@ async function renderLogoOnCanvas() {
   img.src = url;
 }
 
-// Render logo when color or size changes
+// Render logo when color, size, or canvas size changes
 $effect(() => {
   renderLogoOnCanvas();
 });
