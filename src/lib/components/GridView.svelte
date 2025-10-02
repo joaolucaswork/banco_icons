@@ -11,7 +11,7 @@ import {
 import LogoCard from "./LogoCard.svelte";
 
 let {
-  logos = new Map(),
+  logosArray = [],
   loading = false,
   class: className = "",
   ...restProps
@@ -22,9 +22,6 @@ let globalColor = $state("#ffffff"); // Start with white
 let logoSize = $state([80]); // Default size for grid items
 let colorPickerRef = $state();
 
-// Convert logos Map to array
-let logoArray = $derived(Array.from(logos.entries()));
-
 // Canvas refs for each logo
 let canvasRefs = $state({});
 
@@ -33,11 +30,21 @@ let individualColors = $state({});
 
 // Initialize individual colors when logos change
 $effect(() => {
-  logoArray.forEach(([logoName]) => {
+  logosArray.forEach(([logoName]) => {
     if (!individualColors[logoName]) {
       individualColors[logoName] = globalColor;
     }
   });
+});
+
+// Debug: Log when logos or loading state changes
+$effect(() => {
+  console.log(
+    "[GridView] Loading:",
+    loading,
+    "| Logos count:",
+    logosArray.length,
+  );
 });
 
 // Open native color picker
@@ -51,14 +58,14 @@ function openColorPicker() {
 function handleColorPickerInput(event) {
   globalColor = event.target.value;
   // Update all logos with the new global color
-  logoArray.forEach(([logoName]) => {
+  logosArray.forEach(([logoName]) => {
     individualColors[logoName] = globalColor;
   });
 }
 </script>
 
 <div class={className} {...restProps}>
-  <Card class="border-border bg-card">
+  <Card class="border-transparent bg-transparent">
     <CardContent class="p-0">
       <!-- Global Controls -->
       <div class="mb-6 flex gap-6">
@@ -89,7 +96,7 @@ function handleColorPickerInput(event) {
                       {...props}
                       onclick={openColorPicker}
                       class="flex h-10 w-full items-center justify-center rounded-lg border-2 border-border transition-all hover:border-border/80"
-                      style="background-color: {globalColor};"
+                      style="background-color: {globalColor}; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.2);"
                       aria-label="Abrir seletor de cor"
                     >
                       <span class="sr-only">Cor atual: {globalColor}</span>
@@ -129,13 +136,18 @@ function handleColorPickerInput(event) {
         <div class="flex min-h-[400px] items-center justify-center">
           <p class="text-muted-foreground">Carregando logos...</p>
         </div>
-      {:else if logoArray.length === 0}
+      {:else if logosArray.length === 0}
         <div class="flex min-h-[400px] items-center justify-center">
-          <p class="text-muted-foreground">Nenhum logo disponível</p>
+          <div class="text-center">
+            <p class="text-muted-foreground">Nenhum logo disponível</p>
+            <p class="mt-2 text-xs text-muted-foreground">
+              Debug: Array length = {logosArray.length}
+            </p>
+          </div>
         </div>
       {:else}
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {#each logoArray as [logoName, svgContent]}
+          {#each logosArray as [logoName, svgContent] (logoName)}
             <LogoCard
               logoName={logoName}
               svgContent={svgContent}

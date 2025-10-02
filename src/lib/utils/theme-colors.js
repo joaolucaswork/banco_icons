@@ -149,19 +149,7 @@ export function createCardThemeColor(darkBgColor) {
   return rgbToHex(newRgb.r, newRgb.g, newRgb.b);
 }
 
-// Callback system for theme color changes
-let colorChangeCallbacks = [];
-
-/**
- * Register a callback to be called when theme colors change
- * @param {Function} callback - Function to call with the new background color
- */
-export function onThemeColorChange(callback) {
-  colorChangeCallbacks.push(callback);
-  return () => {
-    colorChangeCallbacks = colorChangeCallbacks.filter((cb) => cb !== callback);
-  };
-}
+// Callback system removed - no longer needed for background animations
 
 /**
  * Apply theme colors to CSS custom properties
@@ -244,11 +232,13 @@ export function applyThemeColors(primaryColor, skipAnimation = false) {
 
     /* Color preview buttons - preserve their inline background-color with better borders */
     button[style*="background-color"], [data-slot="button"][style*="background-color"] {
-      border: 2px solid rgba(255, 255, 255, 0.3) !important;
+      border: 2px solid rgba(255, 255, 255, 0.4) !important;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.2) !important;
       transition: all 0.2s ease !important;
     }
     button[style*="background-color"]:hover, [data-slot="button"][style*="background-color"]:hover {
-      border-color: rgba(255, 255, 255, 0.5) !important;
+      border-color: rgba(255, 255, 255, 0.6) !important;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), 0 4px 8px rgba(0, 0, 0, 0.3) !important;
       transform: scale(1.05) !important;
     }
 
@@ -310,17 +300,7 @@ export function applyThemeColors(primaryColor, skipAnimation = false) {
     }
   `;
 
-  // Notify callbacks about the color change (for animations)
-  if (!skipAnimation) {
-    colorChangeCallbacks.forEach((callback) => {
-      try {
-        // Pass the card color instead of background color for better visibility
-        callback(cardBg);
-      } catch (error) {
-        console.warn("Error in theme color change callback:", error);
-      }
-    });
-  }
+  // Background animation callbacks removed - no longer needed
 }
 
 /**

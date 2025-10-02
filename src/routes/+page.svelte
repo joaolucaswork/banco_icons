@@ -13,14 +13,12 @@ import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.s
 import BankCombobox from "$lib/components/BankCombobox.svelte";
 import InteractiveCanvas from "$lib/components/InteractiveCanvas.svelte";
 import GridView from "$lib/components/GridView.svelte";
-import BackgroundTransition from "$lib/components/BackgroundTransition.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
 import { viewModeStore } from "$lib/stores/view-mode-store.svelte.js";
 import {
   getContrastBackground,
   getDottedPatternColor,
 } from "$lib/utils/color-utils.js";
-import { onThemeColorChange } from "$lib/utils/theme-colors.js";
 import { Palette } from "lucide-svelte";
 
 let sizeValue = $state([24]);
@@ -29,13 +27,28 @@ let sizeValue = $state([24]);
 // View mode state from store
 let viewMode = $derived(viewModeStore.viewMode);
 
-// Background animation state
-let currentBackgroundColor = $state("#000000");
-
 // Reactive values from store
 let storeData = $derived(svgStore.data);
 let previewSvg = $derived(svgStore.previewSvg);
 let formattedSvg = $derived(svgStore.formattedSvg);
+
+// Convert logos Map to array for GridView (Maps are not reactive in Svelte 5)
+// We need to access both loading and logos to ensure reactivity
+let logosArray = $derived.by(() => {
+  // Force reactivity by accessing both loading state and logos size
+  const loading = storeData.loading;
+  const size = storeData.logos.size;
+  const array = Array.from(storeData.logos.entries());
+  console.log(
+    "[+page] Converting Map to Array, size:",
+    size,
+    "loading:",
+    loading,
+    "array length:",
+    array.length,
+  );
+  return array;
+});
 
 // Calculate background color for optimal contrast (first canvas - dynamic or manual)
 let previewBackground = $derived.by(() => {
@@ -105,20 +118,54 @@ function handleBackgroundToggle() {
   svgStore.toggleBackground();
 }
 
+// Debug: Log store data changes
+$effect(() => {
+  console.log(
+    "[+page] Store data - Loading:",
+    storeData.loading,
+    "| Logos size:",
+    storeData.logos.size,
+    "| View mode:",
+    viewMode,
+  );
+});
+
+// Auto-select first logo when switching to single view mode
+$effect(() => {
+  // When switching to single view mode, if no logo is selected and logos are loaded
+  if (
+    viewMode === "single" &&
+    !storeData.selectedLogo &&
+    storeData.logos.size > 0 &&
+    !storeData.loading
+  ) {
+    const firstLogo = Array.from(storeData.logos.keys())[0];
+    console.log(
+      "[+page] Auto-selecting first logo when switching to single mode:",
+      firstLogo,
+    );
+    svgStore.selectLogo(firstLogo);
+  }
+});
+
+// Reset theme colors when switching to grid view mode
+$effect(() => {
+  if (viewMode === "grid") {
+    console.log("[+page] Switching to grid mode - resetting theme colors");
+    // Import and call resetThemeColors
+    import("$lib/utils/theme-colors.js").then(({ resetThemeColors }) => {
+      resetThemeColors();
+    });
+  }
+});
+
 onMount(() => {
   // Store should auto-load, but ensure it's loaded
   if (storeData.logos.size === 0 && !storeData.loading) {
-    svgStore.loadAllLogos();
+    // Auto-select first logo only if starting in single view mode
+    const autoSelect = viewMode === "single";
+    svgStore.loadAllLogos(autoSelect);
   }
-
-  // Register callback for theme color changes to trigger background animation
-  const unsubscribe = onThemeColorChange((newColor) => {
-    console.log("Theme color change detected:", newColor);
-    currentBackgroundColor = newColor;
-  });
-
-  // Cleanup callback on component destroy
-  return unsubscribe;
 });
 </script>
 
@@ -126,9 +173,6 @@ onMount(() => {
   <title>LB | Logos de bancos e corretoras</title>
   <meta name="description" content="Logos de bancos e corretoras" />
 </svelte:head>
-
-<!-- Background transition animation -->
-<BackgroundTransition currentColor={currentBackgroundColor} />
 
 <div class="flex-1 overflow-y-auto bg-background">
   <div class="container mx-auto px-2 pt-2 pb-6">
@@ -253,7 +297,7 @@ onMount(() => {
           </div>
         {:else}
           <!-- Grid View Mode -->
-          <GridView logos={storeData.logos} loading={storeData.loading} />
+          <GridView logosArray={logosArray} loading={storeData.loading} />
         {/if}
       </CardContent>
     </Card>

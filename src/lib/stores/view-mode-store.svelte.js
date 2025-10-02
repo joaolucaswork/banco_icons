@@ -4,7 +4,7 @@
  */
 
 class ViewModeStore {
-  viewMode = $state("single");
+  viewMode = $state("grid");
   loading = $state(false);
 
   toggle() {
@@ -21,4 +21,3 @@ class ViewModeStore {
 }
 
 export const viewModeStore = new ViewModeStore();
-

@@ -128,7 +128,7 @@ export const svgStore = {
   },
 
   // Load all SVG logos
-  async loadAllLogos() {
+  async loadAllLogos(autoSelectFirst = false) {
     svgData.loading = true;
     svgData.error = null;
 
@@ -148,10 +148,13 @@ export const svgStore = {
         }
       });
 
-      // Select first logo if none selected - use selectLogo method to properly initialize multi-color support
-      if (!svgData.selectedLogo && svgData.logos.size > 0) {
-        // Use the selectLogo method to properly detect and configure multi-color support
-        this.selectLogo(BANK_LOGOS[0]);
+      console.log("[SVG Store] Loaded", svgData.logos.size, "logos");
+
+      // Auto-select first logo if requested (for single view mode)
+      if (autoSelectFirst && svgData.logos.size > 0) {
+        const firstLogo = Array.from(svgData.logos.keys())[0];
+        console.log("[SVG Store] Auto-selecting first logo:", firstLogo);
+        this.selectLogo(firstLogo);
       }
     } catch (error) {
       svgData.error = "Falha ao carregar logos SVG";
