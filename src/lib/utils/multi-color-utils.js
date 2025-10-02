@@ -55,6 +55,26 @@ export const MULTI_COLOR_CONFIGS = {
       },
     ],
   },
+  "caixa-economica": {
+    elements: [
+      {
+        key: "blue",
+        label: "Azul",
+        cssVar: "--caixa-blue-color",
+        autoContrastVar: null,
+        defaultColor: getPrimaryOriginalColor("caixa-economica"), // #0070AF
+        description: "Cor azul do logo",
+      },
+      {
+        key: "orange",
+        label: "Laranja",
+        cssVar: "--caixa-orange-color",
+        autoContrastVar: null,
+        defaultColor: getSecondaryOriginalColor("caixa-economica") || "#F6822A", // #F6822A
+        description: "Cor laranja do logo",
+      },
+    ],
+  },
 };
 
 /**

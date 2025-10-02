@@ -1,5 +1,4 @@
 <script>
-import { onMount } from "svelte";
 import { Card, CardContent } from "$lib/components/ui/card";
 import { Slider } from "$lib/components/ui/slider";
 import { Label } from "$lib/components/ui/label";
@@ -10,6 +9,11 @@ import {
   TooltipProvider,
 } from "$lib/components/ui/tooltip";
 import { getBankDisplayName } from "$lib/utils/svg-utils.js";
+import {
+  hasMultipleColors,
+  getMultiColorConfig,
+} from "$lib/utils/multi-color-utils.js";
+import { isDarkColor } from "$lib/utils/color-utils.js";
 
 let {
   logos = new Map(),
@@ -46,7 +50,7 @@ function drawDottedPattern(ctx, width, height, dotColor = "#666666") {
 }
 
 // Function to render a single logo on canvas
-async function renderLogoOnCanvas(canvas, svgContent, color, size) {
+async function renderLogoOnCanvas(canvas, svgContent, color, size, logoName) {
   if (!canvas || !svgContent) return;
 
   const ctx = canvas.getContext("2d");
@@ -85,23 +89,30 @@ async function renderLogoOnCanvas(canvas, svgContent, color, size) {
   svgElement.setAttribute("width", renderSize.toString());
   svgElement.setAttribute("height", renderSize.toString());
 
-  // Apply color to all fill and stroke attributes
-  const allElements = svgElement.querySelectorAll("*");
-  allElements.forEach((el) => {
-    if (el.hasAttribute("fill") && el.getAttribute("fill") !== "none") {
-      el.setAttribute("fill", color);
-    }
-    if (el.hasAttribute("stroke") && el.getAttribute("stroke") !== "none") {
-      el.setAttribute("stroke", color);
-    }
-  });
+  // Set color on the SVG element using CSS color property
+  // This works with currentColor in the SVG, which is used by both
+  // simple logos and multi-color logos with CSS variables
+  svgElement.style.color = color;
 
-  // Also set fill on the svg element itself if it has one
-  if (
-    svgElement.hasAttribute("fill") &&
-    svgElement.getAttribute("fill") !== "none"
-  ) {
-    svgElement.setAttribute("fill", color);
+  // Apply automatic contrast for multi-color logos with overlapping elements
+  if (hasMultipleColors(logoName)) {
+    const config = getMultiColorConfig(logoName);
+    if (config) {
+      // Find elements with autoContrastVar (text elements that need contrast)
+      config.elements.forEach((element) => {
+        if (element.autoContrastVar) {
+          // Calculate contrast color based on the background color
+          // Use the global color as background
+          const bgColor = color;
+
+          // Determine text color based on background luminance
+          const textColor = isDarkColor(bgColor) ? "#ffffff" : "#000000";
+
+          // Apply the contrast color to the auto-contrast CSS variable
+          svgElement.style.setProperty(element.autoContrastVar, textColor);
+        }
+      });
+    }
   }
 
   const modifiedSvg = new XMLSerializer().serializeToString(doc);
@@ -132,7 +143,13 @@ $effect(() => {
   logoArray.forEach(([logoName, svgContent]) => {
     const canvas = canvasRefs[logoName];
     if (canvas) {
-      renderLogoOnCanvas(canvas, svgContent, globalColor, currentSize);
+      renderLogoOnCanvas(
+        canvas,
+        svgContent,
+        globalColor,
+        currentSize,
+        logoName,
+      );
     }
   });
 });
