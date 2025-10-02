@@ -10,6 +10,9 @@ import {
   TooltipProvider,
 } from "$lib/components/ui/tooltip";
 import LogoCard from "./LogoCard.svelte";
+import FloatingDownloadButton from "./FloatingDownloadButton.svelte";
+import { downloadSelectedLogos } from "$lib/utils/batch-download-utils.js";
+import { toast } from "svelte-sonner";
 
 let {
   logosArray = [],
@@ -32,6 +35,9 @@ let canvasRefs = $state({});
 
 // Individual colors for each logo (starts with global color)
 let individualColors = $state({});
+
+// Selection state - Map of logoName to svgContent
+let selectedLogos = $state(new Map());
 
 // Initialize individual colors when logos change
 $effect(() => {
@@ -154,6 +160,47 @@ function handleSizeInputBlur() {
     sizeInputValue = logoSize[0].toString();
   }
 }
+
+// Selection functions
+function toggleLogoSelection(logoName, svgContent) {
+  if (selectedLogos.has(logoName)) {
+    selectedLogos.delete(logoName);
+  } else {
+    selectedLogos.set(logoName, svgContent);
+  }
+  // Trigger reactivity
+  selectedLogos = selectedLogos;
+}
+
+function clearSelection() {
+  selectedLogos.clear();
+  selectedLogos = selectedLogos;
+}
+
+// Handle batch download
+async function handleBatchDownload(format) {
+  if (selectedLogos.size === 0) {
+    toast.error("Nenhum logo selecionado");
+    return;
+  }
+
+  const size = logoSize[0];
+  const result = await downloadSelectedLogos(selectedLogos, size, format);
+
+  if (result.success) {
+    if (result.count === 1) {
+      toast.success(`Logo baixado como ${format.toUpperCase()}!`);
+    } else {
+      toast.success(
+        `${result.count} logos baixados como ${format.toUpperCase()}!`,
+      );
+    }
+    // Clear selection after successful download
+    clearSelection();
+  } else {
+    toast.error("Falha ao baixar logos. Tente novamente.");
+  }
+}
 </script>
 
 <div class={className} {...restProps}>
@@ -262,10 +309,18 @@ function handleSizeInputBlur() {
               size={logoSize[0]}
               canvasSize={dynamicCanvasSize()}
               bind:canvasRef={canvasRefs[logoName]}
+              isSelected={selectedLogos.has(logoName)}
+              onToggleSelection={() => toggleLogoSelection(logoName, svgContent)}
             />
           {/each}
         </div>
       {/if}
     </CardContent>
   </Card>
+
+  <!-- Floating Download Button -->
+  <FloatingDownloadButton
+    selectedCount={selectedLogos.size}
+    onDownload={handleBatchDownload}
+  />
 </div>

@@ -1,6 +1,7 @@
 <script lang="ts">
 import { Button } from "$lib/components/ui/button";
 import * as Popover from "$lib/components/ui/popover";
+import { Checkbox } from "$lib/components/ui/checkbox";
 import {
   Tooltip,
   TooltipContent,
@@ -33,6 +34,8 @@ let {
   size,
   canvasSize = 300, // Default canvas size
   canvasRef = $bindable(),
+  isSelected = false,
+  onToggleSelection = () => {},
 } = $props();
 
 // Hover state
@@ -415,20 +418,51 @@ async function handleDownloadSvg() {
 >
   <!-- Canvas Container -->
   <div
-    class="relative w-full overflow-hidden rounded-lg border border-border bg-background"
+    class="relative w-full overflow-hidden rounded-lg border bg-background transition-all duration-200 {isSelected
+      ? 'border-primary ring-1 ring-primary/30'
+      : 'border-border'}"
   >
     <canvas
       bind:this={canvasRef}
-      class="h-auto w-full"
+      class="relative z-0 h-auto w-full"
       style="aspect-ratio: 1 / 1;"
     ></canvas>
+
+    <!-- Clickable overlay for selection - covers entire canvas area -->
+    <div
+      class="absolute inset-0 z-10 cursor-pointer"
+      onclick={onToggleSelection}
+      role="button"
+      tabindex="0"
+      aria-label={`Alternar seleção de ${getBankDisplayName(logoName)}`}
+      onkeydown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onToggleSelection();
+        }
+      }}
+    ></div>
+
+    <!-- Selection Checkbox - Top Left Corner -->
+    <div
+      class="absolute top-3 left-3 z-30"
+      onclick={(e) => e.stopPropagation()}
+    >
+      <Checkbox
+        checked={isSelected}
+        onCheckedChange={onToggleSelection}
+        class="h-5 w-5 border-2 border-gray-400 bg-white/90 shadow-md hover:border-gray-500 hover:bg-white data-[state=checked]:border-primary data-[state=checked]:bg-primary"
+        aria-label={`Selecionar ${getBankDisplayName(logoName)}`}
+      />
+    </div>
 
     <!-- Animated Toolbar - Only visible on hover -->
     {#if isHovered}
       <div
         bind:this={toolbarRef}
-        class="absolute right-0 bottom-0 left-0 flex items-center justify-center gap-2 bg-gradient-to-t from-black/80 to-transparent p-3 pb-4"
+        class="absolute right-0 bottom-0 left-0 z-40 flex items-center justify-center gap-2 bg-gradient-to-t from-black/80 to-transparent p-3 pb-4"
         style="opacity: 0;"
+        onclick={(e) => e.stopPropagation()}
       >
         <!-- Palette Button Wrapper for Animation -->
         <div bind:this={paletteButtonRef} style="opacity: 0;">
