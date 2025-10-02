@@ -72,27 +72,27 @@ function closeAndFocusTrigger(selectedValue) {
       {/snippet}
     </Popover.Trigger>
     <Popover.Content
-      class="w-full border-0 bg-background p-0"
-      style="width: var(--bits-popover-trigger-width);"
+      class="bg-background p-0"
+      style="width: var(--bits-popover-trigger-width) !important; min-width: var(--bits-popover-trigger-width) !important; max-width: var(--bits-popover-trigger-width) !important; border: 1px solid #ffffff !important; box-sizing: border-box !important; border-radius: 0.5rem !important;"
       side="bottom"
       align="start"
       sideOffset={4}
       portalProps={{}}
     >
-      <Command.Root class="bg-background">
-        <Command.List class="bg-background">
-          <Command.Empty class="bg-background"
+      <Command.Root class="border-0 bg-background">
+        <Command.List class="border-0 bg-background py-2">
+          <Command.Empty class="bg-background px-4 py-3"
             >Nenhuma instituição encontrada.</Command.Empty
           >
-          <Command.Group class="bg-background" heading="" value="">
+          <Command.Group class="bg-background px-2" heading="" value="">
             {#if loading}
               <!-- Loading state -->
-              <div class="p-4 text-center text-sm text-muted-foreground">
+              <div class="px-2 py-4 text-center text-sm text-muted-foreground">
                 Carregando instituições...
               </div>
             {:else if logoOptions.length === 0}
               <!-- Empty state -->
-              <div class="p-4 text-center text-sm text-muted-foreground">
+              <div class="px-2 py-4 text-center text-sm text-muted-foreground">
                 Nenhuma instituição disponível
               </div>
             {:else}
@@ -100,18 +100,18 @@ function closeAndFocusTrigger(selectedValue) {
               {#each logoOptions as logoName}
                 <Command.Item
                   value={logoName}
-                  class="hover:bg-accent/30 aria-selected:bg-accent/50"
+                  class="mb-1 px-4 py-3 last:mb-0 hover:bg-accent/30 aria-selected:bg-accent/50"
                   onSelect={() => {
                     closeAndFocusTrigger(logoName);
                   }}
                 >
-                  <div class="flex w-full items-center">
+                  <div class="flex w-full items-center gap-3">
                     <span class="flex-1 text-left text-sm font-medium">
                       {getBankDisplayName(logoName)}
                     </span>
                     <Check
                       class={cn(
-                        "ml-auto h-4 w-4",
+                        "ml-auto h-4 w-4 shrink-0",
                         selectedLogo === logoName ? "opacity-100" : "opacity-0"
                       )}
                     />

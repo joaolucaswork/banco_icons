@@ -2,7 +2,6 @@
 import "../app.css";
 import { Toaster } from "svelte-sonner";
 import Navigation from "$lib/components/Navigation.svelte";
-import ReinoCapitalPromo from "$lib/components/ReinoCapitalPromo.svelte";
 
 let { children } = $props();
 </script>
@@ -16,5 +15,4 @@ let { children } = $props();
     richColors
     closeButton={false}
   />
-  <ReinoCapitalPromo />
 </div>
