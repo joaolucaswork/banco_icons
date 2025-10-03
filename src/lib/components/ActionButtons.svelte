@@ -19,7 +19,7 @@ import {
 import { cn } from "$lib/utils.js";
 import { toast } from "svelte-sonner";
 
-import { Copy, Download, Maximize2 } from "lucide-svelte";
+import { Copy, Download, Maximize2, Grid3x3, Maximize } from "lucide-svelte";
 
 let {
   selectedLogo = null,
@@ -27,6 +27,9 @@ let {
   formattedSvg = null,
   size = 256,
   loading = false,
+  viewMode = "single",
+  onViewModeToggle = () => {},
+  showOnlyToggle = false,
   class: className = "",
   ...restProps
 } = $props();
@@ -44,16 +47,6 @@ let customExportSize = $state(size);
 const webflowOptimizedSvg = $derived(
   formattedSvg ? createWebflowOptimizedSvg(formattedSvg) : "",
 );
-
-// Debug: Log the SVG content when dialog opens
-$effect(() => {
-  if (isWebflowDialogOpen && webflowOptimizedSvg) {
-    console.log(
-      "Webflow Dialog SVG Content:",
-      webflowOptimizedSvg.substring(0, 200) + "...",
-    );
-  }
-});
 
 // Sync customExportSize with size prop when it changes
 $effect(() => {
@@ -128,12 +121,42 @@ function handleOpenInWebflow() {
 </script>
 
 <!-- Action Buttons -->
-{#if selectedLogo && modifiedSvg && formattedSvg}
-  <TooltipProvider delayDuration={400}>
-    <div
-      class={cn("action-buttons-group flex flex-wrap justify-between gap-2 sm:justify-start", className)}
-      {...restProps}
-    >
+<TooltipProvider delayDuration={400}>
+  <div
+    class={cn("action-buttons-group flex flex-wrap justify-between gap-2 sm:justify-start", className)}
+    {...restProps}
+  >
+    <!-- View Mode Toggle Button -->
+    <Tooltip disableHoverableContent={false} disableCloseOnTriggerClick={true}>
+      <TooltipTrigger asChild>
+        {#snippet child({ props })}
+          <Button
+            {...props}
+            variant="outline"
+            size="icon"
+            class="h-12 w-12 shrink-0 !text-white transition-all duration-200 hover:!bg-white/10 hover:!text-white sm:h-14 sm:w-14"
+            onclick={onViewModeToggle}
+            disabled={loading}
+          >
+            {#if viewMode === "single"}
+              <Grid3x3 class="h-5 w-5 sm:h-6 sm:w-6" />
+            {:else}
+              <Maximize class="h-5 w-5 sm:h-6 sm:w-6" />
+            {/if}
+          </Button>
+        {/snippet}
+      </TooltipTrigger>
+      <TooltipContent side="top" align="center" sideOffset={8}>
+        <p class="text-sm">
+          {viewMode === "single" ? "Modo Lista" : "Modo Individual"}
+        </p>
+        <p class="text-xs text-muted-foreground">
+          {viewMode === "single" ? "Ver todos os logos" : "Ver logo único"}
+        </p>
+      </TooltipContent>
+    </Tooltip>
+
+    {#if !showOnlyToggle && selectedLogo && modifiedSvg && formattedSvg}
       <!-- Open in Webflow Button -->
       <Tooltip
         disableHoverableContent={false}
@@ -278,9 +301,9 @@ function handleOpenInWebflow() {
           </div>
         </Popover.Content>
       </Popover.Root>
-    </div>
-  </TooltipProvider>
-{/if}
+    {/if}
+  </div>
+</TooltipProvider>
 
 <!-- Webflow Dialog -->
 <WebflowDialog

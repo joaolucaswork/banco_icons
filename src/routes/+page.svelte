@@ -11,27 +11,36 @@ import {
 import PreviewControls from "$lib/components/PreviewControls.svelte";
 import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
 import BankCombobox from "$lib/components/BankCombobox.svelte";
-import ActionButtons from "$lib/components/ActionButtons.svelte";
 import InteractiveCanvas from "$lib/components/InteractiveCanvas.svelte";
-import BackgroundTransition from "$lib/components/BackgroundTransition.svelte";
+import GridView from "$lib/components/GridView.svelte";
 import { svgStore } from "$lib/stores/svg-store.svelte.js";
+import { viewModeStore } from "$lib/stores/view-mode-store.svelte.js";
 import {
   getContrastBackground,
   getDottedPatternColor,
 } from "$lib/utils/color-utils.js";
-import { onThemeColorChange } from "$lib/utils/theme-colors.js";
 import { Palette } from "lucide-svelte";
 
 let sizeValue = $state([24]);
 // let showCode = $state(true);
 
-// Background animation state
-let currentBackgroundColor = $state("#000000");
+// View mode state from store
+let viewMode = $derived(viewModeStore.viewMode);
 
 // Reactive values from store
 let storeData = $derived(svgStore.data);
 let previewSvg = $derived(svgStore.previewSvg);
 let formattedSvg = $derived(svgStore.formattedSvg);
+
+// Convert logos Map to array for GridView (Maps are not reactive in Svelte 5)
+// We need to access both loading and logos to ensure reactivity
+let logosArray = $derived.by(() => {
+  // Force reactivity by accessing both loading state and logos size
+  const loading = storeData.loading;
+  const size = storeData.logos.size;
+  const array = Array.from(storeData.logos.entries());
+  return array;
+});
 
 // Calculate background color for optimal contrast (first canvas - dynamic or manual)
 let previewBackground = $derived.by(() => {
@@ -101,20 +110,37 @@ function handleBackgroundToggle() {
   svgStore.toggleBackground();
 }
 
+// Auto-select first logo when switching to single view mode
+$effect(() => {
+  // When switching to single view mode, if no logo is selected and logos are loaded
+  if (
+    viewMode === "single" &&
+    !storeData.selectedLogo &&
+    storeData.logos.size > 0 &&
+    !storeData.loading
+  ) {
+    const firstLogo = Array.from(storeData.logos.keys())[0];
+    svgStore.selectLogo(firstLogo);
+  }
+});
+
+// Reset theme colors when switching to grid view mode
+$effect(() => {
+  if (viewMode === "grid") {
+    // Import and call resetThemeColors
+    import("$lib/utils/theme-colors.js").then(({ resetThemeColors }) => {
+      resetThemeColors();
+    });
+  }
+});
+
 onMount(() => {
   // Store should auto-load, but ensure it's loaded
   if (storeData.logos.size === 0 && !storeData.loading) {
-    svgStore.loadAllLogos();
+    // Auto-select first logo only if starting in single view mode
+    const autoSelect = viewMode === "single";
+    svgStore.loadAllLogos(autoSelect);
   }
-
-  // Register callback for theme color changes to trigger background animation
-  const unsubscribe = onThemeColorChange((newColor) => {
-    console.log("Theme color change detected:", newColor);
-    currentBackgroundColor = newColor;
-  });
-
-  // Cleanup callback on component destroy
-  return unsubscribe;
 });
 </script>
 
@@ -123,46 +149,29 @@ onMount(() => {
   <meta name="description" content="Logos de bancos e corretoras" />
 </svelte:head>
 
-<!-- Background transition animation -->
-<BackgroundTransition currentColor={currentBackgroundColor} />
-
 <div class="flex-1 overflow-y-auto bg-background">
-  <div class="container mx-auto px-4 py-6">
-    <div class="space-y-6">
-      <!-- Main Content Area -->
-      <!-- Unified Preview Area -->
-      <Card class="relative z-10 border-border bg-card">
-        <CardHeader class="px-0">
-          <div class="space-y-4">
+  <div class="container mx-auto px-2 pt-2 pb-6">
+    <!-- Main Content Area -->
+    <!-- Unified Preview Area -->
+    <Card class="relative z-10 border-border bg-card">
+      <CardHeader class="px-0">
+        <div class="space-y-4">
+          <!-- Single View Mode Controls -->
+          {#if viewMode === "single"}
             <!-- Bank Selection Combobox and Information Panel Container -->
             <div class="space-y-4">
               <!-- Bank Selection Combobox and Action Buttons -->
               <div class="px-3 sm:px-6">
-                <!-- Mobile: Stack vertically, Desktop: Side by side -->
-                <div
-                  class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
-                >
-                  <!-- Combobox - Full width on mobile, fit-content on desktop -->
-                  <div class="w-full sm:w-auto">
-                    <BankCombobox
-                      bind:selectedLogo={storeData.selectedLogo}
-                      logos={storeData.logos}
-                      loading={storeData.loading}
-                      onLogoSelect={handleLogoSelect}
-                      placeholder="Selecionar uma instituição"
-                      class="w-full sm:w-auto"
-                    />
-                  </div>
-                  <!-- Action Buttons - Hidden on mobile, visible on desktop -->
-                  <div class="hidden w-auto sm:block">
-                    <ActionButtons
-                      selectedLogo={storeData.selectedLogo}
-                      modifiedSvg={svgStore.modifiedSvg}
-                      formattedSvg={formattedSvg}
-                      size={storeData.size}
-                      loading={storeData.loading}
-                    />
-                  </div>
+                <!-- Combobox - Centered -->
+                <div class="flex justify-center">
+                  <BankCombobox
+                    bind:selectedLogo={storeData.selectedLogo}
+                    logos={storeData.logos}
+                    loading={storeData.loading}
+                    onLogoSelect={handleLogoSelect}
+                    placeholder="Selecionar uma instituição"
+                    class="w-full sm:w-auto"
+                  />
                 </div>
               </div>
 
@@ -217,9 +226,11 @@ onMount(() => {
                 </div>
               {/if}
             </div>
-          </div>
-        </CardHeader>
-        <CardContent class="">
+          {/if}
+        </div>
+      </CardHeader>
+      <CardContent class="">
+        {#if viewMode === "single"}
           <div class="relative">
             <!-- Interactive Canvas Preview -->
             <InteractiveCanvas
@@ -259,26 +270,29 @@ onMount(() => {
               </div>
             {/if}
           </div>
+        {:else}
+          <!-- Grid View Mode -->
+          <GridView logosArray={logosArray} loading={storeData.loading} />
+        {/if}
+      </CardContent>
+    </Card>
+
+    <!-- Code Display -->
+    <!-- {#if showCode && formattedSvg}
+      <Card class="relative z-10 border-border bg-card">
+        <CardHeader class="">
+          <CardTitle class="text-xl text-card-foreground"
+            >Código SVG</CardTitle
+          >
+        </CardHeader>
+        <CardContent class="">
+          <CodeBlock
+            code={formattedSvg}
+            language="xml"
+            title="SVG Personalizado"
+          />
         </CardContent>
       </Card>
-
-      <!-- Code Display -->
-      <!-- {#if showCode && formattedSvg}
-        <Card class="relative z-10 border-border bg-card">
-          <CardHeader class="">
-            <CardTitle class="text-xl text-card-foreground"
-              >Código SVG</CardTitle
-            >
-          </CardHeader>
-          <CardContent class="">
-            <CodeBlock
-              code={formattedSvg}
-              language="xml"
-              title="SVG Personalizado"
-            />
-          </CardContent>
-        </Card>
-      {/if} -->
-    </div>
+    {/if} -->
   </div>
 </div>

@@ -113,8 +113,8 @@ function openColorPicker(elementKey) {
           <!-- Color button that triggers native picker -->
           <Button
             variant="outline"
-            class="h-8 w-8 rounded border border-border p-0 hover:border-border/80"
-            style="background-color: {customColors[element.key] || '#000000'}"
+            class="h-8 w-8 rounded border-2 p-0 transition-all"
+            style="background-color: {customColors[element.key] || '#000000'}; border-color: rgba(255, 255, 255, 0.4); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.2);"
             aria-label="Selecionar cor para {element.label}"
             onclick={() => openColorPicker(element.key)}
             disabled={false}

@@ -12,22 +12,6 @@ import { toast } from "svelte-sonner";
 
 let { open = $bindable(false), svgCode = "", bankName = "" } = $props();
 
-// Debug: Log received SVG code
-$effect(() => {
-  if (open && svgCode) {
-    console.log(
-      "WebflowDialog received SVG:",
-      svgCode.substring(0, 200) + "...",
-    );
-    console.log("Contains CSS classes?", svgCode.includes("class="));
-    console.log("Contains CSS variables?", svgCode.includes("var(--"));
-    console.log(
-      "Contains style attribute?",
-      svgCode.includes('style="width: 100%'),
-    );
-  }
-});
-
 async function handleCopy() {
   const success = await copyToClipboard(svgCode);
   if (success) {
@@ -105,13 +89,6 @@ function highlightXml(code) {
 
 let highlightedCode = $derived.by(() => {
   const highlighted = highlightXml(svgCode);
-  if (open && svgCode) {
-    console.log("Original SVG (first 200 chars):", svgCode.substring(0, 200));
-    console.log(
-      "Highlighted SVG (first 200 chars):",
-      highlighted.substring(0, 200),
-    );
-  }
   return highlighted;
 });
 </script>
