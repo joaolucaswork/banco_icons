@@ -40,9 +40,20 @@ function handleDownload(format: "svg" | "png") {
   onDownload(format);
   formatPopoverOpen = false;
 }
+
+// Debug effect
+$effect(() => {
+  console.log("FloatingDownloadButton - selectedCount changed:", selectedCount);
+});
 </script>
 
 {#if selectedCount > 0}
+  <!-- DEBUG: Button should be visible when count > 0 -->
+  <div
+    style="position: fixed; top: 10px; right: 10px; background: yellow; padding: 5px; z-index: 9999;"
+  >
+    DEBUG: Count = {selectedCount}
+  </div>
   <div
     bind:this={buttonRef}
     class="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 {className}"

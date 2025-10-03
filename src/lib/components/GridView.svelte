@@ -23,8 +23,11 @@ let {
 
 // State for global controls
 let globalColor = $state("#ffffff"); // Start with white
-let logoSize = $state([80]); // Default size for grid items
+let logoSize = $state([80]); // Default size for grid items (slider value) - 80 is a multiple of 4
 let colorPickerRef = $state();
+
+// Snapped size value that only updates in increments of 4, capped at 48px for preview
+let snappedLogoSize = $state(48); // This is what gets passed to LogoCard components (max 48px)
 
 // Input field values (for manual editing)
 let colorInputValue = $state("#ffffff");
@@ -38,6 +41,8 @@ let individualColors = $state({});
 
 // Selection state - Map of logoName to svgContent
 let selectedLogos = $state(new Map());
+// Reactive counter for selected logos (needed because Map.size isn't always reactive)
+let selectedCount = $state(0);
 
 // Initialize individual colors when logos change
 $effect(() => {
@@ -57,7 +62,24 @@ $effect(() => {
   sizeInputValue = logoSize[0].toString();
 });
 
-// Calculate dynamic canvas size based on logo size
+// Update snapped size only when logoSize changes by 4 or more
+$effect(() => {
+  const currentSize = logoSize[0];
+  let snappedValue = Math.round(currentSize / 4) * 4;
+
+  // Ensure minimum snapped size is 16 (already a multiple of 4)
+  snappedValue = Math.max(16, snappedValue);
+
+  // Cap the preview size at 48px (even if slider goes higher)
+  const previewSize = Math.min(48, snappedValue);
+
+  // Only update if the preview size is different from current snapped size
+  if (previewSize !== snappedLogoSize) {
+    snappedLogoSize = previewSize;
+  }
+});
+
+// Calculate dynamic canvas size based on snapped logo size
 // Formula: canvas size scales proportionally with logo size
 // Minimum canvas: 120px (for 16px logos), Maximum canvas: 400px (for 150px logos)
 const dynamicCanvasSize = $derived(() => {
@@ -66,7 +88,7 @@ const dynamicCanvasSize = $derived(() => {
   const minCanvasSize = 120;
   const maxCanvasSize = 400;
 
-  const currentSize = logoSize[0];
+  const currentSize = snappedLogoSize;
   const sizeRange = maxLogoSize - minLogoSize;
   const canvasRange = maxCanvasSize - minCanvasSize;
   const ratio = (currentSize - minLogoSize) / sizeRange;
@@ -74,21 +96,18 @@ const dynamicCanvasSize = $derived(() => {
   return Math.round(minCanvasSize + ratio * canvasRange);
 });
 
-// Calculate optimal grid columns based on logo size
+// Calculate optimal grid columns based on snapped logo size (capped at 48px)
 // Smaller logos = more columns, larger logos = fewer columns
 const gridColumns = $derived(() => {
-  const currentSize = logoSize[0];
+  const currentSize = snappedLogoSize; // Use capped preview size (max 48px)
 
   if (currentSize <= 30) {
     return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7";
-  } else if (currentSize <= 50) {
+  } else if (currentSize <= 48) {
     return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6";
-  } else if (currentSize <= 80) {
-    return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
-  } else if (currentSize <= 110) {
-    return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4";
   } else {
-    return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+    // This case should never happen since snappedLogoSize is capped at 48
+    return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6";
   }
 });
 
@@ -139,9 +158,11 @@ function handleColorInputBlur() {
 function handleSizeInputInput(event) {
   const value = parseInt(event.target.value, 10);
 
-  // Validate size range (16-150)
-  if (!isNaN(value) && value >= 16 && value <= 150) {
-    logoSize = [value];
+  // Validate size range (16-256) and ensure it's a multiple of 4
+  if (!isNaN(value) && value >= 16 && value <= 256) {
+    // Snap to nearest multiple of 4
+    const snappedValue = Math.round(value / 4) * 4;
+    logoSize = [Math.max(16, Math.min(256, snappedValue))];
   }
 }
 
@@ -152,34 +173,50 @@ function handleSizeInputBlur() {
   if (isNaN(value) || value < 16) {
     logoSize = [16];
     sizeInputValue = "16";
-  } else if (value > 150) {
-    logoSize = [150];
-    sizeInputValue = "150";
+  } else if (value > 256) {
+    logoSize = [256];
+    sizeInputValue = "256";
   } else {
-    // Ensure the input shows the actual value
-    sizeInputValue = logoSize[0].toString();
+    // Snap to nearest multiple of 4 and update both state and input
+    const snappedValue = Math.round(value / 4) * 4;
+    const finalValue = Math.max(16, Math.min(256, snappedValue));
+    logoSize = [finalValue];
+    sizeInputValue = finalValue.toString();
   }
 }
 
 // Selection functions
 function toggleLogoSelection(logoName, svgContent) {
+  console.log("toggleLogoSelection called:", logoName);
   if (selectedLogos.has(logoName)) {
     selectedLogos.delete(logoName);
+    console.log("Logo deselected, current count:", selectedLogos.size);
   } else {
     selectedLogos.set(logoName, svgContent);
+    console.log("Logo selected, current count:", selectedLogos.size);
   }
-  // Trigger reactivity
-  selectedLogos = selectedLogos;
+  // Update the reactive counter
+  selectedCount = selectedLogos.size;
+  console.log("After update, selectedCount:", selectedCount);
 }
+
+// Debug effect to monitor selectedLogos changes
+$effect(() => {
+  console.log("GridView - selectedCount changed:", selectedCount);
+  console.log(
+    "GridView - selectedLogos contents:",
+    Array.from(selectedLogos.keys()),
+  );
+});
 
 function clearSelection() {
   selectedLogos.clear();
-  selectedLogos = selectedLogos;
+  selectedCount = 0;
 }
 
 // Handle batch download
 async function handleBatchDownload(format) {
-  if (selectedLogos.size === 0) {
+  if (selectedCount === 0) {
     toast.error("Nenhum logo selecionado");
     return;
   }
@@ -257,8 +294,8 @@ async function handleBatchDownload(format) {
         </div>
 
         <!-- Size Control -->
-        <div class="flex w-48 flex-col gap-6">
-          <div class="flex h-5 items-center justify-between gap-6">
+        <div class="flex w-36 flex-col gap-4">
+          <div class="flex h-5 items-center justify-between gap-4">
             <Label class="text-sm font-medium text-foreground">Tamanho</Label>
             <Input
               type="number"
@@ -266,19 +303,19 @@ async function handleBatchDownload(format) {
               oninput={handleSizeInputInput}
               onblur={handleSizeInputBlur}
               min={16}
-              max={150}
-              step={1}
+              max={256}
+              step={4}
               placeholder="80"
-              class="h-7 w-20 [appearance:textfield] border-2 border-border bg-transparent px-3 py-1 text-right font-mono text-xs [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              class="h-7 w-16 [appearance:textfield] border-0 bg-transparent px-2 py-1 text-right font-mono text-xs [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               aria-label="Tamanho do logo em pixels"
             />
           </div>
-          <div class="flex h-10 items-center">
+          <div class="flex h-7 items-center">
             <Slider
               bind:value={logoSize}
               min={16}
-              max={150}
-              step={1}
+              max={256}
+              step={4}
               class="w-full"
             />
           </div>
@@ -306,7 +343,7 @@ async function handleBatchDownload(format) {
               logoName={logoName}
               svgContent={svgContent}
               bind:color={individualColors[logoName]}
-              size={logoSize[0]}
+              size={snappedLogoSize}
               canvasSize={dynamicCanvasSize()}
               bind:canvasRef={canvasRefs[logoName]}
               isSelected={selectedLogos.has(logoName)}
@@ -319,8 +356,14 @@ async function handleBatchDownload(format) {
   </Card>
 
   <!-- Floating Download Button -->
+  <!-- DEBUG: selectedCount = {selectedCount} -->
+  <div
+    style="position: fixed; bottom: 120px; left: 10px; background: lime; padding: 10px; z-index: 9999; font-weight: bold;"
+  >
+    GridView DEBUG: selectedCount = {selectedCount}
+  </div>
   <FloatingDownloadButton
-    selectedCount={selectedLogos.size}
+    selectedCount={selectedCount}
     onDownload={handleBatchDownload}
   />
 </div>

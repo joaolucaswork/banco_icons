@@ -31,7 +31,7 @@ get along, so we shut typescript up by casting `value` to `never`.
       data-orientation={orientation}
       data-slot="slider-track"
       class={cn(
-				"relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-2.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-2.5"
+				"relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5"
 			)}
       style="background-color: rgba(255, 255, 255, 0.3);"
     >
@@ -47,7 +47,7 @@ get along, so we shut typescript up by casting `value` to `never`.
       <SliderPrimitive.Thumb
         data-slot="slider-thumb"
         index={thumb}
-        class="block size-6 shrink-0 rounded-full border-2 border-primary shadow-lg ring-ring/50 transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+        class="block size-4 shrink-0 rounded-full border-2 border-primary shadow-md ring-ring/50 transition-[color,box-shadow] hover:ring-2 focus-visible:ring-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
         style="background-color: white;"
       />
     {/each}
