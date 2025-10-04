@@ -26,8 +26,8 @@
   let logoSize = $state([80]); // Default size for grid items (slider value) - 80 is a multiple of 4
   let colorPickerRef = $state();
 
-  // Snapped size value that only updates in increments of 4, capped at 48px for preview
-  let snappedLogoSize = $state(48); // This is what gets passed to LogoCard components (max 48px)
+  // Snapped size value that only updates in increments of 4
+  let snappedLogoSize = $state(80); // This is what gets passed to LogoCard components
 
   // Input field values (for manual editing)
   let colorInputValue = $state("#ffffff");
@@ -73,23 +73,21 @@
     // Ensure minimum snapped size is 16 (already a multiple of 4)
     snappedValue = Math.max(16, snappedValue);
 
-    // Cap the preview size at 48px (even if slider goes higher)
-    const previewSize = Math.min(48, snappedValue);
-
-    // Only update if the preview size is different from current snapped size
-    if (previewSize !== snappedLogoSize) {
-      snappedLogoSize = previewSize;
+    // No cap - allow full range from 16 to 256
+    // Only update if the snapped size is different from current snapped size
+    if (snappedValue !== snappedLogoSize) {
+      snappedLogoSize = snappedValue;
     }
   });
 
   // Calculate dynamic canvas size based on snapped logo size
   // Formula: canvas size scales proportionally with logo size
-  // Minimum canvas: 120px (for 16px logos), Maximum canvas: 400px (for 150px logos)
+  // Minimum canvas: 120px (for 16px logos), Maximum canvas: 500px (for 256px logos)
   const dynamicCanvasSize = $derived(() => {
     const minLogoSize = 16;
-    const maxLogoSize = 150;
+    const maxLogoSize = 256;
     const minCanvasSize = 120;
-    const maxCanvasSize = 400;
+    const maxCanvasSize = 500;
 
     const currentSize = snappedLogoSize;
     const sizeRange = maxLogoSize - minLogoSize;
@@ -99,18 +97,23 @@
     return Math.round(minCanvasSize + ratio * canvasRange);
   });
 
-  // Calculate optimal grid columns based on snapped logo size (capped at 48px)
+  // Calculate optimal grid columns based on snapped logo size
   // Smaller logos = more columns, larger logos = fewer columns
+  // Dynamically adjusts for the full size range (16-256px)
   const gridColumns = $derived(() => {
-    const currentSize = snappedLogoSize; // Use capped preview size (max 48px)
+    const currentSize = snappedLogoSize;
 
     if (currentSize <= 30) {
       return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7";
-    } else if (currentSize <= 48) {
+    } else if (currentSize <= 60) {
       return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6";
+    } else if (currentSize <= 100) {
+      return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
+    } else if (currentSize <= 150) {
+      return "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
     } else {
-      // This case should never happen since snappedLogoSize is capped at 48
-      return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6";
+      // For very large icons (150-256px)
+      return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3";
     }
   });
 
@@ -124,10 +127,19 @@
   // Handle color change with real-time preview
   function handleColorPickerInput(event) {
     globalColor = event.target.value;
-    // Update all logos with the new global color
-    logosArray.forEach(([logoName]) => {
-      individualColors[logoName] = globalColor;
-    });
+
+    // Contextual behavior based on selection
+    if (selectedLogos.size > 0) {
+      // When items are selected: update ONLY selected logos
+      selectedLogos.forEach((svgContent, logoName) => {
+        individualColors[logoName] = globalColor;
+      });
+    } else {
+      // When no items are selected: update ALL logos (global behavior)
+      logosArray.forEach(([logoName]) => {
+        individualColors[logoName] = globalColor;
+      });
+    }
   }
 
   // Handle manual color input change (real-time)
@@ -139,10 +151,19 @@
 
     if (hexRegex.test(value)) {
       globalColor = value;
-      // Update all logos with the new global color
-      logosArray.forEach(([logoName]) => {
-        individualColors[logoName] = globalColor;
-      });
+
+      // Contextual behavior based on selection
+      if (selectedLogos.size > 0) {
+        // When items are selected: update ONLY selected logos
+        selectedLogos.forEach((svgContent, logoName) => {
+          individualColors[logoName] = globalColor;
+        });
+      } else {
+        // When no items are selected: update ALL logos (global behavior)
+        logosArray.forEach(([logoName]) => {
+          individualColors[logoName] = globalColor;
+        });
+      }
     }
   }
 
@@ -299,7 +320,11 @@
                   {/snippet}
                 </TooltipTrigger>
                 <TooltipContent side="top">
-                  <p>Alterar cor de todos os logos</p>
+                  <p>
+                    {selectedLogos.size > 0
+                      ? `Alterar cor dos ${selectedLogos.size} logo${selectedLogos.size > 1 ? "s" : ""} selecionado${selectedLogos.size > 1 ? "s" : ""}`
+                      : "Alterar cor de todos os logos"}
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
