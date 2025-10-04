@@ -39,6 +39,9 @@
   // Individual colors for each logo (starts with global color)
   let individualColors = $state({});
 
+  // Animation state and refs
+  let mainColorPickerRef = $state();
+
   // Selection state - Map of logoName to svgContent
   let selectedLogos = $state(new Map());
   // Reactive counter for selected logos (needed because Map.size isn't always reactive)
@@ -284,6 +287,7 @@
                 <TooltipTrigger asChild>
                   {#snippet child({ props })}
                     <button
+                      bind:this={mainColorPickerRef}
                       {...props}
                       onclick={openColorPicker}
                       class="flex h-10 w-full items-center justify-center rounded-lg border-2 border-border transition-all hover:border-border/80"
