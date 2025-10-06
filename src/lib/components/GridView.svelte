@@ -9,10 +9,17 @@
     TooltipTrigger,
     TooltipProvider,
   } from "$lib/components/ui/tooltip";
+  import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+  } from "$lib/components/ui/popover";
+  import { RadioGroup, RadioGroupItem } from "$lib/components/ui/radio-group";
   import LogoCard from "./LogoCard.svelte";
   import FloatingDownloadButton from "./FloatingDownloadButton.svelte";
   import { downloadSelectedLogos } from "$lib/utils/batch-download-utils.js";
   import { toast } from "svelte-sonner";
+  import { getPrimaryOriginalColor } from "$lib/utils/original-colors.js";
 
   let {
     logosArray = [],
@@ -26,11 +33,15 @@
   let logoSize = $state([80]); // Default size for grid items (slider value) - 80 is a multiple of 4
   let colorPickerRef = $state();
 
+  // Color option state: 'black' | 'white' | 'brand' | 'custom'
+  let colorOption = $state("white"); // Start with white option selected
+  let customColor = $state("#ffffff"); // Custom color for when 'custom' option is selected
+  let isCustomPopoverOpen = $state(false); // Control popover visibility
+
   // Snapped size value that only updates in increments of 4
   let snappedLogoSize = $state(80); // This is what gets passed to LogoCard components
 
   // Input field values (for manual editing)
-  let colorInputValue = $state("#ffffff");
   let sizeInputValue = $state("80");
 
   // Canvas refs for each logo
@@ -38,9 +49,6 @@
 
   // Individual colors for each logo (starts with global color)
   let individualColors = $state({});
-
-  // Animation state and refs
-  let mainColorPickerRef = $state();
 
   // Selection state - Map of logoName to svgContent
   let selectedLogos = $state(new Map());
@@ -51,14 +59,27 @@
   $effect(() => {
     logosArray.forEach(([logoName]) => {
       if (!individualColors[logoName]) {
-        individualColors[logoName] = globalColor;
+        // Initialize with the current global color based on selected option
+        if (colorOption === "black") {
+          individualColors[logoName] = "#000000";
+        } else if (colorOption === "white") {
+          individualColors[logoName] = "#ffffff";
+        } else if (colorOption === "brand") {
+          individualColors[logoName] = getPrimaryOriginalColor(logoName);
+        } else if (colorOption === "custom") {
+          individualColors[logoName] = customColor;
+        } else {
+          individualColors[logoName] = globalColor;
+        }
       }
     });
   });
 
-  // Sync input values with state
+  // Only sync custom color changes to globalColor
   $effect(() => {
-    colorInputValue = globalColor;
+    if (colorOption === "custom") {
+      globalColor = customColor;
+    }
   });
 
   $effect(() => {
@@ -117,64 +138,84 @@
     }
   });
 
-  // Open native color picker
-  function openColorPicker() {
-    if (colorPickerRef) {
-      colorPickerRef.click();
+  // Handle color option change
+  function handleColorOptionChange(newOption) {
+    // Prevent unnecessary changes if the same option is clicked
+    if (colorOption === newOption && newOption !== "custom") {
+      return;
+    }
+
+    colorOption = newOption;
+
+    // Update globalColor immediately based on the selected option
+    if (newOption === "black") {
+      globalColor = "#000000";
+    } else if (newOption === "white") {
+      globalColor = "#ffffff";
+    } else if (newOption === "brand") {
+      // For brand option, use the first logo's brand color as global reference
+      if (logosArray.length > 0) {
+        const firstLogoName = logosArray[0][0];
+        globalColor = getPrimaryOriginalColor(firstLogoName);
+      } else {
+        globalColor = "#ffffff";
+      }
+    } else if (newOption === "custom") {
+      globalColor = customColor;
+      isCustomPopoverOpen = true;
+    }
+
+    if (newOption !== "custom") {
+      isCustomPopoverOpen = false;
+    }
+
+    // Apply color changes to logos immediately
+    applyColorToLogos();
+  }
+
+  // Handle custom color picker input
+  function handleCustomColorPickerInput(event) {
+    customColor = event.target.value;
+    globalColor = customColor;
+    applyColorToLogos();
+  }
+
+  // Handle custom color HEX input
+  function handleCustomColorInput(event) {
+    const value = event.target.value.trim();
+    const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+
+    if (hexRegex.test(value)) {
+      customColor = value;
+      globalColor = value;
+      applyColorToLogos();
     }
   }
 
-  // Handle color change with real-time preview
-  function handleColorPickerInput(event) {
-    globalColor = event.target.value;
-
-    // Contextual behavior based on selection
+  // Apply current color to logos based on selection
+  function applyColorToLogos() {
     if (selectedLogos.size > 0) {
       // When items are selected: update ONLY selected logos
       selectedLogos.forEach((svgContent, logoName) => {
-        individualColors[logoName] = globalColor;
+        if (colorOption === "brand") {
+          // For brand option, use each logo's original brand color
+          individualColors[logoName] = getPrimaryOriginalColor(logoName);
+        } else {
+          // For black, white, or custom options, use the global color
+          individualColors[logoName] = globalColor;
+        }
       });
     } else {
       // When no items are selected: update ALL logos (global behavior)
       logosArray.forEach(([logoName]) => {
-        individualColors[logoName] = globalColor;
+        if (colorOption === "brand") {
+          // For brand option, use each logo's original brand color
+          individualColors[logoName] = getPrimaryOriginalColor(logoName);
+        } else {
+          // For black, white, or custom options, use the global color
+          individualColors[logoName] = globalColor;
+        }
       });
-    }
-  }
-
-  // Handle manual color input change (real-time)
-  function handleColorInputInput(event) {
-    const value = event.target.value.trim();
-
-    // Validate hex color format
-    const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-
-    if (hexRegex.test(value)) {
-      globalColor = value;
-
-      // Contextual behavior based on selection
-      if (selectedLogos.size > 0) {
-        // When items are selected: update ONLY selected logos
-        selectedLogos.forEach((svgContent, logoName) => {
-          individualColors[logoName] = globalColor;
-        });
-      } else {
-        // When no items are selected: update ALL logos (global behavior)
-        logosArray.forEach(([logoName]) => {
-          individualColors[logoName] = globalColor;
-        });
-      }
-    }
-  }
-
-  // Handle color input blur to validate and reset if needed
-  function handleColorInputBlur() {
-    const value = colorInputValue.trim();
-    const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-
-    if (!hexRegex.test(value)) {
-      // Reset to current valid color if invalid
-      colorInputValue = globalColor;
     }
   }
 
@@ -279,55 +320,148 @@
       <!-- Global Controls -->
       <div class="mb-6 flex gap-8">
         <!-- Color Control -->
-        <div class="flex w-48 flex-col gap-6">
-          <div class="flex h-5 items-center justify-between gap-6">
-            <Label class="text-sm font-medium text-foreground">HEX</Label>
-            <Input
-              type="text"
-              bind:value={colorInputValue}
-              oninput={handleColorInputInput}
-              onblur={handleColorInputBlur}
-              placeholder="#ffffff"
-              class="h-7 w-24 border-2 border-border bg-transparent px-3 py-1 text-right font-mono text-xs"
-              aria-label="Código de cor hexadecimal"
-            />
-          </div>
-          <div class="flex h-10 items-center">
-            <!-- Hidden native color picker -->
-            <input
-              bind:this={colorPickerRef}
-              type="color"
-              bind:value={globalColor}
-              oninput={handleColorPickerInput}
-              class="pointer-events-none absolute opacity-0"
-              aria-label="Seletor de cor global"
-            />
+        <div class="flex w-48 flex-col gap-4">
+          <Label class="text-sm font-medium text-foreground">Cor</Label>
 
-            <TooltipProvider delayDuration={400}>
+          <!-- Three Color Options -->
+          <div class="flex gap-2">
+            <!-- Black Option -->
+            <TooltipProvider delayDuration={300}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   {#snippet child({ props })}
                     <button
-                      bind:this={mainColorPickerRef}
                       {...props}
-                      onclick={openColorPicker}
-                      class="flex h-10 w-full items-center justify-center rounded-lg border-2 border-border transition-all hover:border-border/80"
-                      style="background-color: {globalColor}; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.2);"
-                      aria-label="Abrir seletor de cor"
+                      onclick={() => handleColorOptionChange("black")}
+                      class="flex h-10 w-10 items-center justify-center rounded-lg border-2 transition-all hover:border-border/80 {colorOption ===
+                      'black'
+                        ? 'border-primary ring-2 ring-primary/20'
+                        : 'border-border'}"
+                      style="background-color: #000000; border: 1px solid rgba(255, 255, 255, 0.2);"
+                      aria-label="Selecionar cor preta"
                     >
-                      <span class="sr-only">Cor atual: {globalColor}</span>
+                      <span class="sr-only">Preto</span>
                     </button>
                   {/snippet}
                 </TooltipTrigger>
                 <TooltipContent side="top">
-                  <p>
-                    {selectedLogos.size > 0
-                      ? `Alterar cor dos ${selectedLogos.size} logo${selectedLogos.size > 1 ? "s" : ""} selecionado${selectedLogos.size > 1 ? "s" : ""}`
-                      : "Alterar cor de todos os logos"}
-                  </p>
+                  <p>Preto</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+
+            <!-- White Option -->
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {#snippet child({ props })}
+                    <button
+                      {...props}
+                      onclick={() => handleColorOptionChange("white")}
+                      class="flex h-10 w-10 items-center justify-center rounded-lg border-2 transition-all hover:border-border/80 {colorOption ===
+                      'white'
+                        ? 'border-primary ring-2 ring-primary/20'
+                        : 'border-border'}"
+                      style="background-color: #ffffff; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);"
+                      aria-label="Selecionar cor branca"
+                    >
+                      <span class="sr-only">Branco</span>
+                    </button>
+                  {/snippet}
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>Branco</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <!-- Brand Option -->
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {#snippet child({ props })}
+                    <button
+                      {...props}
+                      onclick={() => handleColorOptionChange("brand")}
+                      class="flex h-10 w-10 items-center justify-center rounded-lg border-2 transition-all hover:border-border/80 {colorOption ===
+                      'brand'
+                        ? 'border-primary ring-2 ring-primary/20'
+                        : 'border-border'}"
+                      style="background: linear-gradient(45deg, #003399, #E51736, #33348E, #0070AF, #FFC709, #00C88D); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.2);"
+                      aria-label="Usar cores originais das marcas"
+                    >
+                      <span class="sr-only">Cores das marcas</span>
+                    </button>
+                  {/snippet}
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>Cores das marcas</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <!-- Custom Option with Popover -->
+            <Popover bind:open={isCustomPopoverOpen}>
+              <PopoverTrigger asChild>
+                {#snippet child({ props })}
+                  <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        {#snippet child({ tooltipProps })}
+                          <button
+                            {...props}
+                            {...tooltipProps}
+                            onclick={() => handleColorOptionChange("custom")}
+                            class="flex h-10 w-10 items-center justify-center rounded-lg border-2 transition-all hover:border-border/80 {colorOption ===
+                              'custom' && !isCustomPopoverOpen
+                              ? 'border-primary ring-2 ring-primary/20'
+                              : 'border-border'}"
+                            style="background: linear-gradient(135deg, {customColor} 0%, {customColor}dd 50%, {customColor}aa 100%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.2);"
+                            aria-label="Selecionar cor personalizada"
+                          >
+                            <span class="sr-only"
+                              >Personalizada: {customColor}</span
+                            >
+                          </button>
+                        {/snippet}
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p>Personalizada</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                {/snippet}
+              </PopoverTrigger>
+
+              <PopoverContent class="w-64 p-3" side="bottom" align="start">
+                <div class="space-y-3">
+                  <!-- HEX Input at the top -->
+                  <Input
+                    type="text"
+                    bind:value={customColor}
+                    oninput={handleCustomColorInput}
+                    placeholder="#ffffff"
+                    class="w-full font-mono text-sm"
+                    aria-label="Código de cor hexadecimal"
+                  />
+
+                  <!-- Native Color Picker below -->
+                  <input
+                    bind:this={colorPickerRef}
+                    type="color"
+                    bind:value={customColor}
+                    oninput={handleCustomColorPickerInput}
+                    class="h-10 w-full cursor-pointer rounded border border-border"
+                    aria-label="Seletor de cor nativo"
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <!-- Current Color Display -->
+          <div class="text-xs text-muted-foreground font-mono">
+            {globalColor}
           </div>
         </div>
 
