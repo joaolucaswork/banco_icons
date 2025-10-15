@@ -1,99 +1,99 @@
 <script>
-import { Button } from "$lib/components/ui/button";
-import { Slider } from "$lib/components/ui/slider";
+  import { Button } from "$lib/components/ui/button";
+  import { Slider } from "$lib/components/ui/slider";
 
-import { RotateCcw } from "lucide-svelte";
+  import { RotateCcw } from "lucide-svelte";
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "$lib/components/ui/tooltip";
-import { resolveAutoColors } from "$lib/utils/multi-color-utils.js";
-import ComparisonToggle from "./ComparisonToggle.svelte";
+  import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+  } from "$lib/components/ui/tooltip";
+  import { resolveAutoColors } from "$lib/utils/multi-color-utils.js";
+  import ComparisonToggle from "./ComparisonToggle.svelte";
 
-let {
-  sizeValue = [24],
-  color = "#000000",
-  onSizeChange = () => {},
-  onColorChange = () => {},
-  onReset = () => {},
-  // Multi-color support
-  isMultiColor = false,
-  colorableElements = [],
-  colorMap = {},
-  onElementColorChange = () => {},
+  let {
+    sizeValue = [24],
+    color = "#000000",
+    onSizeChange = () => {},
+    onColorChange = () => {},
+    onReset = () => {},
+    // Multi-color support
+    isMultiColor = false,
+    colorableElements = [],
+    colorMap = {},
+    onElementColorChange = () => {},
 
-  selectedLogo = null,
-  // Comparison support
-  showComparison = $bindable(false),
-} = $props();
+    selectedLogo = null,
+    // Comparison support
+    showComparison = $bindable(false),
+  } = $props();
 
-let customColor = $state(color);
-let colorPickerRef = $state();
-// Color picker refs for multi-color elements
-let colorPickerRefs = /** @type {Record<string, HTMLInputElement>} */ ({});
+  let customColor = $state(color);
+  let colorPickerRef = $state();
+  // Color picker refs for multi-color elements
+  let colorPickerRefs = /** @type {Record<string, HTMLInputElement>} */ ({});
 
-// Resolved color map (converts "auto" to actual colors)
-let resolvedColorMap = $derived(
-  isMultiColor && selectedLogo
-    ? resolveAutoColors(colorMap, selectedLogo)
-    : colorMap,
-);
+  // Resolved color map (converts "auto" to actual colors)
+  let resolvedColorMap = $derived(
+    isMultiColor && selectedLogo
+      ? resolveAutoColors(colorMap, selectedLogo)
+      : colorMap,
+  );
 
-// Watch for size changes and notify parent
-$effect(() => {
-  onSizeChange(sizeValue);
-});
+  // Watch for size changes and notify parent
+  $effect(() => {
+    onSizeChange(sizeValue);
+  });
 
-// Update custom color when color prop changes
-$effect(() => {
-  customColor = color;
-});
+  // Update custom color when color prop changes
+  $effect(() => {
+    customColor = color;
+  });
 
-function openColorPicker() {
-  if (colorPickerRef) {
-    colorPickerRef.click();
+  function openColorPicker() {
+    if (colorPickerRef) {
+      colorPickerRef.click();
+    }
   }
-}
 
-function handleColorPickerInput(event) {
-  const newColor = event.target.value;
-  customColor = newColor;
-  onColorChange(newColor);
-}
-
-function handleColorPickerChange(event) {
-  const newColor = event.target.value;
-  customColor = newColor;
-  onColorChange(newColor);
-}
-
-function handleReset() {
-  onReset();
-}
-
-// Multi-color element functions
-function openElementColorPicker(elementKey) {
-  if (colorPickerRefs[elementKey]) {
-    colorPickerRefs[elementKey].click();
+  function handleColorPickerInput(event) {
+    const newColor = event.target.value;
+    customColor = newColor;
+    onColorChange(newColor);
   }
-}
 
-function handleElementColorInput(elementKey, event) {
-  const target = event.target;
-  if (target && target.value) {
-    onElementColorChange(elementKey, target.value);
+  function handleColorPickerChange(event) {
+    const newColor = event.target.value;
+    customColor = newColor;
+    onColorChange(newColor);
   }
-}
 
-function handleElementColorChange(elementKey, event) {
-  const target = event.target;
-  if (target && target.value) {
-    onElementColorChange(elementKey, target.value);
+  function handleReset() {
+    onReset();
   }
-}
+
+  // Multi-color element functions
+  function openElementColorPicker(elementKey) {
+    if (colorPickerRefs[elementKey]) {
+      colorPickerRefs[elementKey].click();
+    }
+  }
+
+  function handleElementColorInput(elementKey, event) {
+    const target = event.target;
+    if (target && target.value) {
+      onElementColorChange(elementKey, target.value);
+    }
+  }
+
+  function handleElementColorChange(elementKey, event) {
+    const target = event.target;
+    if (target && target.value) {
+      onElementColorChange(elementKey, target.value);
+    }
+  }
 </script>
 
 <!-- Preview Controls -->
@@ -136,7 +136,9 @@ function handleElementColorChange(elementKey, event) {
                 <input
                   bind:this={colorPickerRefs[element.key]}
                   type="color"
-                  value={resolvedColorMap[element.key] || element.defaultColor || "#000000"}
+                  value={resolvedColorMap[element.key] ||
+                    element.defaultColor ||
+                    "#000000"}
                   oninput={(e) => handleElementColorInput(element.key, e)}
                   onchange={(e) => handleElementColorChange(element.key, e)}
                   class="pointer-events-none absolute opacity-0"
@@ -150,13 +152,19 @@ function handleElementColorChange(elementKey, event) {
                           {...props}
                           variant="outline"
                           class="h-7 w-7 rounded border border-border p-0 hover:border-border/80"
-                          style="background-color: {resolvedColorMap[element.key] || element.defaultColor || '#000000'}"
+                          style="background-color: {resolvedColorMap[
+                            element.key
+                          ] ||
+                            element.defaultColor ||
+                            '#000000'}"
                           aria-label="Selecionar cor para {element.label}"
                           onclick={() => openElementColorPicker(element.key)}
                           disabled={false}
                         >
                           <span class="sr-only"
-                            >Cor atual: {colorMap[element.key] || element.defaultColor || '#000000'}</span
+                            >Cor atual: {colorMap[element.key] ||
+                              element.defaultColor ||
+                              "#000000"}</span
                           >
                         </Button>
                       {/snippet}
@@ -243,8 +251,8 @@ function handleElementColorChange(elementKey, event) {
           </Tooltip>
         </TooltipProvider>
         <ComparisonToggle
-          bind:showComparison={showComparison}
-          selectedLogo={selectedLogo}
+          bind:showComparison
+          {selectedLogo}
           class="h-[38px] px-4 py-2"
         />
       </div>
@@ -290,7 +298,9 @@ function handleElementColorChange(elementKey, event) {
               <input
                 bind:this={colorPickerRefs[element.key]}
                 type="color"
-                value={resolvedColorMap[element.key] || element.defaultColor || "#000000"}
+                value={resolvedColorMap[element.key] ||
+                  element.defaultColor ||
+                  "#000000"}
                 oninput={(e) => handleElementColorInput(element.key, e)}
                 onchange={(e) => handleElementColorChange(element.key, e)}
                 class="pointer-events-none absolute opacity-0"
@@ -304,13 +314,19 @@ function handleElementColorChange(elementKey, event) {
                         {...props}
                         variant="outline"
                         class="h-8 w-8 rounded border border-border p-0 hover:border-border/80"
-                        style="background-color: {resolvedColorMap[element.key] || element.defaultColor || '#000000'}"
+                        style="background-color: {resolvedColorMap[
+                          element.key
+                        ] ||
+                          element.defaultColor ||
+                          '#000000'}"
                         aria-label="Selecionar cor para {element.label}"
                         onclick={() => openElementColorPicker(element.key)}
                         disabled={false}
                       >
                         <span class="sr-only"
-                          >Cor atual: {colorMap[element.key] || element.defaultColor || '#000000'}</span
+                          >Cor atual: {colorMap[element.key] ||
+                            element.defaultColor ||
+                            "#000000"}</span
                         >
                       </Button>
                     {/snippet}
@@ -400,8 +416,8 @@ function handleElementColorChange(elementKey, event) {
         </Tooltip>
       </TooltipProvider>
       <ComparisonToggle
-        bind:showComparison={showComparison}
-        selectedLogo={selectedLogo}
+        bind:showComparison
+        {selectedLogo}
         class="h-[42px] w-16 px-4 py-2"
       />
     </div>

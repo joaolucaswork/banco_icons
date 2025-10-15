@@ -1,147 +1,147 @@
 <script>
-import { onMount } from "svelte";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  // CardTitle,
-} from "$lib/components/ui/card";
+  import { onMount } from "svelte";
+  import {
+    Card,
+    CardContent,
+    CardHeader,
+    // CardTitle,
+  } from "$lib/components/ui/card";
 
-// import CodeBlock from "$lib/components/CodeBlock.svelte";
-import PreviewControls from "$lib/components/PreviewControls.svelte";
-import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
-import BankCombobox from "$lib/components/BankCombobox.svelte";
-import InteractiveCanvas from "$lib/components/InteractiveCanvas.svelte";
-import GridView from "$lib/components/GridView.svelte";
-import { svgStore } from "$lib/stores/svg-store.svelte.js";
-import { viewModeStore } from "$lib/stores/view-mode-store.svelte.js";
-import {
-  getContrastBackground,
-  getDottedPatternColor,
-} from "$lib/utils/color-utils.js";
-import { Palette } from "lucide-svelte";
+  // import CodeBlock from "$lib/components/CodeBlock.svelte";
+  import PreviewControls from "$lib/components/PreviewControls.svelte";
+  import BrandingGuidelinesDialog from "$lib/components/BrandingGuidelinesDialog.svelte";
+  import BankCombobox from "$lib/components/BankCombobox.svelte";
+  import InteractiveCanvas from "$lib/components/InteractiveCanvas.svelte";
+  import GridView from "$lib/components/GridView.svelte";
+  import { svgStore } from "$lib/stores/svg-store.svelte.js";
+  import { viewModeStore } from "$lib/stores/view-mode-store.svelte.js";
+  import {
+    getContrastBackground,
+    getDottedPatternColor,
+  } from "$lib/utils/color-utils.js";
+  import { Palette } from "lucide-svelte";
 
-let sizeValue = $state([24]);
-// let showCode = $state(true);
+  let sizeValue = $state([24]);
+  // let showCode = $state(true);
 
-// View mode state from store
-let viewMode = $derived(viewModeStore.viewMode);
+  // View mode state from store
+  let viewMode = $derived(viewModeStore.viewMode);
 
-// Reactive values from store
-let storeData = $derived(svgStore.data);
-let previewSvg = $derived(svgStore.previewSvg);
-let formattedSvg = $derived(svgStore.formattedSvg);
+  // Reactive values from store
+  let storeData = $derived(svgStore.data);
+  let previewSvg = $derived(svgStore.previewSvg);
+  let formattedSvg = $derived(svgStore.formattedSvg);
 
-// Convert logos Map to array for GridView (Maps are not reactive in Svelte 5)
-// We need to access both loading and logos to ensure reactivity
-let logosArray = $derived.by(() => {
-  // Force reactivity by accessing both loading state and logos size
-  const loading = storeData.loading;
-  const size = storeData.logos.size;
-  const array = Array.from(storeData.logos.entries());
-  return array;
-});
+  // Convert logos Map to array for GridView (Maps are not reactive in Svelte 5)
+  // We need to access both loading and logos to ensure reactivity
+  let logosArray = $derived.by(() => {
+    // Force reactivity by accessing both loading state and logos size
+    const loading = storeData.loading;
+    const size = storeData.logos.size;
+    const array = Array.from(storeData.logos.entries());
+    return array;
+  });
 
-// Calculate background color for optimal contrast (first canvas - dynamic or manual)
-let previewBackground = $derived.by(() => {
-  const manualBg = svgStore.getCurrentBackgroundColor();
-  if (manualBg !== null) {
-    // Use manual background color when override is active
-    return manualBg;
-  }
-  // Use automatic contrast detection when no manual override
-  // Use the current color from store data, which should be properly updated when logo changes
-  return getContrastBackground(storeData.color);
-});
-
-// Calculate dot color for the dotted pattern (first canvas - dynamic or manual)
-let dotColor = $derived.by(() => {
-  const manualBg = svgStore.getCurrentBackgroundColor();
-  if (manualBg !== null) {
-    // Use dot color based on manual background
-    if (manualBg === "transparent") {
-      // For transparent background, always use light gray dots for visibility
-      return "#666666";
-    } else {
-      // For solid backgrounds (like white), use dots based on background color
-      return getDottedPatternColor(manualBg);
+  // Calculate background color for optimal contrast (first canvas - dynamic or manual)
+  let previewBackground = $derived.by(() => {
+    const manualBg = svgStore.getCurrentBackgroundColor();
+    if (manualBg !== null) {
+      // Use manual background color when override is active
+      return manualBg;
     }
+    // Use automatic contrast detection when no manual override
+    // Use the current color from store data, which should be properly updated when logo changes
+    return getContrastBackground(storeData.color);
+  });
+
+  // Calculate dot color for the dotted pattern (first canvas - dynamic or manual)
+  let dotColor = $derived.by(() => {
+    const manualBg = svgStore.getCurrentBackgroundColor();
+    if (manualBg !== null) {
+      // Use dot color based on manual background
+      if (manualBg === "transparent") {
+        // For transparent background, always use light gray dots for visibility
+        return "#666666";
+      } else {
+        // For solid backgrounds (like white), use dots based on background color
+        return getDottedPatternColor(manualBg);
+      }
+    }
+    // Use automatic dot color detection when no manual override
+    return getDottedPatternColor(storeData.color);
+  });
+
+  // Static background and dot colors for original canvas (second canvas - independent)
+  let originalPreviewBackground = $derived("transparent"); // Always transparent for original
+  let originalDotColor = $derived("#666666"); // Always light gray dots for original
+
+  // Update store when slider changes
+  $effect(() => {
+    svgStore.setSize(sizeValue[0]);
+  });
+
+  function handleColorChange(color) {
+    svgStore.setColor(color);
   }
-  // Use automatic dot color detection when no manual override
-  return getDottedPatternColor(storeData.color);
-});
 
-// Static background and dot colors for original canvas (second canvas - independent)
-let originalPreviewBackground = $derived("transparent"); // Always transparent for original
-let originalDotColor = $derived("#666666"); // Always light gray dots for original
-
-// Update store when slider changes
-$effect(() => {
-  svgStore.setSize(sizeValue[0]);
-});
-
-function handleColorChange(color) {
-  svgStore.setColor(color);
-}
-
-// Multi-color handlers
-function handleElementColorChange(elementKey, color) {
-  svgStore.setElementColor(elementKey, color);
-}
-
-function handleElementReset(elementKey) {
-  svgStore.resetElementColor(elementKey);
-}
-
-function handleLogoSelect(logoName) {
-  svgStore.selectLogo(logoName);
-}
-
-function handleReset() {
-  svgStore.reset();
-  sizeValue = [24];
-}
-
-function handleSizeChange(newValue) {
-  sizeValue = newValue;
-}
-
-function handleBackgroundToggle() {
-  svgStore.toggleBackground();
-}
-
-// Auto-select first logo when switching to single view mode
-$effect(() => {
-  // When switching to single view mode, if no logo is selected and logos are loaded
-  if (
-    viewMode === "single" &&
-    !storeData.selectedLogo &&
-    storeData.logos.size > 0 &&
-    !storeData.loading
-  ) {
-    const firstLogo = Array.from(storeData.logos.keys())[0];
-    svgStore.selectLogo(firstLogo);
+  // Multi-color handlers
+  function handleElementColorChange(elementKey, color) {
+    svgStore.setElementColor(elementKey, color);
   }
-});
 
-// Reset theme colors when switching to grid view mode
-$effect(() => {
-  if (viewMode === "grid") {
-    // Import and call resetThemeColors
-    import("$lib/utils/theme-colors.js").then(({ resetThemeColors }) => {
-      resetThemeColors();
-    });
+  function handleElementReset(elementKey) {
+    svgStore.resetElementColor(elementKey);
   }
-});
 
-onMount(() => {
-  // Store should auto-load, but ensure it's loaded
-  if (storeData.logos.size === 0 && !storeData.loading) {
-    // Auto-select first logo only if starting in single view mode
-    const autoSelect = viewMode === "single";
-    svgStore.loadAllLogos(autoSelect);
+  function handleLogoSelect(logoName) {
+    svgStore.selectLogo(logoName);
   }
-});
+
+  function handleReset() {
+    svgStore.reset();
+    sizeValue = [24];
+  }
+
+  function handleSizeChange(newValue) {
+    sizeValue = newValue;
+  }
+
+  function handleBackgroundToggle() {
+    svgStore.toggleBackground();
+  }
+
+  // Auto-select first logo when switching to single view mode
+  $effect(() => {
+    // When switching to single view mode, if no logo is selected and logos are loaded
+    if (
+      viewMode === "single" &&
+      !storeData.selectedLogo &&
+      storeData.logos.size > 0 &&
+      !storeData.loading
+    ) {
+      const firstLogo = Array.from(storeData.logos.keys())[0];
+      svgStore.selectLogo(firstLogo);
+    }
+  });
+
+  // Reset theme colors when switching to grid view mode
+  $effect(() => {
+    if (viewMode === "grid") {
+      // Import and call resetThemeColors
+      import("$lib/utils/theme-colors.js").then(({ resetThemeColors }) => {
+        resetThemeColors();
+      });
+    }
+  });
+
+  onMount(() => {
+    // Store should auto-load, but ensure it's loaded
+    if (storeData.logos.size === 0 && !storeData.loading) {
+      // Auto-select first logo only if starting in single view mode
+      const autoSelect = viewMode === "single";
+      svgStore.loadAllLogos(autoSelect);
+    }
+  });
 </script>
 
 <svelte:head>
@@ -178,7 +178,7 @@ onMount(() => {
               <!-- Preview Controls - Below combobox -->
               {#if storeData.selectedLogo}
                 <PreviewControls
-                  sizeValue={sizeValue}
+                  {sizeValue}
                   color={storeData.color}
                   onSizeChange={handleSizeChange}
                   onColorChange={handleColorChange}
@@ -235,17 +235,17 @@ onMount(() => {
             <!-- Interactive Canvas Preview -->
             <InteractiveCanvas
               svgContent={previewSvg}
-              previewBackground={previewBackground}
-              dotColor={dotColor}
-              originalPreviewBackground={originalPreviewBackground}
-              originalDotColor={originalDotColor}
+              {previewBackground}
+              {dotColor}
+              {originalPreviewBackground}
+              {originalDotColor}
               loading={storeData.loading}
               error={storeData.error}
               exportSize={storeData.size}
               exportColor={storeData.color}
               showComparison={storeData.showComparison}
               selectedLogo={storeData.selectedLogo}
-              formattedSvg={formattedSvg}
+              {formattedSvg}
               onReset={handleReset}
               onBackgroundToggle={handleBackgroundToggle}
               isManualBackgroundActive={storeData.manualBackgroundOverride}
@@ -272,7 +272,7 @@ onMount(() => {
           </div>
         {:else}
           <!-- Grid View Mode -->
-          <GridView logosArray={logosArray} loading={storeData.loading} />
+          <GridView {logosArray} loading={storeData.loading} />
         {/if}
       </CardContent>
     </Card>

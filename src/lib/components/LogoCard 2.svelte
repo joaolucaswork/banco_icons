@@ -8,12 +8,8 @@
     TooltipTrigger,
     TooltipProvider,
   } from "$lib/components/ui/tooltip";
-  import { Download, Palette, Copy } from "lucide-svelte";
-  import {
-    getBankDisplayName,
-    createWebflowOptimizedSvg,
-    copyToClipboard,
-  } from "$lib/utils/svg-utils.js";
+  import { Download, Palette } from "lucide-svelte";
+  import { getBankDisplayName } from "$lib/utils/svg-utils.js";
   import {
     hasMultipleColors,
     getMultiColorConfig,
@@ -57,9 +53,8 @@
 
   // Toolbar and button refs for animations
   let toolbarRef = $state();
-  let copyButtonRef = $state();
-  let paletteButtonRef = $state();
   let downloadButtonRef = $state();
+  let paletteButtonRef = $state();
 
   // Throttling for canvas rendering
   let rafId: number | null = null;
@@ -249,15 +244,15 @@
     }
   });
 
-  // Animate copy button with first stagger
+  // Animate button separately when it becomes available
   $effect(() => {
-    if (isHovered && copyButtonRef) {
+    if (isHovered && downloadButtonRef) {
       // Small delay to let toolbar animation start first
       setTimeout(() => {
         // Check if element still exists before animating
-        if (copyButtonRef) {
+        if (downloadButtonRef) {
           animate(
-            copyButtonRef,
+            downloadButtonRef,
             {
               opacity: [0, 1],
               y: [10, 0],
@@ -269,10 +264,10 @@
           );
         }
       }, 100);
-    } else if (!isHovered && copyButtonRef) {
+    } else if (!isHovered && downloadButtonRef) {
       // Animate button fading out (exit)
       animate(
-        copyButtonRef,
+        downloadButtonRef,
         {
           opacity: [1, 0],
           y: [0, 10],
@@ -285,10 +280,10 @@
     }
   });
 
-  // Animate palette button with second stagger
+  // Animate palette button with staggered delay
   $effect(() => {
     if (isHovered && paletteButtonRef) {
-      // Staggered delay after copy button (0.08s difference)
+      // Staggered delay after download button (0.08s difference)
       setTimeout(() => {
         // Check if element still exists before animating
         if (paletteButtonRef) {
@@ -309,42 +304,6 @@
       // Animate button fading out (exit)
       animate(
         paletteButtonRef,
-        {
-          opacity: [1, 0],
-          y: [0, 10],
-        },
-        {
-          duration: 0.2,
-          ease: [0.25, 0.46, 0.45, 0.94],
-        },
-      );
-    }
-  });
-
-  // Animate download button with third stagger
-  $effect(() => {
-    if (isHovered && downloadButtonRef) {
-      // Staggered delay after palette button (0.08s difference)
-      setTimeout(() => {
-        // Check if element still exists before animating
-        if (downloadButtonRef) {
-          animate(
-            downloadButtonRef,
-            {
-              opacity: [0, 1],
-              y: [10, 0],
-            },
-            {
-              duration: 0.25,
-              ease: [0.25, 0.46, 0.45, 0.94],
-            },
-          );
-        }
-      }, 260); // 100ms + 80ms + 80ms stagger
-    } else if (!isHovered && downloadButtonRef) {
-      // Animate button fading out (exit)
-      animate(
-        downloadButtonRef,
         {
           opacity: [1, 0],
           y: [0, 10],
@@ -419,74 +378,14 @@
     toast.success(`Cor do ${bankName} alterada!`);
   }
 
-  // Helper function to apply color modifications to SVG content
-  function applyColorModificationsToSvg(svgContent, color, logoName) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(svgContent, "image/svg+xml");
-    const svgElement = doc.querySelector("svg");
-
-    if (!svgElement) return svgContent;
-
-    // Set color on the SVG element
-    svgElement.style.color = color;
-
-    // Apply colors for multi-color logos
-    if (hasMultipleColors(logoName)) {
-      const config = getMultiColorConfig(logoName);
-      if (config) {
-        if (isOriginalColorsMode) {
-          // When original colors mode is active, apply both primary and secondary colors
-          const primaryColor = getPrimaryOriginalColor(logoName);
-          const secondaryColor = getSecondaryOriginalColor(logoName);
-
-          config.elements.forEach((element) => {
-            if (element.key === "bg" || element.key === "blue") {
-              // Apply primary color to background/main element
-              svgElement.style.setProperty(element.cssVar, primaryColor);
-            } else if (element.key === "text" || element.key === "orange") {
-              // Apply secondary color to text/secondary element
-              if (secondaryColor) {
-                svgElement.style.setProperty(element.cssVar, secondaryColor);
-                // Also set auto contrast var to the original color (not auto-calculated)
-                if (element.autoContrastVar) {
-                  svgElement.style.setProperty(
-                    element.autoContrastVar,
-                    secondaryColor,
-                  );
-                }
-              }
-            }
-          });
-        } else {
-          // Apply automatic contrast for single-color mode
-          config.elements.forEach((element) => {
-            if (element.autoContrastVar) {
-              const textColor = isDarkColor(color) ? "#ffffff" : "#000000";
-              svgElement.style.setProperty(element.autoContrastVar, textColor);
-            }
-          });
-        }
-      }
-    }
-
-    return new XMLSerializer().serializeToString(doc);
-  }
-
   // Handle PNG download
   async function handleDownloadPng() {
     if (!svgContent || !logoName) {
       return;
     }
 
-    // Apply color modifications to SVG before converting to PNG
-    const modifiedSvg = applyColorModificationsToSvg(
-      svgContent,
-      color,
-      logoName,
-    );
-
     const filename = `${logoName}-${size}px`;
-    const success = await downloadSvgAsPng(modifiedSvg, filename, size * 2);
+    const success = await downloadSvgAsPng(svgContent, filename, size * 2);
 
     if (success) {
       const bankName = getBankDisplayName(logoName);
@@ -512,32 +411,6 @@
       downloadPopoverOpen = false;
     } else {
       toast.error("Falha ao baixar SVG. Tente novamente.");
-    }
-  }
-
-  // Handle copy SVG to clipboard
-  async function handleCopySvg() {
-    if (!svgContent || !logoName) {
-      toast.error("Nenhum logo disponível para copiar.");
-      return;
-    }
-
-    // Apply color modifications to SVG before copying
-    const modifiedSvg = applyColorModificationsToSvg(
-      svgContent,
-      color,
-      logoName,
-    );
-
-    // Use Webflow-optimized SVG for better compatibility
-    const optimizedSvg = createWebflowOptimizedSvg(modifiedSvg);
-    const success = await copyToClipboard(optimizedSvg);
-
-    if (success) {
-      const bankName = getBankDisplayName(logoName);
-      toast.success(`${bankName} copiado!`);
-    } else {
-      toast.error("Falha ao copiar código SVG. Tente novamente.");
     }
   }
 </script>
@@ -618,30 +491,6 @@
         aria-label="Ações do logo"
         tabindex="-1"
       >
-        <!-- Copy Button Wrapper for Animation -->
-        <div bind:this={copyButtonRef} style="opacity: 0;">
-          <TooltipProvider delayDuration={400}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                {#snippet child({ props })}
-                  <Button
-                    {...props}
-                    variant="secondary"
-                    size="icon"
-                    class="h-9 w-9 bg-white/90 text-black hover:bg-white"
-                    onclick={handleCopySvg}
-                  >
-                    <Copy class="h-4 w-4" />
-                  </Button>
-                {/snippet}
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                <p>Copiar SVG</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-
         <!-- Palette Button Wrapper for Animation -->
         <div bind:this={paletteButtonRef} style="opacity: 0;">
           <!-- Color Picker Button with Popover -->

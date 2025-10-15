@@ -26,11 +26,16 @@ import { hexToRgb, calculateLuminance } from "../utils/color-utils.js";
 const DEFAULT_SIZE = 24;
 const DEFAULT_COLOR = "#ffffff";
 
+// RAF throttling variables
+let pendingSize = null;
+let rafId = null;
+
 // Create reactive state
 let svgData = $state({
   logos: new Map(),
   selectedLogo: null,
   size: DEFAULT_SIZE,
+  actualSize: DEFAULT_SIZE, // The size that's actually applied to SVG rendering (RAF throttled)
   color: DEFAULT_COLOR,
   loading: false,
   error: null,
@@ -76,7 +81,7 @@ let previewSvg = $derived.by(() => {
   return applySvgModifications(svgContent, 120, svgData.color);
 });
 
-// Export SVG - uses the actual size value from slider
+// Export SVG - uses the actual size value from slider (with RAF throttling)
 let modifiedSvg = $derived.by(() => {
   if (!svgData.selectedLogo || !svgData.logos.has(svgData.selectedLogo)) {
     return null;
@@ -91,19 +96,19 @@ let modifiedSvg = $derived.by(() => {
       svgData.colorMap,
       svgData.selectedLogo,
     );
-    // Apply size
+    // Apply size using actualSize (RAF throttled)
     const parser = new DOMParser();
     const doc = parser.parseFromString(modifiedSvg, "image/svg+xml");
     const svgElement = doc.querySelector("svg");
     if (svgElement) {
-      svgElement.setAttribute("width", svgData.size.toString());
-      svgElement.setAttribute("height", svgData.size.toString());
+      svgElement.setAttribute("width", svgData.actualSize.toString());
+      svgElement.setAttribute("height", svgData.actualSize.toString());
       modifiedSvg = new XMLSerializer().serializeToString(doc);
     }
     return modifiedSvg;
   }
 
-  return applySvgModifications(svgContent, svgData.size, svgData.color);
+  return applySvgModifications(svgContent, svgData.actualSize, svgData.color);
 });
 
 let formattedSvg = $derived.by(() => {
@@ -199,10 +204,25 @@ export const svgStore = {
     }
   },
 
-  // Update size
+  // Update size with RAF throttling to prevent flickering
   setSize(newSize) {
     const size = Math.max(24, Math.min(256, Number(newSize)));
-    svgData.size = size;
+    svgData.size = size; // Update the reactive size immediately for UI responsiveness
+    pendingSize = size; // Store the pending size for RAF processing
+
+    // Cancel any existing RAF
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+    }
+
+    // Schedule the actual size update using RAF for smooth rendering
+    rafId = requestAnimationFrame(() => {
+      if (pendingSize !== null) {
+        svgData.actualSize = pendingSize;
+        pendingSize = null;
+      }
+      rafId = null;
+    });
   },
 
   // Update color
@@ -213,6 +233,7 @@ export const svgStore = {
   // Reset to defaults
   reset() {
     svgData.size = DEFAULT_SIZE;
+    svgData.actualSize = DEFAULT_SIZE; // Also reset the RAF throttled size
 
     // Reset colors to original colors
     if (svgData.selectedLogo) {

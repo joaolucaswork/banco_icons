@@ -25,14 +25,12 @@
 
   // Animation refs
   let buttonRef = $state();
-  let tabBarRef = $state();
 
   // Track if animation has already played
   let hasAnimated = $state(false);
 
   // Color picker ref
   let colorPickerRef = $state();
-  let paintIconRef = $state();
   let selectedColor = $state(currentColor);
 
   // Sync selectedColor with currentColor when it changes
@@ -81,48 +79,6 @@
     // Update in real-time
     onColorChange(selectedColor);
   }
-
-  // Animate tab bar and paint icon entrance when items are selected
-  $effect(() => {
-    if (selectedCount > 0 && tabBarRef && paintIconRef && !hasAnimated) {
-      // First animate the tab bar sliding up from bottom
-      animate(
-        tabBarRef,
-        {
-          y: [50, 0],
-          opacity: [0, 1],
-          scale: [0.9, 1],
-        },
-        {
-          duration: 0.4,
-          ease: "easeOut",
-        },
-      );
-
-      // Then animate the paint icon with a morphing entrance effect
-      setTimeout(() => {
-        if (paintIconRef) {
-          animate(
-            paintIconRef,
-            {
-              scale: [0.3, 0.6, 1.1, 1],
-              opacity: [0, 0.5, 1],
-              rotate: [180, 90, 0],
-              borderRadius: ["50%", "12px", "8px"],
-            },
-            {
-              duration: 0.6,
-              ease: "easeOut",
-            },
-          );
-        }
-      }, 200); // Delay paint icon animation slightly
-
-      hasAnimated = true;
-    } else if (selectedCount === 0) {
-      hasAnimated = false;
-    }
-  });
 </script>
 
 {#if selectedCount > 0}
@@ -132,7 +88,6 @@
     {...restProps}
   >
     <div
-      bind:this={tabBarRef}
       class="flex items-center gap-2 rounded-[12px] border border-white/10 bg-[#1a1a1a] px-3 py-2 shadow-2xl"
     >
       <!-- Hidden native color picker -->
@@ -172,7 +127,6 @@
           <TooltipTrigger asChild>
             {#snippet child({ props })}
               <Button
-                bind:this={paintIconRef}
                 {...props}
                 size="lg"
                 onclick={openColorPicker}
